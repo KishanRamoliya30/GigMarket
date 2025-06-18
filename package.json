@@ -9,6 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@react-email/components": "^0.1.0",
+    "@react-email/render": "^1.1.2",
+    "nodemailer": "^7.0.3",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^7.1.1",
@@ -21,6 +24,7 @@
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/nodemailer": "^6.4.17",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
