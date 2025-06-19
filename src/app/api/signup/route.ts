@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcryptjs from "bcryptjs";
 import User from "../../models/user";
 import dbConnect from "@/app/lib/dbConnect";
+import { generateToken } from "@/app/utils/jwt";
 
 interface SignupRequestBody {
   email: string;
@@ -13,6 +14,7 @@ interface SignupResponseSuccess {
   message: string;
   success: boolean;
   savedUser: unknown;
+  token: string;
 }
 
 interface SignupResponseError {
@@ -30,7 +32,7 @@ export async function POST(request: Request): Promise<Response> {
     const reqBody: SignupRequestBody = await request.json();
     const { email, password, termsAccepted } = reqBody;
 
-    // Terms check only
+    // Check if terms are accepted
     if (!termsAccepted) {
       return NextResponse.json<SignupResponseError>(
         { error: "You must accept the Terms of Service." },
@@ -38,7 +40,7 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
 
-    // Check if user exists
+    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return NextResponse.json<SignupResponseError>(
@@ -47,10 +49,11 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
 
-    // Hash password
+    // Hash the password
     const salt = await bcryptjs.genSalt(10);
     const hashedPassword = await bcryptjs.hash(password, salt);
 
+    // Create and save new user
     const newUser = new User({
       email,
       password: hashedPassword,
@@ -61,12 +64,20 @@ export async function POST(request: Request): Promise<Response> {
 
     const savedUser = await newUser.save();
 
+    // Generate JWT token
+    const token = generateToken({
+      userId: savedUser._id,
+      email: savedUser.email,
+    });
+
+    // Send verification email
     await sendEmailVerification(email);
 
     return NextResponse.json<SignupResponseSuccess>({
       message: "User created successfully. Verification email sent.",
       success: true,
       savedUser,
+      token,
     });
   } catch (error: unknown) {
     let errorMessage = "An unexpected error occurred.";
