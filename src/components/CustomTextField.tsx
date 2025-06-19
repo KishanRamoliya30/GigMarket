@@ -1,11 +1,18 @@
-import { TextField, TextFieldProps, Typography } from '@mui/material';
+import {
+  TextField,
+  TextFieldProps,
+  Typography,
+  InputAdornment,
+  IconButton,
+} from "@mui/material";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import { useState } from "react";
 
 type CustomTextFieldProps = TextFieldProps & {
-  name: string;
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  type?: string;
-  errorText?:string
+  name?: string;
+  errorText?: string;
+  isPassword?: boolean;
 };
 
 export default function CustomTextField({
@@ -13,56 +20,88 @@ export default function CustomTextField({
   label,
   value,
   onChange,
-  errorText="",
-  type = 'text',
- 
+  errorText = "",
+  type = "text",
+  isPassword = false,
   ...rest
 }: CustomTextFieldProps) {
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handleToggleVisibility = () => {
+    setShowPassword((prev) => !prev);
+  };
+
   return (
     <>
-      <Typography
-        sx={{
-          fontWeight: 600,
-          fontSize: '16px',
-          marginBottom: '6px',
-          fontColor:"#222325"
-        }}
-      >
-        {label}
-      </Typography>
+      {label && (
+        <Typography
+          sx={{
+            fontWeight: 600,
+            fontSize: "16px",
+            marginBottom: "6px",
+            color: "#404145",
+          }}
+        >
+          {label}
+        </Typography>
+      )}
 
       <TextField
         name={name}
-        type={type}
+        type={isPassword ? (showPassword ? "text" : "password") : type}
         fullWidth
         required
         value={value}
         onChange={onChange}
         variant="outlined"
         autoComplete="off"
-        sx={{
-          '& .MuiOutlinedInput-root': {
-            borderRadius: '8px',
-            '& fieldset': {
-              borderColor: '#ccc', 
-            },
-            '&:hover fieldset': {
-              borderColor: '#aaa', 
-            },
-            '&.Mui-focused fieldset': {
-              borderColor: 'black',
-              borderWidth: '1.5px',
-            },
-          },
+        InputProps={{
+          endAdornment: isPassword && (
+            <InputAdornment position="end" sx={{ pr: 1 }}>
+              <IconButton
+                onClick={handleToggleVisibility}
+                edge="end"
+                size="small"
+                sx={{
+                  padding: 0,
+                  color: "#6a6a6a",
+                }}
+              >
+                {showPassword ? <VisibilityOff /> : <Visibility />}
+              </IconButton>
+            </InputAdornment>
+          ),
         }}
-        {...rest}
-        slotProps={{
-          input: {
-            autoComplete: 'new-password',
+        sx={{
+          backgroundColor: "#fff",
+          borderRadius: "8px",
+          "& .MuiOutlinedInput-root": {
+            borderRadius: "8px",
+            paddingRight: 0,
+            fontSize: "14px",
+            "& input": {
+              padding: "12px",
+              paddingRight: isPassword ? "36px" : "12px",
+            },
+            "& fieldset": {
+              borderColor: "#dadbdd",
+              borderWidth: "1px",
+            },
+            "&:hover fieldset": {
+              borderColor: "#b5b6ba",
+            },
+            "&.Mui-focused fieldset": {
+              borderColor: "#222325",
+              borderWidth: "2px",
+            },
+            "&MuiInputAdornment-root": {
+              marginRight: "12px",
+            },
           },
         }}
         helperText={errorText}
-        error={errorText!=""}
+        error={!!errorText}
+        {...rest}
       />
     </>
   );
