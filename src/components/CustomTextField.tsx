@@ -23,6 +23,7 @@ export default function CustomTextField({
   errorText = "",
   type = "text",
   isPassword = false,
+  sx,
   ...rest
 }: CustomTextFieldProps) {
   const [showPassword, setShowPassword] = useState(false);
@@ -98,6 +99,7 @@ export default function CustomTextField({
               marginRight: "12px",
             },
           },
+          ...sx
         }}
         helperText={errorText}
         error={!!errorText}
