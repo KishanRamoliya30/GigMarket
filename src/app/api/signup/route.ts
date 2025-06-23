@@ -14,7 +14,6 @@ interface SignupResponseSuccess {
   message: string;
   success: boolean;
   savedUser: unknown;
-  token: string;
 }
 
 interface SignupResponseError {
@@ -73,12 +72,22 @@ export async function POST(request: Request): Promise<Response> {
     // Send verification email
     await sendEmailVerification(email);
 
-    return NextResponse.json<SignupResponseSuccess>({
+    const response = NextResponse.json<SignupResponseSuccess>({
       message: "User created successfully. Verification email sent.",
       success: true,
       savedUser,
-      token,
     });
+  
+    response.cookies.set({
+      name: 'token',
+      value: token,
+      httpOnly: true,
+      secure: false,
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 60 * 60 ,
+    });
+    return response;
   } catch (error: unknown) {
     let errorMessage = "An unexpected error occurred.";
     if (error instanceof Error) {
