@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-const PUBLIC_PATHS = ['/login', '/signup','/admin/login','/api/login','/api/signup'];
+const PUBLIC_PATHS = ['/login', '/signup','/admin/login','/api/login','/api/signup','/api/admin/login','/api/terms'];
 
 
 export function middleware(request: NextRequest) {
@@ -13,7 +13,6 @@ export function middleware(request: NextRequest) {
     }
     return NextResponse.next();
   }  
-
   if (!token) {
 
     if (pathname.startsWith('/api')) {
@@ -22,6 +21,8 @@ export function middleware(request: NextRequest) {
 
     return NextResponse.redirect(new URL('/login', request.url));
   }
+
+  //need to verify token here
   return NextResponse.next();
 }
 

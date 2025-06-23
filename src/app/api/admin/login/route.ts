@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import bcryptjs from "bcryptjs";
 import dbConnect from "@/app/lib/dbConnect";
 import User from "@/app/models/user";
+import { generateToken } from "@/app/utils/jwt";
 interface LoginRequestBody {
   email: string;
   password: string;
@@ -56,7 +57,11 @@ export async function POST(request: NextRequest): Promise<Response> {
       );
     }
 
-    return NextResponse.json<LoginResponse>({
+    const token = generateToken({
+      userId: user._id,
+      email: user.email,
+    });
+    const response = NextResponse.json<LoginResponse>({
       message: "Admin login successful.",
       success: true,
       user: {
@@ -65,6 +70,16 @@ export async function POST(request: NextRequest): Promise<Response> {
         email: user.email,
       },
     });
+    response.cookies.set({
+      name: 'token',
+      value: token,
+      httpOnly: true,
+      secure: false,
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 60 * 60 ,
+    });
+    return response;
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Something went wrong.";

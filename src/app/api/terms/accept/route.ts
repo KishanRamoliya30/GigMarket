@@ -1,14 +1,14 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/app/lib/dbConnect";
 import User from "@/app/models/user";
+import { verifyToken } from "@/app/utils/jwt";
 
-export async function PATCH(request: Request) {
+export async function PATCH(request: NextRequest) {
   try {
     await dbConnect();
-    const { userId } = await request.json();
-
+    const userId  = await verifyToken(request)
     if (!userId) {
-      return NextResponse.json({ error: "Missing userId" }, { status: 400 });
+      return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
     }
 
     const updatedUser = await User.findByIdAndUpdate(
@@ -28,7 +28,7 @@ export async function PATCH(request: Request) {
     });
   } catch (error: any) {
     return NextResponse.json(
-      { error: error.message || "Something went wrong" },
+      { error: error.message ?? "Something went wrong" },
       { status: 500 }
     );
   }

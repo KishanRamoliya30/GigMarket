@@ -108,11 +108,11 @@ const Login = () => {
             disabled={!formik.isValid || !formik.dirty || isSubmitting}
           />
           <Box mt={3} display="flex" justifyContent="center">
-            <Typography>
               Don't have an account?
-              <Link href="/signup" >
+              <Link href="/signup">
                 <Typography
-                  component="a"
+                  component={'span'} 
+                  variant={'body2'}
                   sx={{
                     fontWeight: 600,
                     color: "#222325",
@@ -123,7 +123,6 @@ const Login = () => {
                   Sign Up
                 </Typography>
               </Link>
-            </Typography>
           </Box>
         </Box>
       </Grid>
