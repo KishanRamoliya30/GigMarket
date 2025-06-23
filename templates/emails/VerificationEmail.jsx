@@ -1,6 +1,6 @@
 import { Body, Button, Container, Head, Html, Preview, Section, Text, Hr } from '@react-email/components';
 
-export const VerificationEmail = ({ name, verificationUrl }) => {
+export const VerificationEmail = ({ verificationUrl }) => {
   return (
     <Html>
       <Head />
@@ -12,7 +12,7 @@ export const VerificationEmail = ({ name, verificationUrl }) => {
           </Section>
           <Hr style={divider} />
           <Section style={content}>
-            <Text style={greeting}>Hi {name},</Text>
+            <Text style={greeting}>Hello</Text>
             <Text style={paragraph}>
               Thanks for signing up! Please verify your email address by clicking the button below:
             </Text>
