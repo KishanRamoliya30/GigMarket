@@ -3,6 +3,7 @@ import bcryptjs from "bcryptjs";
 import dbConnect from "@/app/lib/dbConnect";
 import User from "../../models/user"; 
 import { generateToken } from "@/app/utils/jwt";
+import Terms from "@/app/models/terms";
 interface LoginRequestBody {
   email: string;
   password: string;
@@ -14,6 +15,7 @@ interface LoginResponseSuccess {
   user: {
     id: string;
     email: string;
+    needToAcceptTerms: boolean;
   };
 }
 
@@ -35,7 +37,7 @@ export async function POST(request: NextRequest): Promise<Response> {
     }
 
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email })
     if (!user) {
       return NextResponse.json<LoginResponseError>(
         { error: "Invalid credentials. Please try again." },
@@ -52,20 +54,28 @@ export async function POST(request: NextRequest): Promise<Response> {
       );
     }
  
-    const getUserObject = () => {
-      const { _id, password, ...newUser } = user;
-      return newUser;
-    }
-
     const token = generateToken({
       userId: user._id,
       email: user.email,
     });
 
+    
+    const terms = await Terms.findOne({});
+
+    const userAcceptedAt = user.termsAcceptedAt ?? Date.now();
+    const termsUpdatedAt = terms?.updatedAt ?? userAcceptedAt;
+
+    const needToAcceptTerms =
+      userAcceptedAt && new Date(userAcceptedAt) < new Date(termsUpdatedAt);
+
     const response = NextResponse.json<LoginResponseSuccess>({
       message: "Login successful.",
       success: true,
-      user: getUserObject(),
+      user: {
+        id: user._id,
+        email: user.email,
+        needToAcceptTerms: needToAcceptTerms
+      },
     });
     response.cookies.set({
       name: 'token',

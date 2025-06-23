@@ -18,5 +18,5 @@ export function verifyToken(req:NextRequest) {
   } catch {
     return ""
   }
-  return decoded.id;
+  return decoded.userId;
 }
