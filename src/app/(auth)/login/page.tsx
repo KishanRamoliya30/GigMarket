@@ -7,6 +7,8 @@ import { Box, Typography, Grid } from "@mui/material";
 import CustomTextField from "@/components/CustomTextField";
 import CustomButton from "@/components/CustomButton";
 import Link from "next/link";
+import { apiRequest } from "@/app/lib/apiCall";
+
 const validationSchema = Yup.object({
   email: Yup.string()
     .email("Invalid email format")
@@ -24,25 +26,18 @@ const Login = () => {
     },
     validationSchema,
     onSubmit: async (values, { setSubmitting, setFieldError }) => {
-      try {
-        const res = await fetch("/api/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(values),
-        });
-
-        const data = await res.json();
-
-        if (res.ok) {
-          router.push("/subscription");
-        } else {
-          setFieldError("password", data.error || "Invalid credentials");
-        }
-      } catch {
-        setFieldError("password", "Something went wrong. Please try again.");
-      } finally {
-        setSubmitting(false);
+      const res = await apiRequest("login", {
+        method: "POST",
+        body: JSON.stringify(values),
+      });
+      
+      if (res.ok && res.data) {
+        router.push("/subscription");
+      } else {
+        setFieldError("password", res.error ?? "Invalid credentials");
       }
+      
+      setSubmitting(false);
     },
   });
 
