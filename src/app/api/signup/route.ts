@@ -59,6 +59,7 @@ export async function POST(request: Request): Promise<Response> {
       termsAccepted,
       subscriptionCompleted: false,
       profileCompleted: false,
+      termsAcceptedAt: new Date(),
     });
 
     const savedUser = await newUser.save();

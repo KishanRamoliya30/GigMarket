@@ -14,6 +14,10 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     required: [true, "You must accept the Terms of Service"],
   },
+  termsAcceptedAt: {
+    type: Date,
+    default: null,
+  },
   subscriptionCompleted: {
     type: Boolean,
     default: false,
@@ -26,6 +30,10 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  isAdmin: {
+    type: Boolean,
+    default: false
+  }
 });
 
 const User = mongoose.models.users || mongoose.model("users", userSchema);
