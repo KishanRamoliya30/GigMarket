@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import bcryptjs from "bcryptjs";
 import dbConnect from "@/app/lib/dbConnect";
 import User from "../../models/user"; 
-
+import { generateToken } from "@/app/utils/jwt";
 interface LoginRequestBody {
   email: string;
   password: string;
@@ -11,6 +11,10 @@ interface LoginRequestBody {
 interface LoginResponseSuccess {
   message: string;
   success: boolean;
+  user: {
+    id: string;
+    email: string;
+  };
 }
 
 interface LoginResponseError {
@@ -47,11 +51,32 @@ export async function POST(request: NextRequest): Promise<Response> {
         { status: 401 }
       );
     }
+ 
+    const getUserObject = () => {
+      const { _id, password, ...newUser } = user;
+      return newUser;
+    }
 
-    return NextResponse.json<LoginResponseSuccess>({
+    const token = generateToken({
+      userId: user._id,
+      email: user.email,
+    });
+
+    const response = NextResponse.json<LoginResponseSuccess>({
       message: "Login successful.",
       success: true,
+      user: getUserObject(),
     });
+    response.cookies.set({
+      name: 'token',
+      value: token,
+      httpOnly: true,
+      secure: false,
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 60 * 60 ,
+    });
+    return response;
   } catch (error: unknown) {
     let errorMessage = "An unexpected error occurred.";
     if (error instanceof Error) {

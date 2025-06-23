@@ -6,7 +6,7 @@ import * as Yup from "yup";
 import { Box, Typography, Grid } from "@mui/material";
 import CustomTextField from "@/components/CustomTextField";
 import CustomButton from "@/components/CustomButton";
-
+import Link from "next/link";
 const validationSchema = Yup.object({
   email: Yup.string()
     .email("Invalid email format")
@@ -94,7 +94,13 @@ const Login = () => {
               touched.password && errors.password ? errors.password : ""
             }
           />
-          <Typography display={"flex"} justifyContent={"end"} mt={1} mb={4} sx={{textDecoration:"underline"}}>
+          <Typography
+            display={"flex"}
+            justifyContent={"end"}
+            mt={1}
+            mb={4}
+            sx={{ textDecoration: "underline" }}
+          >
             Forgot Password ?
           </Typography>
 
@@ -106,6 +112,24 @@ const Login = () => {
             type="submit"
             disabled={!formik.isValid || !formik.dirty || isSubmitting}
           />
+          <Box mt={3} display="flex" justifyContent="center">
+            <Typography>
+              Don't have an account?
+              <Link href="/signup" >
+                <Typography
+                  component="a"
+                  sx={{
+                    fontWeight: 600,
+                    color: "#222325",
+                    fontSize: "16px",
+                    textDecoration: "underline"
+                  }}
+                >
+                  Sign Up
+                </Typography>
+              </Link>
+            </Typography>
+          </Box>
         </Box>
       </Grid>
     </Grid>
