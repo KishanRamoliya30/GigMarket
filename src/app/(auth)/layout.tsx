@@ -32,7 +32,7 @@ const Wrapper = styled(Box)(({ theme }) => ({
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    padding: "2rem",
+    // padding: "2rem",
     flexDirection:"column"
   },
 

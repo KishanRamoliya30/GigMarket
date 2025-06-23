@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import bcryptjs from "bcryptjs";
 import User from "../../models/user";
 import dbConnect from "@/app/lib/dbConnect";
-import { generateToken } from "@/app/utils/jwt";
+import { generateToken } from "../../utils/jwt";
 
 interface SignupRequestBody {
   email: string;
