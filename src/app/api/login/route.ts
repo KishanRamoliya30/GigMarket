@@ -15,8 +15,9 @@ interface LoginResponseSuccess {
   user: {
     id: string;
     email: string;
-    needToAcceptTerms: boolean;
   };
+  needToAcceptTerms: boolean;
+  terms: string
 }
 
 interface LoginResponseError {
@@ -38,7 +39,7 @@ export async function POST(request: NextRequest): Promise<Response> {
 
 
     const user = await User.findOne({ email })
-    if (!user) {
+    if (!user || user.isAdmin) {
       return NextResponse.json<LoginResponseError>(
         { error: "Invalid credentials. Please try again." },
         { status: 401 }
@@ -54,39 +55,57 @@ export async function POST(request: NextRequest): Promise<Response> {
       );
     }
  
-    const token = generateToken({
-      userId: user._id,
-      email: user.email,
-    });
-
-    
+      
     const terms = await Terms.findOne({});
 
-    const userAcceptedAt = user.termsAcceptedAt ?? Date.now();
-    const termsUpdatedAt = terms?.updatedAt ?? userAcceptedAt;
+    const userAcceptedAt = user.termsAcceptedAt ;
+    const termsUpdatedAt = terms?.updatedAt;
+    let needToAcceptTerms = true;
+    if(userAcceptedAt && termsUpdatedAt){
+      needToAcceptTerms = new Date(userAcceptedAt) < new Date(termsUpdatedAt);
+    } 
 
-    const needToAcceptTerms =
-      userAcceptedAt && new Date(userAcceptedAt) < new Date(termsUpdatedAt);
-
-    const response = NextResponse.json<LoginResponseSuccess>({
-      message: "Login successful.",
-      success: true,
-      user: {
-        id: user._id,
+    if(needToAcceptTerms){
+      return NextResponse.json<LoginResponseSuccess>({
+        message: "Please Accept terms",
+        success: true,
+        user: {
+          id: user._id,
+          email: user.email
+        },
+        needToAcceptTerms: true,
+        terms:terms.content
+      });
+    }
+    else{
+      const token = generateToken({
+        userId: user._id,
         email: user.email,
-        needToAcceptTerms: needToAcceptTerms
-      },
-    });
-    response.cookies.set({
-      name: 'token',
-      value: token,
-      httpOnly: true,
-      secure: false,
-      sameSite: 'strict',
-      path: '/',
-      maxAge: 60 * 60 ,
-    });
-    return response;
+        isAdmin: false
+      });
+  
+      const response = NextResponse.json<LoginResponseSuccess>({
+        message: "Login successful.",
+        success: true,
+        user: {
+          id: user._id,
+          email: user.email,
+        },
+        needToAcceptTerms: needToAcceptTerms,
+        terms: needToAcceptTerms?terms.content:""
+      });
+      
+      response.cookies.set({
+        name: 'token',
+        value: token,
+        httpOnly: true,
+        secure: false,
+        sameSite: 'strict',
+        path: '/',
+        maxAge: 60 * 60 ,
+      });
+      return response;
+    }
   } catch (error: unknown) {
     let errorMessage = "An unexpected error occurred.";
     if (error instanceof Error) {
