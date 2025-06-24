@@ -69,6 +69,7 @@ export async function POST(request: Request): Promise<Response> {
     const token = generateToken({
       userId: savedUser._id,
       email: savedUser.email,
+      isAdmin: false
     });
 
     // Send verification email

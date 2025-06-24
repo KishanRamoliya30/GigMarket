@@ -36,13 +36,13 @@ export default function TermsAndServicesPage() {
     const html = editorRef.current?.getContent();
     const res = await apiRequest("admin/terms", {
       method: "POST",
-      body: JSON.stringify({ htmlContent: html }),
+      data: { htmlContent: html },
     });
 
     if (res.ok) {
       alert("Terms saved successfully.");
     } else {
-      alert(res.error || "Failed to save.");
+      alert(res.error ?? "Failed to save.");
     }
   };
 
