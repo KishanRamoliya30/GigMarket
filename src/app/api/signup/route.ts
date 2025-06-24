@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import bcryptjs from "bcryptjs";
 import User from "../../models/user";
 import dbConnect from "@/app/lib/dbConnect";
-import { generateToken } from "../../utils/jwt";
+import { generateToken } from "@/app/utils/jwt";
+import { sendVerificationEmail } from "../../../../utils/emailService";
 
 interface SignupRequestBody {
   email: string;
@@ -68,9 +69,20 @@ export async function POST(request: Request): Promise<Response> {
     const token = generateToken({
       userId: savedUser._id,
       email: savedUser.email,
+      isAdmin: false
     });
 
     // Send verification email
+
+    try {
+      await sendVerificationEmail(email, token);
+    } catch (error) {
+      console.log("Failed to send verification email error", error)
+      return NextResponse.json<SignupResponseError>(
+        { error: "Failed to send verification email" },
+        { status: 500 }
+      );
+    }
     await sendEmailVerification(email);
 
     const response = NextResponse.json<SignupResponseSuccess>({

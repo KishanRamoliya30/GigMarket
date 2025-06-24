@@ -8,6 +8,8 @@ import CustomTextField from "@/components/customUi/CustomTextField";
 import CustomButton from "@/components/customUi/CustomButton";
 import Link from "next/link";
 import { apiRequest } from "@/app/lib/apiCall";
+import TermsPopup from "@/components/TermsPopup";
+import { useState } from "react";
 
 const validationSchema = Yup.object({
   email: Yup.string()
@@ -18,7 +20,9 @@ const validationSchema = Yup.object({
 
 const Login = () => {
   const router = useRouter();
-
+  const [showTerms, setShowTerms] = useState(false);
+  const [terms, setTerms] = useState("");
+  const [userId, setUserId] = useState("");
   const formik = useFormik({
     initialValues: {
       email: "",
@@ -28,18 +32,41 @@ const Login = () => {
     onSubmit: async (values, { setSubmitting, setFieldError }) => {
       const res = await apiRequest("login", {
         method: "POST",
-        body: JSON.stringify(values),
+        data: values,
       });
-      
+
       if (res.ok && res.data) {
-        router.push("/subscription");
+        if (res.data.needToAcceptTerms) {
+          setUserId(res.data.user.id);
+          setTerms(res.data.terms);
+          setShowTerms(true);
+        } else {
+          redirectAfterLogin();
+        }
       } else {
         setFieldError("password", res.error ?? "Invalid credentials");
       }
-      
+
       setSubmitting(false);
     },
   });
+
+  const redirectAfterLogin = () => {
+    router.push("/subscription");
+  };
+
+  const acceptTerms = async () => {
+    const res = await apiRequest("terms/accept", {
+      method: "PATCH",
+      data: {
+        userId: userId,
+      },
+    });
+
+    if (res.ok && res.data) {
+      redirectAfterLogin();
+    }
+  };
 
   const {
     values,
@@ -53,6 +80,14 @@ const Login = () => {
 
   return (
     <Grid container sx={{ minHeight: "100vh" }}>
+      <TermsPopup
+        open={showTerms}
+        onClose={() => {
+          setShowTerms(false);
+        }}
+        termsHtml={terms}
+        onAgree={acceptTerms}
+      />
       <Grid
         size={{ xs: 12 }}
         sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
@@ -108,21 +143,21 @@ const Login = () => {
             disabled={!formik.isValid || !formik.dirty || isSubmitting}
           />
           <Box mt={3} display="flex" justifyContent="center">
-              Don't have an account?
-              <Link href="/signup">
-                <Typography
-                  component={'span'} 
-                  variant={'body2'}
-                  sx={{
-                    fontWeight: 600,
-                    color: "#222325",
-                    fontSize: "16px",
-                    textDecoration: "underline"
-                  }}
-                >
-                  Sign Up
-                </Typography>
-              </Link>
+            Don't have an account?
+            <Link href="/signup">
+              <Typography
+                component={"span"}
+                variant={"body2"}
+                sx={{
+                  fontWeight: 600,
+                  color: "#222325",
+                  fontSize: "16px",
+                  textDecoration: "underline",
+                }}
+              >
+                Sign Up
+              </Typography>
+            </Link>
           </Box>
         </Box>
       </Grid>

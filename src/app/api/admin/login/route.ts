@@ -60,6 +60,7 @@ export async function POST(request: NextRequest): Promise<Response> {
     const token = generateToken({
       userId: user._id,
       email: user.email,
+      isAdmin: true
     });
     const response = NextResponse.json<LoginResponse>({
       message: "Admin login successful.",
@@ -69,6 +70,15 @@ export async function POST(request: NextRequest): Promise<Response> {
         name: user.name,
         email: user.email,
       },
+    });
+    response.cookies.set({
+      name: 'role',
+      value: 'Main',
+      httpOnly: true,
+      secure: false,
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 60 * 60 ,
     });
     response.cookies.set({
       name: 'token',

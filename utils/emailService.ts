@@ -13,16 +13,12 @@ export const transport = nodemailer.createTransport({
     },
 } as SMTPTransport.Options)
 
-type VerificationEmailType = {
-    email : string;
-    name: string;
-    token: string;
-}
-
-export async function sendVerificationEmail({email, name, token}: VerificationEmailType) {
+export async function sendVerificationEmail(
+  email: string,
+  token: string
+) {
   const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${token}`;
-  const emailHtml = await render(VerificationEmail({ name, verificationUrl }));
-
+  const emailHtml = await render(VerificationEmail({ verificationUrl }));
   try {
     const info = await transport.sendMail({
       from: process.env.EMAIL_FROM,
