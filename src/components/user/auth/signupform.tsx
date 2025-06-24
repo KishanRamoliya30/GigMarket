@@ -41,13 +41,13 @@ const SignupForm = () => {
     onSubmit: async (values, { setSubmitting, resetForm, setFieldError }) => {
       const response = await apiRequest("signup", {
         method: "POST",
-        body: JSON.stringify({
+        data: {
           email: values.email,
           password: values.password,
           termsAccepted: values.terms,
           subscriptionCompleted: false,
           profileCompleted: false,
-        }),
+        },
       });
       if (response.ok && response.data) {
         router.push("/subscription");
@@ -79,7 +79,7 @@ const SignupForm = () => {
   return (
     <Grid container sx={{ minHeight: "100vh" }}>
       <Grid
-      size={{ xs: 12 }}
+        size={{ xs: 12 }}
         sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
       >
         <Box width="100%" p={3} component="form" onSubmit={handleSubmit}>
@@ -92,20 +92,20 @@ const SignupForm = () => {
           </Typography>
           <Typography variant="body1" sx={{ mb: 4, fontSize: "16px" }}>
             Already have an account?&nbsp;
-             <Link href="/login">
-                <Typography
-                  component={'span'} 
-                  variant={'body2'}
-                  sx={{
-                    fontWeight: 600,
-                    color: "#222325",
-                    fontSize: "16px",
-                    textDecoration: "underline"
-                  }}
-                >
-                  Sign in
-                </Typography>
-              </Link>            
+            <Link href="/login">
+              <Typography
+                component={"span"}
+                variant={"body2"}
+                sx={{
+                  fontWeight: 600,
+                  color: "#222325",
+                  fontSize: "16px",
+                  textDecoration: "underline",
+                }}
+              >
+                Sign in
+              </Typography>
+            </Link>
           </Typography>
 
           <CustomTextField
@@ -181,13 +181,13 @@ const SignupForm = () => {
             label={
               <Typography variant="body2">
                 By joining, you agree to the{" "}
-                <a href="/terms" style={{ color: "#2e7d32" }} target="_blank">
+                <Link
+                  href="/terms-of-service"
+                  style={{ color: "#2e7d32" }}
+                  target="_blank"
+                >
                   Terms of Service
-                </a>{" "}
-                and{" "}
-                <a href="/privacy" style={{ color: "#2e7d32" }} target="_blank">
-                  Privacy Policy
-                </a>
+                </Link>
               </Typography>
             }
           />
