@@ -2,8 +2,7 @@ import {
   TextField,
   TextFieldProps,
   Typography,
-  InputAdornment,
-  IconButton,
+  Box,
 } from "@mui/material";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
@@ -33,18 +32,44 @@ export default function CustomTextField({
   };
 
   return (
-    <>
+    <div style={{ marginBottom: "16px" }}>
       {label && (
-        <Typography
+        <Box
           sx={{
-            fontWeight: 600,
-            fontSize: "16px",
-            marginBottom: "6px",
-            color: "#404145",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: "6px",
           }}
         >
-          {label}
-        </Typography>
+          <Typography
+            sx={{
+              fontWeight: 500,
+              fontSize: "14px",
+              color: "text.secondary",
+            }}
+          >
+            {label}
+          </Typography>
+          {isPassword && (
+            <Box
+              onClick={handleToggleVisibility}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                cursor: "pointer",
+                fontSize: "13px",
+                color: "#6a6a6a",
+                fontWeight: 500,
+              }}
+            >
+              {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+              <span style={{ marginLeft: "6px" }}>
+                {showPassword ? "Hide" : "Show"}
+              </span>
+            </Box>
+          )}
+        </Box>
       )}
 
       <TextField
@@ -57,32 +82,19 @@ export default function CustomTextField({
         variant="outlined"
         autoComplete="off"
         InputProps={{
-          endAdornment: isPassword && (
-            <InputAdornment position="end" sx={{ pr: 1 }}>
-              <IconButton
-                onClick={handleToggleVisibility}
-                edge="end"
-                size="small"
-                sx={{
-                  padding: 0,
-                  color: "#6a6a6a",
-                }}
-              >
-                {showPassword ? <VisibilityOff /> : <Visibility />}
-              </IconButton>
-            </InputAdornment>
-          ),
+          sx: {
+            pr: isPassword ? 0 : undefined,
+          },
         }}
         sx={{
+          marginTop:"0",
           backgroundColor: "#fff",
           borderRadius: "8px",
           "& .MuiOutlinedInput-root": {
             borderRadius: "8px",
-            paddingRight: 0,
             fontSize: "14px",
             "& input": {
-              padding: "12px",
-              paddingRight: isPassword ? "36px" : "12px",
+              padding: "12px 14px",
             },
             "& fieldset": {
               borderColor: "#dadbdd",
@@ -92,19 +104,16 @@ export default function CustomTextField({
               borderColor: "#b5b6ba",
             },
             "&.Mui-focused fieldset": {
-              borderColor: "#222325",
-              borderWidth: "2px",
-            },
-            "&MuiInputAdornment-root": {
-              marginRight: "12px",
+              borderColor: "#2e7d32",
+              borderWidth: "1px",
             },
           },
-          ...sx
+          ...sx,
         }}
         helperText={errorText}
         error={!!errorText}
         {...rest}
       />
-    </>
+    </div>
   );
 }

@@ -6,6 +6,8 @@ import { generateToken } from "@/app/utils/jwt";
 import { sendVerificationEmail } from "../../../../utils/emailService";
 
 interface SignupRequestBody {
+  firstName:string;
+  lastName: string;
   email: string;
   password: string;
   termsAccepted: boolean;
@@ -30,7 +32,7 @@ export async function POST(request: Request): Promise<Response> {
   try {
     await dbConnect();
     const reqBody: SignupRequestBody = await request.json();
-    const { email, password, termsAccepted } = reqBody;
+    const { firstName, lastName, email, password, termsAccepted } = reqBody;
 
     // Check if terms are accepted
     if (!termsAccepted) {
@@ -55,6 +57,8 @@ export async function POST(request: Request): Promise<Response> {
 
     // Create and save new user
     const newUser = new User({
+      firstName,
+      lastName,
       email,
       password: hashedPassword,
       termsAccepted,
@@ -85,10 +89,14 @@ export async function POST(request: Request): Promise<Response> {
     }
     await sendEmailVerification(email);
 
+    // Remove password from user object before sending response
+    const userResponse = savedUser.toObject ? savedUser.toObject() : { ...savedUser };
+    if (userResponse.password) delete userResponse.password;
+
     const response = NextResponse.json<SignupResponseSuccess>({
       message: "User created successfully. Verification email sent.",
       success: true,
-      savedUser,
+      savedUser: userResponse,
     });
   
     response.cookies.set({
