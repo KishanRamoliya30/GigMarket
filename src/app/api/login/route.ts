@@ -39,7 +39,7 @@ export async function POST(request: NextRequest): Promise<Response> {
 
 
     const user = await User.findOne({ email })
-    if (!user) {
+    if (!user || user.isAdmin) {
       return NextResponse.json<LoginResponseError>(
         { error: "Invalid credentials. Please try again." },
         { status: 401 }
@@ -65,7 +65,6 @@ export async function POST(request: NextRequest): Promise<Response> {
       needToAcceptTerms = new Date(userAcceptedAt) < new Date(termsUpdatedAt);
     } 
 
-    console.log("Test",new Date(userAcceptedAt) , new Date(termsUpdatedAt))
     if(needToAcceptTerms){
       return NextResponse.json<LoginResponseSuccess>({
         message: "Please Accept terms",
