@@ -17,6 +17,8 @@ import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
 import { useState } from "react";
+import Link from "next/link";
+import FiverrLogo from "@/components/logo";
 
 const HeaderWrapper = styled(Box)(({ theme }) => ({
   display: "flex",
@@ -122,9 +124,15 @@ export default function Header() {
           <IconButton className="menuIcon" onClick={toggleSidebar}>
             <MenuIcon />
           </IconButton>
-          <Box className="logo">
+          {/* <Box className="logo">
             GigMarket<span style={{ color: "green" }}>.</span>
-          </Box>
+          </Box> */}
+
+            <Link href="/">
+              <FiverrLogo />
+            </Link>
+
+
           <Box sx={{ display: { sm: "none" } }}>
             <Badge
               variant="dot"

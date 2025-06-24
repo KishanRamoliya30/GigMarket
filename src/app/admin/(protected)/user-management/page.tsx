@@ -18,7 +18,7 @@ import {
 } from '@mui/material';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import CancelIcon from '@mui/icons-material/Cancel';
-import CustomDialog from '@/components/CustomDialog';
+import CustomDialog from '@/components/customUi/CustomDialog';
 interface Provider {
   id: number;
   name: string;

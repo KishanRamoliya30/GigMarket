@@ -8,8 +8,8 @@ import {
   Typography,
   Grid,
 } from "@mui/material";
-import CustomTextField from "@/components/CustomTextField";
-import CustomButton from "@/components/CustomButton";
+import CustomTextField from "@/components/customUi/CustomTextField";
+import CustomButton from "@/components/customUi/CustomButton";
 
 const validationSchema = Yup.object({
   email: Yup.string().email("Invalid email").required("Email is required"),

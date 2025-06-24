@@ -1,6 +1,6 @@
 import React from "react";
-import Footer from "@/components/Footer";
-import Header from "@/components/Header";
+import Footer from "@/components/user/footer/Footer";
+import Header from "@/components/user/header/Header";
 const layout = ({
   children,
 }: Readonly<{

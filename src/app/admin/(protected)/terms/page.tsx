@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { Box, Typography, Paper } from "@mui/material";
 import { apiRequest } from "@/app/lib/apiCall";
-import CustomButton from "@/components/CustomButton";
+import CustomButton from "@/components/customUi/CustomButton";
 const Editor = dynamic(
   () => import("@tinymce/tinymce-react").then((mod) => mod.Editor),
   {
