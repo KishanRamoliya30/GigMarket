@@ -17,7 +17,7 @@ import {
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { styled } from '@mui/material/styles';
-import CustomDialog from '@/components/CustomDialog';
+import CustomDialog from '@/components/customUi/CustomDialog';
 interface Post {
   id: number;
   title: string;

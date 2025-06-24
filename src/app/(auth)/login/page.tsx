@@ -4,8 +4,8 @@ import { useRouter } from "next/navigation";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { Box, Typography, Grid } from "@mui/material";
-import CustomTextField from "@/components/CustomTextField";
-import CustomButton from "@/components/CustomButton";
+import CustomTextField from "@/components/customUi/CustomTextField";
+import CustomButton from "@/components/customUi/CustomButton";
 import Link from "next/link";
 import { apiRequest } from "@/app/lib/apiCall";
 
