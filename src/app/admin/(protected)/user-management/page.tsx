@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Box,
   Typography,
@@ -19,47 +19,59 @@ import {
 import VerifiedIcon from '@mui/icons-material/Verified';
 import CancelIcon from '@mui/icons-material/Cancel';
 import CustomDialog from '@/components/customUi/CustomDialog';
-interface Provider {
-  id: number;
-  name: string;
+import { apiRequest } from '@/app/lib/apiCall';
+
+interface IUser {
+  _id?: string;
   email: string;
-  isApproved: boolean;
+  password: string;
+  termsAccepted: boolean;
+  termsAcceptedAt?: Date | null;
+  subscriptionCompleted: boolean;
+  profileCompleted: boolean;
+  createdAt?: Date;
+  isAdmin: boolean;
+  isActive: boolean;
 }
 
-const initialProviders: Provider[] = [
-  { id: 1, name: 'Minali Patel', email: 'minali@mail.com', isApproved: false },
-  { id: 3, name: 'Nisha Patel', email: 'nisha@mail.com', isApproved: false },
-  { id: 2, name: 'Kishan Patel', email: 'kishan@mail.com', isApproved: true },
-];
-
 export default function UserProviderManagementPage() {
-  const [providers, setProviders] = useState<Provider[]>(initialProviders);
-  const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [users, setUsers] = useState<IUser[]>([]);
+  const [total, setTotal] = useState<number>(0);
+  // const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
+  // const [dialogOpen, setDialogOpen] = useState(false);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const handleApprove = () => {
-    if (selectedProvider) {
-      setProviders((prev) =>
-        prev.map((p) =>
-          p.id === selectedProvider.id ? { ...p, isApproved: true } : p
-        )
-      );
-    }
-    setDialogOpen(false);
-    setSelectedProvider(null);
+    // if (selectedProvider) {
+    //   setProviders((prev) =>
+    //     prev.map((p) =>
+    //       p.id === selectedProvider.id ? { ...p, isApproved: true } : p
+    //     )
+    //   );
+    // }
+    // setDialogOpen(false);
+    // setSelectedProvider(null);
   };
 
   const handleReject = (id: number) => {
-    setProviders((prev) => prev.filter((p) => p.id !== id));
+    // setProviders((prev) => prev.filter((p) => p.id !== id));
   };
-
-  const paginated = providers.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
-  );
-
+  
+  async function getAllUsers() {
+    const resp = await apiRequest("admin/users",{
+      method:"GET",
+      params:{
+        page:page,
+        limit:rowsPerPage
+      }
+    })
+    setUsers(resp.data.users)
+    setTotal(resp.data.total)
+  }
+  useEffect(()=>{
+    getAllUsers()
+  },[page,rowsPerPage])
   return (
     <Box p={3}>
       <Typography variant="h5" fontWeight={600} mb={3}>
@@ -77,19 +89,19 @@ export default function UserProviderManagementPage() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {paginated.map((provider) => (
-              <TableRow key={provider.id}>
-                <TableCell>{provider.name}</TableCell>
-                <TableCell>{provider.email}</TableCell>
+            {users.map((user) => (
+              <TableRow key={user._id}>
+                <TableCell>Test</TableCell>
+                <TableCell>{user.email}</TableCell>
                 <TableCell>
-                  {provider.isApproved ? (
-                    <Chip label="Approved" color="success" icon={<VerifiedIcon />} />
+                  {user.isActive ? (
+                    <Chip label="Active" color="success" icon={<VerifiedIcon />} />
                   ) : (
-                    <Chip label="Pending" color="warning" />
+                    <Chip label="InActive" color="warning" />
                   )}
                 </TableCell>
                 <TableCell align="right">
-                  {!provider.isApproved && (
+                  {/* {!user.isApproved && (
                     <Button
                       size="small"
                       variant="contained"
@@ -104,7 +116,7 @@ export default function UserProviderManagementPage() {
                   )}{' '}
                   <IconButton color="error" onClick={() => handleReject(provider.id)}>
                     <CancelIcon />
-                  </IconButton>
+                  </IconButton> */}
                 </TableCell>
               </TableRow>
             ))}
@@ -112,7 +124,7 @@ export default function UserProviderManagementPage() {
         </Table>
         <TablePagination
           component="div"
-          count={providers.length}
+          count={total}
           page={page}
           onPageChange={(_, newPage) => setPage(newPage)}
           rowsPerPage={rowsPerPage}
@@ -120,11 +132,13 @@ export default function UserProviderManagementPage() {
             setRowsPerPage(parseInt(e.target.value, 10));
             setPage(0);
           }}
+          rowsPerPageOptions={[5,10,15,20,50]}
+
         />
       </TableContainer>
 
   
-        <CustomDialog
+        {/* <CustomDialog
               open={dialogOpen}
               onClose={() => setDialogOpen(false)}
               onConfirm={handleApprove}
@@ -132,7 +146,7 @@ export default function UserProviderManagementPage() {
               content={<><strong>{selectedProvider?.name}</strong> as a service provider?</>}
               confirmText="Approve"
               confirmColor="success"
-            />
+            /> */}
     </Box>
   );
 }
