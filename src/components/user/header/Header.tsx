@@ -151,9 +151,6 @@ export default function Header() {
           <IconButton className="menuIcon" onClick={toggleSidebar}>
             <MenuIcon />
           </IconButton>
-          {/* <Box className="logo">
-            GigMarket<span style={{ color: "green" }}>.</span>
-          </Box> */}
 
             <Link href="/">
               <FiverrLogo />
