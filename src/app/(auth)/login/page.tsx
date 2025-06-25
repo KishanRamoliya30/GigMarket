@@ -134,15 +134,17 @@ const Login = () => {
               touched.password && errors.password ? errors.password : ""
             }
           />
+          <Link href="/forgot-password">
           <Typography
             display={"flex"}
             justifyContent={"end"}
             mt={1}
             mb={4}
-            sx={{ textDecoration: "underline" , color: "#2e7d32",}}
+            sx={{ textDecoration: "underline" , color: "#2e7d32", cursor: "pointer"}}
           >
             Forgot Password ?
           </Typography>
+          </Link>
 
           <CustomButton
             fullWidth

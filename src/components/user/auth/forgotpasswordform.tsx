@@ -33,7 +33,8 @@ const ForgotPasswordForm = () => {
       });
 
       if (response.ok && response.data) {
-        router.push("/login");
+        localStorage.setItem("email", values.email);
+        router.push(`/verify-otp`);
         resetForm();
       } else {
         setFieldError("email", response.error ?? "Something went wrong.");
