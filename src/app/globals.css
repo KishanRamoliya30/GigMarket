@@ -24,3 +24,10 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Custom CSS Start */
+.tox .tox-edit-area::before {
+  border-color:#222325 !important;
+}
+
+/* Custom CSS End */

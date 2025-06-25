@@ -44,21 +44,13 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(loginPath, request.url));
   }
 
-  try {
-
-    if (isAdmin && !pathname.includes("/admin")) {
-      return NextResponse.redirect(new URL("/admin", request.url));
-    } else if (!isAdmin && pathname.includes("/admin")) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
-    }
-
-    return NextResponse.next();
-  } catch {
-    if (pathname.startsWith("/api")) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-    return NextResponse.redirect(new URL("/login", request.url));
+  if (isAdmin && !pathname.includes("/admin")) {
+    return NextResponse.redirect(new URL("/admin", request.url));
+  } else if (!isAdmin && pathname.includes("/admin")) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
+
+  return NextResponse.next();
 }
 
 export const config = {

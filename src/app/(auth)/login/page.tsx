@@ -150,7 +150,6 @@ const Login = () => {
             fullWidth
             label={isSubmitting ? "Signing In..." : "Sign In"}
             variant="contained"
-            sx={{ mt: "80px !important" }}
             type="submit"
             disabled={!formik.isValid || !formik.dirty || isSubmitting}
           />
