@@ -7,11 +7,12 @@ import { useFormik } from "formik";
 import CustomTextField from "@/components/customUi/CustomTextField";
 import CustomButton from "@/components/customUi/CustomButton";
 import { apiRequest } from "@/app/lib/apiCall";
+import { toast } from "react-toastify";
 
 const ResetPasswordForm = () => {
   const router = useRouter();
   const email = localStorage.getItem("email");
-  
+
   const validationSchema = Yup.object({
     password: Yup.string()
       .min(8, "Password must be at least 8 characters")
@@ -32,16 +33,18 @@ const ResetPasswordForm = () => {
         method: "POST",
         data: {
           email,
-           newPassword: values.password,
-  confirmPassword: values.confirmPassword
+          newPassword: values.password,
+          confirmPassword: values.confirmPassword,
         },
       });
 
       if (response.ok) {
+        toast.success(response.message || "Password reset successfully!");
         router.push("/login");
         resetForm();
       } else {
         setFieldError("password", response.error ?? "Something went wrong.");
+        toast.error(response.error ?? "Something went wrong.");
       }
       setSubmitting(false);
     },
@@ -114,7 +117,7 @@ const ResetPasswordForm = () => {
         sx={{ mt: 4 }}
         disabled={!formik.isValid || isSubmitting}
       />
-    </Box>   
+    </Box>
   );
 };
 

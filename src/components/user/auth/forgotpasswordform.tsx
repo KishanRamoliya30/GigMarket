@@ -7,6 +7,7 @@ import { useFormik } from "formik";
 import CustomTextField from "@/components/customUi/CustomTextField";
 import CustomButton from "@/components/customUi/CustomButton";
 import { apiRequest } from "@/app/lib/apiCall";
+import { toast } from "react-toastify";
 
 const ForgotPasswordForm = () => {
   const router = useRouter();
@@ -34,10 +35,12 @@ const ForgotPasswordForm = () => {
 
       if (response.ok && response.data) {
         localStorage.setItem("email", values.email);
+        toast.success(response.message || "OTP has been sent to your email!");
         router.push(`/verify-otp`);
         resetForm();
       } else {
         setFieldError("email", response.error ?? "Something went wrong.");
+        toast.error(response.error ?? "Something went wrong.");
       }
       setSubmitting(false);
     },
@@ -72,7 +75,8 @@ const ForgotPasswordForm = () => {
       </Typography>
 
       <Typography variant="body1" color="text.secondary" mb={4}>
-        Enter your email address and we’ll send you a link to reset your password.
+        Enter your email address and we’ll send you a link to reset your
+        password.
       </Typography>
 
       <CustomTextField

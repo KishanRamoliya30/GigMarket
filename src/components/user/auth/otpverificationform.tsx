@@ -7,6 +7,7 @@ import { useFormik } from "formik";
 import CustomTextField from "@/components/customUi/CustomTextField";
 import CustomButton from "@/components/customUi/CustomButton";
 import { apiRequest } from "@/app/lib/apiCall";
+import { toast } from "react-toastify";
 
 const OtpVerificationForm = () => {
   const router = useRouter();
@@ -34,9 +35,11 @@ const OtpVerificationForm = () => {
       });
 
       if (response.ok) {
+        toast.success(response.message || "OTP verified successfully!");
         router.push("/reset-password");
       } else {
         setFieldError("otp", response.error ?? "Invalid OTP.");
+        toast.error(response.error ?? "Invalid OTP.");
       }
 
       setSubmitting(false);

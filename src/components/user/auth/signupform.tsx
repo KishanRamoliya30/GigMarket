@@ -8,6 +8,7 @@ import CustomTextField from "@/components/customUi/CustomTextField";
 import CustomButton from "@/components/customUi/CustomButton";
 import { apiRequest } from "@/app/lib/apiCall";
 import Link from "next/link";
+import { toast } from "react-toastify";
 
 const SignupForm = () => {
   const router = useRouter();
@@ -55,10 +56,12 @@ const SignupForm = () => {
         },
       });
       if (response.ok && response.data) {
+        toast.success(response.message || "Account created successfully!");      
         router.push("/subscription");
         resetForm();
       } else {
         setFieldError("password", response.error ?? "Invalid credentials");
+        toast.error(response.error ?? "Something went wrong.");
       }
       setSubmitting(false);
     },
