@@ -22,7 +22,7 @@ import {
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import CustomDialog from "@/components/CustomDialog";
+import CustomDialog from "@/components/customUi/CustomDialog";
 
 interface Plan {
   id: number;
