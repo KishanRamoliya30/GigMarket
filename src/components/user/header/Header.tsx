@@ -8,6 +8,8 @@ import {
   InputBase,
   IconButton,
   Drawer,
+  Menu,
+  MenuItem,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import SearchIcon from "@mui/icons-material/Search";
@@ -19,6 +21,9 @@ import CloseIcon from "@mui/icons-material/Close";
 import { useState } from "react";
 import Link from "next/link";
 import FiverrLogo from "@/components/logo";
+
+import { apiRequest } from "@/app/lib/apiCall";
+import { useRouter } from "next/navigation";
 
 const HeaderWrapper = styled(Box)(({ theme }) => ({
   display: "flex",
@@ -111,11 +116,33 @@ const HeaderWrapper = styled(Box)(({ theme }) => ({
 }));
 
 export default function Header() {
+  const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
+
+  const handleAvatarClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleCloseMenu = () => {
+    setAnchorEl(null);
+  };
+
+ const handleLogout = async () => {
+  const response = await apiRequest('logout', { method: 'POST' });
+
+  if (response.ok) {
+   router.push("/login")
+  } else {
+    console.error("Logout failed:", response.error);
+  }
+
+  handleCloseMenu();
+};
 
   return (
     <>
@@ -140,7 +167,12 @@ export default function Header() {
               overlap="circular"
               anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
             >
-              <Avatar sx={{ bgcolor: "#f66" }}>M</Avatar>
+              <Avatar
+                sx={{ bgcolor: "#f66", cursor: "pointer" }}
+                onClick={handleAvatarClick}
+              >
+                M
+              </Avatar>
             </Badge>
           </Box>
         </Box>
@@ -168,7 +200,7 @@ export default function Header() {
             overlap="circular"
             anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
           >
-            <Avatar sx={{ bgcolor: "#f66" }}>M</Avatar>
+            <Avatar sx={{ bgcolor: "#f66" }} onClick={handleAvatarClick}>M</Avatar>
           </Badge>
         </Box>
       </HeaderWrapper>
@@ -214,11 +246,22 @@ export default function Header() {
             <Typography>Orders</Typography>
           </Box>
           <Box display="flex" alignItems="center" gap={2}>
-            <Avatar sx={{ bgcolor: "#f66", width: 32, height: 32 }}>M</Avatar>
+            <Avatar sx={{ bgcolor: "#f66", width: 32, height: 32 }} onClick={handleAvatarClick}>M</Avatar>
             <Typography>My Account</Typography>
           </Box>
         </Box>
       </Drawer>
+
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleCloseMenu}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <MenuItem onClick={handleCloseMenu}>My Profile</MenuItem>
+        <MenuItem onClick={handleLogout}>Logout</MenuItem>
+      </Menu>
     </>
   );
 }
