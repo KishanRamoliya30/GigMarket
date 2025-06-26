@@ -2,7 +2,8 @@
 "use client";
 
 import { Box, Typography } from "@mui/material";
-import AdminSidebar from "@/components/AdminSidebar";
+import AdminSidebar from "@/components/admin/AdminSidebar";
+import AdminHeader from "@/components/admin/AdminHeader";
 import { ReactNode } from "react";
 
 export default function AdminLayout({
@@ -11,6 +12,8 @@ export default function AdminLayout({
   children: ReactNode;
 }>) {
   return (
+    <>
+    <AdminHeader/>
     <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "#f9f9f9" }}>
     
       <AdminSidebar />
@@ -24,24 +27,9 @@ export default function AdminLayout({
           borderLeft: "1px solid #eee",
         }}
       >
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 3,
-          }}
-        >
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
-            Admin Dashboard
-          </Typography>
-          <Typography variant="body2" sx={{ color: "gray" }}>
-            Welcome, Admin
-          </Typography>
-        </Box>
-
         {children}
       </Box>
     </Box>
+    </>
   );
 }

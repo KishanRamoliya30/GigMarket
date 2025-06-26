@@ -56,7 +56,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(loginPath, request.url));
   }
 
-  if (isAdmin && !pathname.includes("/admin")) {
+  if (isAdmin && !pathname.includes("/admin") && !pathname.includes("/plans")) {
     return NextResponse.redirect(new URL("/admin", request.url));
   } else if (!isAdmin && pathname.includes("/admin")) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
