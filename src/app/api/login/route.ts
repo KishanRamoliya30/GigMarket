@@ -84,7 +84,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         email: user.email,
         isAdmin: false
       });
-  
+
       const response = NextResponse.json<LoginResponseSuccess>({
         message: "Login successful.",
         success: true,

@@ -107,7 +107,7 @@ export async function POST(request: Request): Promise<Response> {
       sameSite: 'strict',
       path: '/',
       maxAge: 60 * 60 ,
-    });
+    });     
     return response;
   } catch (error: unknown) {
     let errorMessage = "An unexpected error occurred.";

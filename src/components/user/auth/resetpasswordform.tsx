@@ -10,42 +10,40 @@ import { apiRequest } from "@/app/lib/apiCall";
 import { toast } from "react-toastify";
 import Cookies from "js-cookie";
 
-const ForgotPasswordForm = () => {
-  const router = useRouter();
-
+const ResetPasswordForm = () => {
+  const router = useRouter(); 
+const email = Cookies.get("email");
   const validationSchema = Yup.object({
-    email: Yup.string()
-      .email("Must be a valid email")
-      .matches(
-        /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-        "Enter a valid email address"
-      )
-      .required("Email is required"),
+    password: Yup.string()
+      .min(8, "Password must be at least 8 characters")
+      .required("New password is required"),
+    confirmPassword: Yup.string()
+      .oneOf([Yup.ref("password"), undefined], "Passwords must match")
+      .required("Confirm password is required"),
   });
 
   const formik = useFormik({
     initialValues: {
-      email: "",
+      password: "",
+      confirmPassword: "",
     },
     validationSchema,
     onSubmit: async (values, { setSubmitting, resetForm, setFieldError }) => {
-      const response = await apiRequest("forgot-password", {
+      const response = await apiRequest("reset-password", {
         method: "POST",
-        data: { email: values.email },
+        data: {
+          email,
+          newPassword: values.password,
+        },
       });
 
-      if (response.ok && response.data) {
-        Cookies.set("email", values.email, {
-          expires: 1,
-          path: "/",
-          sameSite: "Strict",
-          secure: process.env.NODE_ENV === "production",
-        });
-        toast.success(response.message ?? "OTP has been sent to your email!");
-        router.push(`/verify-otp`);
+      if (response.ok) {
+        Cookies.remove("email");
+        toast.success(response.message || "Password reset successfully!");
+        router.push("/login");
         resetForm();
       } else {
-        setFieldError("email", response.error ?? "Something went wrong.");
+        setFieldError("password", response.error ?? "Something went wrong.");
         toast.error(response.error ?? "Something went wrong.");
       }
       setSubmitting(false);
@@ -75,34 +73,49 @@ const ForgotPasswordForm = () => {
       mx="auto"
     >
       <Typography variant="h4" fontWeight={700} mb={2}>
-        Forgot Password?
+        Reset Password
       </Typography>
 
       <Typography variant="body1" color="text.secondary" mb={4}>
-        Enter your email address and we’ll send you a link to reset your
-        password.
+        Set your new password below.
       </Typography>
 
       <CustomTextField
         fullWidth
-        label="Email address"
-        name="email"
-        value={values.email}
+        label="New Password"
+        name="password"
+        type="password"
+        value={values.password}
         onChange={handleChange}
         onBlur={handleBlur}
-        errorText={touched.email && errors.email ? errors.email : ""}
+        errorText={touched.password && errors.password ? errors.password : ""}
+      />
+
+      <CustomTextField
+        fullWidth
+        label="Confirm Password"
+        name="confirmPassword"
+        type="password"
+        value={values.confirmPassword}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        errorText={
+          touched.confirmPassword && errors.confirmPassword
+            ? errors.confirmPassword
+            : ""
+        }
       />
 
       <CustomButton
         fullWidth
         type="submit"
         variant="contained"
-        label={isSubmitting ? "Sending..." : "Send Otp"}
+        label={isSubmitting ? "Resetting..." : "Reset Password"}
         sx={{ mt: 4 }}
-        disabled={!formik.isValid || !formik.dirty || isSubmitting}
+        disabled={!formik.isValid || isSubmitting}
       />
     </Box>
   );
 };
 
-export default ForgotPasswordForm;
+export default ResetPasswordForm;
