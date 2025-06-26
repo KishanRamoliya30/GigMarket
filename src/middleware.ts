@@ -10,6 +10,12 @@ const PUBLIC_PATHS = [
   "/api/signup",
   "/api/admin/login",
   "/api/terms",
+  "/forgot-password",
+  "/api/forgot-password",
+  "/reset-password",
+  "/api/reset-password",
+  "/verify-otp",
+  "/api/verify-otp",
   "/verify-email",
   "/forgot-password",
 ];
@@ -17,9 +23,19 @@ const PUBLIC_PATHS = [
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-
   const token = request.cookies.get("token")?.value;
   const isAdmin = request.cookies.get('role')?.value === 'Main';
+  const email = request.cookies.get("email")?.value;
+
+  if (
+    ["/verify-otp", "/reset-password"].some((path) =>
+      pathname.startsWith(path)
+    )
+  ) {
+    if (!email) {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
+  }
   if (PUBLIC_PATHS.some((path) => pathname.startsWith(path))) {
     if (token && !pathname.startsWith("/api")) {
       try {
@@ -40,7 +56,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(loginPath, request.url));
   }
 
-  if (isAdmin && !pathname.includes("/admin")) {
+  if (isAdmin && !pathname.includes("/admin") && !pathname.includes("/plans")) {
     return NextResponse.redirect(new URL("/admin", request.url));
   } else if (!isAdmin && pathname.includes("/admin")) {
     return NextResponse.redirect(new URL("/dashboard", request.url));

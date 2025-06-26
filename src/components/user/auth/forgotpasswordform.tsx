@@ -7,6 +7,8 @@ import { useFormik } from "formik";
 import CustomTextField from "@/components/customUi/CustomTextField";
 import CustomButton from "@/components/customUi/CustomButton";
 import { apiRequest } from "@/app/lib/apiCall";
+import { toast } from "react-toastify";
+import Cookies from "js-cookie";
 
 const ForgotPasswordForm = () => {
   const router = useRouter();
@@ -33,10 +35,18 @@ const ForgotPasswordForm = () => {
       });
 
       if (response.ok && response.data) {
-        router.push("/login");
+        Cookies.set("email", values.email, {
+          expires: 1,
+          path: "/",
+          sameSite: "Strict",
+          secure: process.env.NODE_ENV === "production",
+        });
+        toast.success(response.message ?? "OTP has been sent to your email!");
+        router.push(`/verify-otp`);
         resetForm();
       } else {
         setFieldError("email", response.error ?? "Something went wrong.");
+        toast.error(response.error ?? "Something went wrong.");
       }
       setSubmitting(false);
     },
@@ -64,12 +74,12 @@ const ForgotPasswordForm = () => {
       mx={{ xs: "10px", sm: "50px" }}
       component="form"
     >
-      <Typography variant="h4" fontWeight={700} mb={2}>
+      <Typography variant="h6" fontWeight={600} mb={1}>
         Forgot Password?
       </Typography>
 
       <Typography variant="body1" color="text.secondary" mb={4}>
-        Enter your email address and we’ll send you a link to reset your
+        Enter your email address and we’ll send you a OTP to reset your
         password.
       </Typography>
 
@@ -87,7 +97,7 @@ const ForgotPasswordForm = () => {
         fullWidth
         type="submit"
         variant="contained"
-        label={isSubmitting ? "Sending..." : "Send Reset Link"}
+        label={isSubmitting ? "Sending..." : "Send OTP"}
         sx={{ mt: 4 }}
         disabled={!formik.isValid || !formik.dirty || isSubmitting}
       />

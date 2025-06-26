@@ -1,6 +1,7 @@
 import axios, { AxiosRequestConfig, AxiosError, AxiosResponse } from 'axios';
 
 export interface ApiResponse<T = any> {
+  message?: string;
   data?: T;
   error?: string;
   ok: boolean;

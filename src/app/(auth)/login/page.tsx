@@ -41,7 +41,7 @@ const Login = () => {
           setTerms(res.data.terms);
           setShowTerms(true);
         } else {
-          redirectAfterLogin();
+          redirectAfterLogin(res.data.hasSubscription);
         }
       } else {
         setFieldError("password", res.error ?? "Invalid credentials");
@@ -51,8 +51,8 @@ const Login = () => {
     },
   });
 
-  const redirectAfterLogin = () => {
-    router.push("/subscription");
+  const redirectAfterLogin = (hasSubscription:boolean) => {
+    router.push(hasSubscription?"/dashboard":"/subscription");
   };
 
   const acceptTerms = async () => {
@@ -64,7 +64,7 @@ const Login = () => {
     });
 
     if (res.ok && res.data) {
-      redirectAfterLogin();
+      redirectAfterLogin(res.data.hasSubscription);
     }
   };
 
@@ -104,13 +104,13 @@ const Login = () => {
           onSubmit={handleSubmit}
         >
           <Typography
-            variant="h6"
-            sx={{ fontWeight: 600, color: "#222325", fontSize: "26px", mb: 4 }}
-            gutterBottom
+            variant="h6" fontWeight={600} mb={1}
           >
             Sign In
           </Typography>
-
+<Typography variant="body1" color="text.secondary" mb={4}>
+       Continue with your email and password
+      </Typography>
           <CustomTextField
             fullWidth
             label="Email"
@@ -134,14 +134,19 @@ const Login = () => {
               touched.password && errors.password ? errors.password : ""
             }
           />
+
           <Typography
             display={"flex"}
             justifyContent={"end"}
             mt={1}
             mb={4}
-            sx={{ textDecoration: "underline", color: "#2e7d32" }}
+            sx={{
+              textDecoration: "underline",
+              color: "#2e7d32",
+              cursor: "pointer",
+            }}
           >
-            Forgot Password ?
+            <Link href="/forgot-password">Forgot Password?</Link>
           </Typography>
 
           <CustomButton

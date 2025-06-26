@@ -8,6 +8,7 @@ import CustomTextField from "@/components/customUi/CustomTextField";
 import CustomButton from "@/components/customUi/CustomButton";
 import { apiRequest } from "@/app/lib/apiCall";
 import Link from "next/link";
+import { toast } from "react-toastify";
 
 const SignupForm = () => {
   const router = useRouter();
@@ -55,10 +56,12 @@ const SignupForm = () => {
         },
       });
       if (response.ok && response.data) {
+        toast.success(response.message || "Account created successfully!");
         router.push("/subscription");
         resetForm();
       } else {
         setFieldError("password", response.error ?? "Invalid credentials");
+        toast.error(response.error ?? "Something went wrong.");
       }
       setSubmitting(false);
     },
@@ -84,141 +87,183 @@ const SignupForm = () => {
   return (
     <Box
       width="100%"
-      maxWidth={{ xs: "100%",md:"600px", sm: "600px" }}
+      maxWidth={{ xs: "100%", md: "600px" }}
       bgcolor="#fff"
       borderRadius={4}
       boxShadow={3}
-      p={{ xs: 4, sm: 4 }}
       mx={{ xs: "10px", sm: "50px" }}
-      component="form"
-      onSubmit={handleSubmit}
+      height={{ xs: "90vh", sm: "80vh" }}
+      display="flex"
+      flexDirection="column"
+      p={{ xs: 2, sm: 4 }}
     >
-      <Typography variant="h6" fontWeight={600} mb={3}>
-        Sign in to your account
+      <Typography variant="h6" fontWeight={600} mb={1}>
+        Sign Up
+      </Typography>
+      <Typography variant="body1" color="text.secondary" mb={4}>
+        Join us and start your journey in minutes.
       </Typography>
 
       <Box
+        component="form"
+        onSubmit={handleSubmit}
         sx={{
-          display: "flex",
-          flexDirection: { xs: "column", sm: "row" },
-          gap: 2,
-          mb: 2,
+          overflowY: "auto",
+          p: { xs: 1, sm: 1 },
+          flexGrow: 1,
+          scrollbarWidth: "thin",
+          "&::-webkit-scrollbar": {
+            width: "6px",
+          },
+          "&::-webkit-scrollbar-thumb": {
+            backgroundColor: "#ccc",
+            borderRadius: "3px",
+          },
         }}
       >
-        <Box sx={{ flex: 1 }}>
-          <CustomTextField
-            label="First name"
-            name="firstName"
-            value={values.firstName}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            errorText={
-              touched.firstName && errors.firstName ? errors.firstName : ""
-            }
-          />
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            gap: 2,
+            mb: 2,
+          }}
+        >
+          <Box sx={{ flex: 1 }}>
+            <CustomTextField
+              label="First name"
+              name="firstName"
+              value={values.firstName}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              errorText={
+                touched.firstName && errors.firstName ? errors.firstName : ""
+              }
+            />
+          </Box>
+          <Box sx={{ flex: 1 }}>
+            <CustomTextField
+              label="Last name"
+              name="lastName"
+              value={values.lastName}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              errorText={
+                touched.lastName && errors.lastName ? errors.lastName : ""
+              }
+            />
+          </Box>
         </Box>
-        <Box sx={{ flex: 1 }}>
-          <CustomTextField
-            label="Last name"
-            name="lastName"
-            value={values.lastName}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            errorText={
-              touched.lastName && errors.lastName ? errors.lastName : ""
-            }
-          />
-        </Box>
-      </Box>
 
-      <CustomTextField
-        fullWidth
-        margin="normal"
-        label="Email address"
-        name="email"
-        value={values.email}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        errorText={touched.email && errors.email ? errors.email : ""}
-      />
+        <CustomTextField
+          fullWidth
+          margin="normal"
+          label="Email address"
+          name="email"
+          value={values.email}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          errorText={touched.email && errors.email ? errors.email : ""}
+        />
 
-      <CustomTextField
-        fullWidth
-        margin="normal"
-        label="Password"
-        name="password"
-        isPassword
-        value={values.password}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        errorText={touched.password && errors.password ? errors.password : ""}
-      />
+        <CustomTextField
+          fullWidth
+          margin="normal"
+          label="Password"
+          name="password"
+          isPassword
+          value={values.password}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          errorText={touched.password && errors.password ? errors.password : ""}
+        />
 
-      <Box mt={2} mb={2}>
-        <Typography
-          variant="body2"
-          color={passwordValid.length ? "success.main" : "text.secondary"}
+        <Box
+          mt={2}
+          mb={2}
+          display="flex"
+          flexWrap="wrap"
+          justifyContent="space-between"
         >
-          ✓ At least 8 characters
-        </Typography>
-        <Typography
-          variant="body2"
-          color={passwordValid.uppercase ? "success.main" : "text.secondary"}
-        >
-          ✓ At least 1 uppercase letter
-        </Typography>
-        <Typography
-          variant="body2"
-          color={passwordValid.lowercase ? "success.main" : "text.secondary"}
-        >
-          ✓ At least 1 lowercase letter
-        </Typography>
-        <Typography
-          variant="body2"
-          color={passwordValid.number ? "success.main" : "text.secondary"}
-        >
-          ✓ At least 1 number
-        </Typography>
-      </Box>
-
-      <FormControlLabel
-        sx={{ mb: 2 }}
-        control={
-          <Checkbox
-            name="terms"
-            checked={values.terms}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            disableRipple
-            sx={{
-              color: "#2e7d32",
-              "&.Mui-checked": { color: "#2e7d32" },
-              "& .MuiSvgIcon-root": { fontSize: 22 },
-            }}
-          />
-        }
-        label={
-          <Typography variant="body2">
-            By joining, you agree to the{" "}
-            <Link
-              href="/terms-of-service"
-              style={{ color: "#2e7d32" }}
-              target="_blank"
+          <Box width={{ xs: "100%", sm: "48%" }} mb={1}>
+            <Typography
+              variant="body2"
+              color={passwordValid.length ? "success.main" : "text.secondary"}
             >
-              Terms of Service
-            </Link>
-          </Typography>
-        }
-      />
-      {touched.terms && errors.terms && (
-        <Typography variant="caption" color="error" sx={{ ml: "14px" }}>
-          {errors.terms}
-        </Typography>
-      )}
+              ✓ At least 8 characters
+            </Typography>
+          </Box>
 
+          <Box width={{ xs: "100%", sm: "48%" }} mb={1}>
+            <Typography
+              variant="body2"
+              color={
+                passwordValid.uppercase ? "success.main" : "text.secondary"
+              }
+            >
+              ✓ At least 1 uppercase letter
+            </Typography>
+          </Box>
+
+          <Box width={{ xs: "100%", sm: "48%" }} mb={1}>
+            <Typography
+              variant="body2"
+              color={
+                passwordValid.lowercase ? "success.main" : "text.secondary"
+              }
+            >
+              ✓ At least 1 lowercase letter
+            </Typography>
+          </Box>
+
+          <Box width={{ xs: "100%", sm: "48%" }} mb={1}>
+            <Typography
+              variant="body2"
+              color={passwordValid.number ? "success.main" : "text.secondary"}
+            >
+              ✓ At least 1 number
+            </Typography>
+          </Box>
+        </Box>
+
+        <FormControlLabel
+          sx={{ mb: 2, display: "flex", alignItems: "center" }}
+          control={
+            <Checkbox
+              name="terms"
+              checked={values.terms}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              disableRipple
+              sx={{
+                color: "#2e7d32",
+                "&.Mui-checked": { color: "#2e7d32" },
+                "& .MuiSvgIcon-root": { fontSize: 22 },
+              }}
+            />
+          }
+          label={
+            <Typography variant="body2">
+              By joining, you agree to the{" "}
+              <Link
+                href="/terms-of-service"
+                style={{ color: "#2e7d32" }}
+                target="_blank"
+              >
+                Terms of Service
+              </Link>
+            </Typography>
+          }
+        />
+        {touched.terms && errors.terms && (
+          <Typography variant="caption" color="error" sx={{ ml: "14px" }}>
+            {errors.terms}
+          </Typography>
+        )}
+      </Box>
       <CustomButton
         fullWidth
-        label={isSubmitting ? "Submitting..." : "Continue"}
+        label={isSubmitting ? "Submitting..." : "Sign Up"}
         variant="contained"
         sx={{ mt: 3 }}
         type="submit"

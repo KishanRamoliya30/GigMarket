@@ -1,11 +1,11 @@
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
-  firstName:{
+  firstName: {
     type: String,
     required: [true, "Please provide a first name"],
   },
-  lastName:{
+  lastName: {
     type: String,
     required: [true, "Please provide a last name"],
   },
@@ -40,8 +40,12 @@ const userSchema = new mongoose.Schema({
   },
   isAdmin: {
     type: Boolean,
-    default: false
+    default: false,
   },
+  resetPasswordToken: String,
+  resetPasswordExpires: Date, 
+  resetPasswordOTP: String,
+  resetPasswordOTPExpiry: Date,  
   stripeCustomerId: {
     type: String,
     default: null
