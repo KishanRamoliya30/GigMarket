@@ -94,23 +94,23 @@ const Login = () => {
       >
         <Box
           width="100%"
-          maxWidth={{ xs: "100%", sm: "600px" }}
+          minWidth={{ xs: "100%", md: "600px", sm: "600px" }}
           bgcolor="#fff"
           borderRadius={4}
           boxShadow={3}
-          p={{ xs: 2, sm: 4 }}
-          mx="auto"
+          p={{ xs: 4, sm: 4 }}
+          mx={{ xs: "10px", sm: "50px" }}
           component="form"
           onSubmit={handleSubmit}
         >
           <Typography
-            variant="h6"
-            sx={{ fontWeight: 600, color: "#222325", fontSize: "26px", mb: 4 }}
-            gutterBottom
+            variant="h6" fontWeight={600} mb={1}
           >
-            Continue with your email or username
+            Sign In
           </Typography>
-
+<Typography variant="body1" color="text.secondary" mb={4}>
+       Continue with your email and password
+      </Typography>
           <CustomTextField
             fullWidth
             label="Email"

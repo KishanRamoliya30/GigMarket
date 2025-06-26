@@ -64,22 +64,22 @@ const ForgotPasswordForm = () => {
 
   return (
     <Box
-      component="form"
       onSubmit={handleSubmit}
       width="100%"
-      maxWidth={{ xs: "100%", sm: "600px" }}
+      minWidth={{ xs: "100%", md: "600px", sm: "600px" }}
       bgcolor="#fff"
       borderRadius={4}
       boxShadow={3}
-      p={{ xs: 2, sm: 4 }}
-      mx="auto"
+      p={{ xs: 4, sm: 4 }}
+      mx={{ xs: "10px", sm: "50px" }}
+      component="form"
     >
-      <Typography variant="h4" fontWeight={700} mb={2}>
+      <Typography variant="h6" fontWeight={600} mb={1}>
         Forgot Password?
       </Typography>
 
       <Typography variant="body1" color="text.secondary" mb={4}>
-        Enter your email address and we’ll send you a link to reset your
+        Enter your email address and we’ll send you a OTP to reset your
         password.
       </Typography>
 
@@ -97,7 +97,7 @@ const ForgotPasswordForm = () => {
         fullWidth
         type="submit"
         variant="contained"
-        label={isSubmitting ? "Sending..." : "Send Otp"}
+        label={isSubmitting ? "Sending..." : "Send OTP"}
         sx={{ mt: 4 }}
         disabled={!formik.isValid || !formik.dirty || isSubmitting}
       />
