@@ -28,6 +28,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.6.2",
+    "stripe": "^18.2.1",
     "react-toastify": "^11.0.5",
     "yup": "^1.6.1"
   },
@@ -39,6 +40,7 @@
     "@types/nodemailer": "^6.4.17",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/stripe": "^8.0.416",
     "eslint": "^9",
     "eslint-config-next": "15.3.3",
     "tailwindcss": "^4",
