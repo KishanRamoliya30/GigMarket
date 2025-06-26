@@ -17,6 +17,7 @@ interface LoginResponseSuccess {
     email: string;
   };
   needToAcceptTerms: boolean;
+  hasSubscription?: boolean;
   terms: string
 }
 
@@ -89,8 +90,9 @@ export async function POST(request: NextRequest): Promise<Response> {
         success: true,
         user: {
           id: user._id,
-          email: user.email,
+          email: user.email
         },
+        hasSubscription: user.subscriptionCompleted,
         needToAcceptTerms: needToAcceptTerms,
         terms: needToAcceptTerms?terms.content:""
       });
