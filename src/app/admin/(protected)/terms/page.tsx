@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { Box, Typography, Paper } from "@mui/material";
 import { apiRequest } from "@/app/lib/apiCall";
 import CustomButton from "@/components/customUi/CustomButton";
+import { toast } from 'react-toastify';
 const Editor = dynamic(
   () => import("@tinymce/tinymce-react").then((mod) => mod.Editor),
   {
@@ -40,9 +41,9 @@ export default function TermsAndServicesPage() {
     });
 
     if (res.ok) {
-      alert("Terms saved successfully.");
+      toast.success("Terms saved successfully.");
     } else {
-      alert(res.error ?? "Failed to save.");
+      toast.error(res.error ?? "Failed to save.");
     }
   };
 
@@ -77,6 +78,7 @@ export default function TermsAndServicesPage() {
           type="submit"
           disabled={loading}
           onClick={handleSave}
+          sx={{mt:2}}
         />
       </Paper>
     </Box>

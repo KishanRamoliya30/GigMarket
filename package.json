@@ -29,6 +29,7 @@
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.6.2",
     "stripe": "^18.2.1",
+    "react-toastify": "^11.0.5",
     "yup": "^1.6.1"
   },
   "devDependencies": {

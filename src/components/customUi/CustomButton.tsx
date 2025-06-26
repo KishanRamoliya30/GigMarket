@@ -5,7 +5,7 @@ type CustomButtonProps = ButtonProps & {
   btnType?: 'primary' | 'secondary';
 };
 
-export default function CustomButton({ label, btnType = 'primary', ...rest }: CustomButtonProps) {
+export default function CustomButton({ label, btnType = 'primary',sx, ...rest }: CustomButtonProps) {
     const isContinue = btnType === 'primary';
     return (
     <Button
@@ -25,6 +25,7 @@ export default function CustomButton({ label, btnType = 'primary', ...rest }: Cu
         '&:hover': {
           backgroundColor: isContinue ? '#000' : '#E0E0E0',
         },
+        ...sx
       }}
     >
       {label}

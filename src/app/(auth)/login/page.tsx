@@ -92,7 +92,17 @@ const Login = () => {
         size={{ xs: 12 }}
         sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}
       >
-        <Box width="100%" p={3} component="form" onSubmit={handleSubmit}>
+        <Box
+          width="100%"
+          maxWidth={{ xs: "100%", sm: "600px" }}
+          bgcolor="#fff"
+          borderRadius={4}
+          boxShadow={3}
+          p={{ xs: 2, sm: 4 }}
+          mx="auto"
+          component="form"
+          onSubmit={handleSubmit}
+        >
           <Typography
             variant="h6"
             sx={{ fontWeight: 600, color: "#222325", fontSize: "26px", mb: 4 }}
@@ -129,7 +139,7 @@ const Login = () => {
             justifyContent={"end"}
             mt={1}
             mb={4}
-            sx={{ textDecoration: "underline" }}
+            sx={{ textDecoration: "underline" , color: "#2e7d32",}}
           >
             Forgot Password ?
           </Typography>
@@ -138,24 +148,22 @@ const Login = () => {
             fullWidth
             label={isSubmitting ? "Signing In..." : "Sign In"}
             variant="contained"
-            sx={{ mt: "80px !important" }}
             type="submit"
             disabled={!formik.isValid || !formik.dirty || isSubmitting}
           />
           <Box mt={3} display="flex" justifyContent="center">
-            Don't have an account?
+            Don&apos;t have an account?
             <Link href="/signup">
-              <Typography
+               &nbsp;<Typography
                 component={"span"}
                 variant={"body2"}
                 sx={{
-                  fontWeight: 600,
-                  color: "#222325",
+                  color: "#2e7d32",
                   fontSize: "16px",
                   textDecoration: "underline",
                 }}
               >
-                Sign Up
+               Sign Up
               </Typography>
             </Link>
           </Box>
