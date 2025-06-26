@@ -7,6 +7,9 @@ const planSchema = new mongoose.Schema(
     description: { type: String },
     benefits: [{ type: String }],
     ispopular: { type: Boolean, default: false },
+    priceId : {type: String, required: false},
+    productId : {type: String, required: false},
+    type: { type: Number, enum: [1, 2, 3], required: true }
   },
   { 
     timestamps: true,

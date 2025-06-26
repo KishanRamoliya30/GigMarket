@@ -65,22 +65,6 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  currentSubscription: {
-    planId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "plans",
-    },
-    planName: String,
-    price: Number, 
-    startedAt: Date,
-    endsAt: Date,
-    status: {
-      type: String,
-      enum: ["active", "canceled", "expired"],
-      default: "active",
-    },
-    stripeSubscriptionId: String,
-  },
 });
 
 const User = mongoose.models.users || mongoose.model("users", userSchema);
