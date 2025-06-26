@@ -2,39 +2,52 @@ import { Box, Button, Container, Grid, Paper, Typography } from "@mui/material";
 
 const plans = [
   {
+    id: 1,
     title: "Free",
-    price: "$0/mo",
+    duration: "/mo",
+    currency: { name: "", symbole: "" },
+    price: "Free",
     description: "Can only be a user (request gigs)",
     features: [
-      "Voice messages anywhere",
-      "Voice messages anywhere",
-      "Voice messages anywhere",
+      "Only user account — can request gigs",
+      "Cannot post gigs as provider",
+      "No access to badges or bids",
     ],
     disabled: false,
-    buttonText: "Buy now",
+    buttonText: "Join for free",
   },
   {
+    id: 2,
     title: "Basic",
-    price: "$10/mo",
+    duration: "/mo",
+    currency: { name: "USD", symbole: "$" },
+    price: 10,
     tag: "MOST POPULAR",
-    description: "User + Provider (limited access)",
+    description: "Limited access to provider features",
     features: [
-      "Voice messages anywhere",
-      "Voice messages anywhere",
-      "Voice messages anywhere",
+      "Can post up to 3 gigs per month",
+      "Can bid on up to 5 gigs per month",
+      "Cannot earn badges like 'Top Rated Seller'",
+      "Can act as user or provider (limited)",
     ],
-    buttonText: "Buy now",
+    buttonText: "Upgrade to Basic",
+    priceId: process.env.BASIC_STRIP_PRICE_ID
   },
   {
+    id: 3,
     title: "Pro",
-    price: "$20/mo",
-    description: "User + Provider (full access)",
+    duration: "/mo",
+    currency: { name: "USD", symbole: "$" },
+    price: 20,
+    description: "Full access as user and provider",
     features: [
-      "Voice messages anywhere",
-      "Voice messages anywhere",
-      "Voice messages anywhere",
+      "Dual profile: user + provider in one account",
+      "Unlimited gig posts and bids",
+      "Eligible for all badges (e.g., Top Rated Seller)",
+      "Priority support and full marketplace access",
     ],
-    buttonText: "Buy now",
+    buttonText: "Go Pro",
+    priceId: process.env.PRO_STRIP_PRICE_ID
   },
 ];
 
@@ -48,7 +61,7 @@ export default function SubscriptionPlans() {
 
         <Grid container spacing={4} justifyContent="center" mt={4}>
           {plans.map((plan, index) => (
-            <Grid item xs={12} sm={6} md={4} key={index}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
               <Paper
                 elevation={0}
                 sx={{
@@ -89,7 +102,8 @@ export default function SubscriptionPlans() {
                   {plan.title}
                 </Typography>
                 <Typography variant="h5" fontWeight="bold">
-                  {plan.price}
+                  {`${plan.currency.symbole}${plan.price}`}
+                  <span className="px-1 text-[14px]">{plan.duration}</span>
                 </Typography>
                 <Typography variant="body2" color="gray" mt={1} gutterBottom>
                   {plan.description}
