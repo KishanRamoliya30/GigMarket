@@ -8,11 +8,11 @@ import CustomTextField from "@/components/customUi/CustomTextField";
 import CustomButton from "@/components/customUi/CustomButton";
 import { apiRequest } from "@/app/lib/apiCall";
 import { toast } from "react-toastify";
+import Cookies from "js-cookie";
 
 const ResetPasswordForm = () => {
-  const router = useRouter();
-  const email = localStorage.getItem("email");
-
+  const router = useRouter(); 
+const email = Cookies.get("email");
   const validationSchema = Yup.object({
     password: Yup.string()
       .min(8, "Password must be at least 8 characters")
@@ -34,11 +34,11 @@ const ResetPasswordForm = () => {
         data: {
           email,
           newPassword: values.password,
-          confirmPassword: values.confirmPassword,
         },
       });
 
       if (response.ok) {
+        Cookies.remove("email");
         toast.success(response.message || "Password reset successfully!");
         router.push("/login");
         resetForm();
@@ -64,15 +64,13 @@ const ResetPasswordForm = () => {
     <Box
       component="form"
       onSubmit={handleSubmit}
-      sx={{
-        width: "100%",
-        maxWidth: "500px",
-        mx: "auto",
-        bgcolor: "#fff",
-        p: { xs: 3, sm: 5 },
-        borderRadius: 4,
-        boxShadow: 4,
-      }}
+      width="100%"
+      maxWidth={{ xs: "100%", sm: "600px" }}
+      bgcolor="#fff"
+      borderRadius={4}
+      boxShadow={3}
+      p={{ xs: 2, sm: 4 }}
+      mx="auto"
     >
       <Typography variant="h4" fontWeight={700} mb={2}>
         Reset Password
@@ -106,7 +104,6 @@ const ResetPasswordForm = () => {
             ? errors.confirmPassword
             : ""
         }
-        sx={{ mt: 3 }}
       />
 
       <CustomButton

@@ -2,7 +2,8 @@ import {
   TextField,
   TextFieldProps,
   Typography,
-  Box,
+  InputAdornment,
+  IconButton,
 } from "@mui/material";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
@@ -34,42 +35,16 @@ export default function CustomTextField({
   return (
     <div style={{ marginBottom: "16px" }}>
       {label && (
-        <Box
+        <Typography
           sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
+            fontWeight: 500,
+            fontSize: "14px",
+            color: "text.secondary",
             mb: "6px",
           }}
         >
-          <Typography
-            sx={{
-              fontWeight: 500,
-              fontSize: "14px",
-              color: "text.secondary",
-            }}
-          >
-            {label}
-          </Typography>
-          {isPassword && (
-            <Box
-              onClick={handleToggleVisibility}
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                cursor: "pointer",
-                fontSize: "13px",
-                color: "#6a6a6a",
-                fontWeight: 500,
-              }}
-            >
-              {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
-              <span style={{ marginLeft: "6px" }}>
-                {showPassword ? "Hide" : "Show"}
-              </span>
-            </Box>
-          )}
-        </Box>
+          {label}
+        </Typography>
       )}
 
       <TextField
@@ -82,12 +57,16 @@ export default function CustomTextField({
         variant="outlined"
         autoComplete="off"
         InputProps={{
-          sx: {
-            pr: isPassword ? 0 : undefined,
-          },
+          endAdornment: isPassword && (
+            <InputAdornment position="end">
+              <IconButton onClick={handleToggleVisibility} edge="end">
+                {showPassword ? <VisibilityOff /> : <Visibility />}
+              </IconButton>
+            </InputAdornment>
+          ),
         }}
         sx={{
-          marginTop:"0",
+          marginTop: "0",
           backgroundColor: "#fff",
           borderRadius: "8px",
           "& .MuiOutlinedInput-root": {

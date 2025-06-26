@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/app/lib/dbConnect";
 import User from "@/app/models/user";
 import { sendOtpEmail } from "../../../../utils/sendOtpEmail";
-import Otp from "@/app/models/otp";
 
 interface ForgotPasswordRequestBody {
   email: string;
@@ -40,25 +39,41 @@ export async function POST(request: NextRequest): Promise<Response> {
 
     // Generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); //10 mins
 
-    // Save OTP in MongoDB
-    await Otp.findOneAndUpdate(
-      { email },
-      { otp, expiresAt },
-      { upsert: true, new: true }
-    );
+    try {
+      await sendOtpEmail({
+        to: email,
+        otp,
+        username: user.name || "User",
+      });
+    } catch (error: unknown) {
+      let errorMessage = "Failed to send OTP email.";
+      if (error instanceof Error) errorMessage = error.message;
+      return NextResponse.json<ForgotPasswordError>(
+        { error: errorMessage },
+        { status: 500 }
+      );
+    }
 
-    // Send OTP Email
-    await sendOtpEmail({
-      to: email,
-      otp,
-      username: user.name || "User",
-    });
+    user.resetPasswordOTP = otp;
+    user.resetPasswordOTPExpiry = otpExpiry;
+    await user.save();
 
-    return NextResponse.json<ForgotPasswordSuccess>({
+    const response = NextResponse.json<ForgotPasswordSuccess>({
       message: `OTP has been sent to your ${email}.`,
     });
+
+    response.cookies.set({
+      name: "email",
+      value: email,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/",
+      maxAge: 10 * 60,
+    });
+
+    return response;
   } catch (error: unknown) {
     let errorMessage = "Something went wrong.";
     if (error instanceof Error) errorMessage = error.message;

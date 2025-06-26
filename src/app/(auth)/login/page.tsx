@@ -134,17 +134,20 @@ const Login = () => {
               touched.password && errors.password ? errors.password : ""
             }
           />
-          <Link href="/forgot-password">
+
           <Typography
             display={"flex"}
             justifyContent={"end"}
             mt={1}
             mb={4}
-            sx={{ textDecoration: "underline" , color: "#2e7d32", cursor: "pointer"}}
+            sx={{
+              textDecoration: "underline",
+              color: "#2e7d32",
+              cursor: "pointer",
+            }}
           >
-            Forgot Password ?
+            <Link href="/forgot-password">Forgot Password?</Link>
           </Typography>
-          </Link>
 
           <CustomButton
             fullWidth
@@ -156,7 +159,8 @@ const Login = () => {
           <Box mt={3} display="flex" justifyContent="center">
             Don&apos;t have an account?
             <Link href="/signup">
-               &nbsp;<Typography
+              &nbsp;
+              <Typography
                 component={"span"}
                 variant={"body2"}
                 sx={{
@@ -165,7 +169,7 @@ const Login = () => {
                   textDecoration: "underline",
                 }}
               >
-               Sign Up
+                Sign Up
               </Typography>
             </Link>
           </Box>

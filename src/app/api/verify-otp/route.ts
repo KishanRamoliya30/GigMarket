@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/app/lib/dbConnect";
 import User from "@/app/models/user";
-import Otp from "@/app/models/otp";
+// import Otp from "@/app/models/otp";
 
 interface VerifyOtpRequestBody {
   email: string;
@@ -37,35 +37,27 @@ export async function POST(request: NextRequest): Promise<Response> {
         { status: 404 }
       );
     }
-
-    const record = await Otp.findOne({ email });
-
-    if (!record) {
-      return NextResponse.json<VerifyOtpError>(
-        { error: "OTP not found or expired." },
+    // // OTP verified
+    if (!user.resetPasswordOTP || !user.resetPasswordOTPExpiry) {
+        return NextResponse.json<VerifyOtpError>(
+        { error: "No OTP request found" },
         { status: 404 }
       );
-    }
+  }
 
-    const now = Date.now();
-
-    if (now > new Date(record.expiresAt).getTime()) {
-      await Otp.deleteOne({ email });
-      return NextResponse.json<VerifyOtpError>(
-        { error: "OTP has expired." },
-        { status: 410 }
+  if (user.resetPasswordOTP !== otp) {
+     return NextResponse.json<VerifyOtpError>(
+        { error: "Invalid OTP" },
+        { status: 404 }
       );
-    }
+  }
 
-    if (record.otp !== otp) {
-      return NextResponse.json<VerifyOtpError>(
-        { error: "Invalid OTP." },
-        { status: 401 }
+  if (new Date() > new Date(user.resetPasswordOTPExpiry)) {
+    return NextResponse.json<VerifyOtpError>(
+        { error: "OTP has been expired" },
+        { status: 404 }
       );
-    }
-
-    // ✅ OTP verified
-    await Otp.deleteOne({ email }); // Clean up OTP entry
+  }
 
     return NextResponse.json<VerifyOtpSuccess>({
       message: "OTP verified successfully.",

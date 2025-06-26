@@ -83,7 +83,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         email: user.email,
         isAdmin: false
       });
-  console.log("Reset Token:", token);
+
       const response = NextResponse.json<LoginResponseSuccess>({
         message: "Login successful.",
         success: true,

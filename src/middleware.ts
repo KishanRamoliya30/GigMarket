@@ -21,9 +21,19 @@ const PUBLIC_PATHS = [
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-
   const token = request.cookies.get("token")?.value;
   const isAdmin = request.cookies.get('role')?.value === 'Main';
+  const email = request.cookies.get("email")?.value;
+
+  if (
+    ["/verify-otp", "/reset-password"].some((path) =>
+      pathname.startsWith(path)
+    )
+  ) {
+    if (!email) {
+      return NextResponse.redirect(new URL("/login", request.url));
+    }
+  }
   if (PUBLIC_PATHS.some((path) => pathname.startsWith(path))) {
     if (token && !pathname.startsWith("/api")) {
       try {

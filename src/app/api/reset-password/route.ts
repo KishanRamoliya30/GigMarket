@@ -6,61 +6,57 @@ import bcrypt from "bcryptjs";
 interface ResetPasswordRequestBody {
   email: string;
   newPassword: string;
-  confirmPassword: string;
-}
-
-interface ResetPasswordSuccess {
-  message: string;
-}
-
-interface ResetPasswordError {
-  error: string;
 }
 
 export async function POST(request: NextRequest): Promise<Response> {
   try {
     await dbConnect();
     const reqBody: ResetPasswordRequestBody = await request.json();
-    const { email, newPassword, confirmPassword } = reqBody;
+    const { email, newPassword } = reqBody;
 
-    if (!email || !newPassword || !confirmPassword) {
-      return NextResponse.json<ResetPasswordError>(
-        { error: "Email and both password fields are required." },
+    if (!email || !newPassword) {
+      return NextResponse.json(
+        { error: "Email and new password are required." },
         { status: 400 }
       );
     }
-
-    if (newPassword !== confirmPassword) {
-      return NextResponse.json<ResetPasswordError>(
-        { error: "Passwords do not match." },
+    if (!email) {
+      return NextResponse.json(
+        { error: "Please verify your email with otp." },
         { status: 400 }
       );
     }
-
     const user = await User.findOne({ email });
     if (!user) {
-      return NextResponse.json<ResetPasswordError>(
-        { error: "User not found." },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "User not found." }, { status: 404 });
     }
 
-    // ✅ Hash the new password and update user
     const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    user.resetPasswordOTP = undefined;
+    user.resetPasswordOTPExpiry = undefined;
+
     user.password = hashedPassword;
     await user.save();
 
-    return NextResponse.json<ResetPasswordSuccess>({
+    // Create response and delete the cookie
+    const response = NextResponse.json({
       message: "Password has been reset successfully.",
     });
+
+    response.cookies.set({
+      name: "email",
+      value: "",
+      path: "/",
+      maxAge: 0,
+    });
+
+    return response;
   } catch (error: unknown) {
     const errorMessage =
       typeof error === "object" && error !== null && "message" in error
         ? (error as { message?: string }).message || "Something went wrong."
         : "Something went wrong.";
-    return NextResponse.json<ResetPasswordError>(
-      { error: errorMessage },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

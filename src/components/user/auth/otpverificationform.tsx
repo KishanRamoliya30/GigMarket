@@ -8,10 +8,11 @@ import CustomTextField from "@/components/customUi/CustomTextField";
 import CustomButton from "@/components/customUi/CustomButton";
 import { apiRequest } from "@/app/lib/apiCall";
 import { toast } from "react-toastify";
+import Cookies from "js-cookie";
 
 const OtpVerificationForm = () => {
   const router = useRouter();
-  const email = localStorage.getItem("email");
+  const email = Cookies.get("email");
 
   const validationSchema = Yup.object({
     otp: Yup.string()
@@ -60,15 +61,13 @@ const OtpVerificationForm = () => {
     <Box
       component="form"
       onSubmit={handleSubmit}
-      sx={{
-        width: "100%",
-        maxWidth: "400px",
-        mx: "auto",
-        bgcolor: "#fff",
-        p: { xs: 3, sm: 5 },
-        borderRadius: 4,
-        boxShadow: 4,
-      }}
+      width="100%"
+      maxWidth={{ xs: "100%", sm: "600px" }}
+      bgcolor="#fff"
+      borderRadius={4}
+      boxShadow={3}
+      p={{ xs: 2, sm: 4 }}
+      mx="auto"
     >
       <Typography variant="h4" fontWeight={700} mb={2}>
         OTP Verification
