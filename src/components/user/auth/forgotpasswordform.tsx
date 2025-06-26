@@ -54,24 +54,23 @@ const ForgotPasswordForm = () => {
 
   return (
     <Box
-      component="form"
       onSubmit={handleSubmit}
-      sx={{
-        width: "100%",
-        maxWidth: "500px",
-        mx: "auto",
-        bgcolor: "#fff",
-        p: { xs: 3, sm: 5 },
-        borderRadius: 4,
-        boxShadow: 4,
-      }}
+      width="100%"
+      minWidth={{ xs: "100%", md: "600px", sm: "600px" }}
+      bgcolor="#fff"
+      borderRadius={4}
+      boxShadow={3}
+      p={{ xs: 4, sm: 4 }}
+      mx={{ xs: "10px", sm: "50px" }}
+      component="form"
     >
       <Typography variant="h4" fontWeight={700} mb={2}>
         Forgot Password?
       </Typography>
 
       <Typography variant="body1" color="text.secondary" mb={4}>
-        Enter your email address and we’ll send you a link to reset your password.
+        Enter your email address and we’ll send you a link to reset your
+        password.
       </Typography>
 
       <CustomTextField

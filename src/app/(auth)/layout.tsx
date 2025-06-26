@@ -3,6 +3,7 @@
 import { Box, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import CheckIcon from "@mui/icons-material/Check";
+import GigMarketLogo from "@/components/logo";
 
 export default function DashboardLayout({
   children,
@@ -12,6 +13,9 @@ export default function DashboardLayout({
   return (
     <Wrapper>
       <Box className="leftPart">
+        <Box className="logoContainer">
+          <GigMarketLogo  textColor="#fff"/>
+        </Box>
         <Box className="overlayContent">
           <Typography variant="h4" className="heading">
             Success starts here
@@ -41,35 +45,72 @@ const Wrapper = styled(Box)(({ theme }) => ({
   display: "flex",
   minHeight: "100vh",
   flexDirection: "row",
-  "& .leftPart": {
+  background: "linear-gradient(270deg, #0f2027, #203a43, #2c5364, #1a1f2b)",
+  backgroundSize: "800% 800%",
+  animation: "gradientShift 20s ease infinite",
+   "& .leftPart": {
     flex: 0.8,
-    background: " linear-gradient(to bottom, #a74257, #6f2333)",
-    backgroundSize: "cover",
     display: "flex",
+    flexDirection: "column",
+    padding: "2rem",
+  },
+
+  "& .rightPart": {
+    flex: 1.2,
+    display: "flex",
+    alignItems: "center",
     justifyContent: "center",
-    alignItems: "flex-start",
-    padding: "6rem 0rem",
+  },
+
+  "& .logoContainer": {
+    display: "flex",
+    justifyContent: "flex-start",
+    alignItems: "center",
+    height: "60px",
+  },
+
+  "& .logo": {
+    width: "120px",
+    height: "auto",
   },
 
   "& .overlayContent": {
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
     maxWidth: 400,
     width: "100%",
+    margin: "0 auto",
     color: "#fff",
   },
-
+  
   "& .heading": {
-    fontWeight: 700,
-    color: "#fff",
-    marginBottom: theme.spacing(2),
-    fontSize: "2rem",
+  fontWeight: 700,
+  color: "#fff",
+  marginBottom: theme.spacing(2),
+  fontSize: "2rem",
 
-    [theme.breakpoints.down("md")]: {
-      fontSize: "1.8rem",
-    },
-    [theme.breakpoints.down("sm")]: {
-      fontSize: "1.5rem",
-    },
+  [theme.breakpoints.down("md")]: {
+    fontSize: "1.5rem",
   },
+  [theme.breakpoints.down("sm")]: {
+    fontSize: "1.2rem",
+  },
+},
+
+"& .featureText": {
+  color: "#fff",
+  fontSize: "1rem",
+
+  [theme.breakpoints.down("md")]: {
+    fontSize: "0.9rem",
+  },
+  [theme.breakpoints.down("sm")]: {
+    fontSize: "0.85rem",
+  },
+},
+
 
   "& .feature": {
     display: "flex",
@@ -82,31 +123,38 @@ const Wrapper = styled(Box)(({ theme }) => ({
     marginRight: theme.spacing(1),
   },
 
-  "& .featureText": {
-    color: "#fff",
-    fontSize: "1rem",
+  
+ [theme.breakpoints.down("sm")]: {
+  flexDirection: "column",
+  "& .leftPart": {
+    display: "none",
+  },
+  "& .rightPart": {
+    width: "100%",
+    padding: "1rem",
+  },
+},
+[theme.breakpoints.down("md")]: {
+  flexDirection: "column",
 
-    [theme.breakpoints.down("sm")]: {
-      fontSize: "0.9rem",
-    },
+  "& .leftPart": {
+    display: "none",
   },
 
   "& .rightPart": {
-    flex: 1.2,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    background: " linear-gradient(to bottom, #a74257, #6f2333)",
+    width: "100%",
+    padding: "1rem",
   },
-
-  [theme.breakpoints.down("sm")]: {
-    flexDirection: "column",
-    "& .leftPart": {
-      display: "none",
+},
+ "@keyframes gradientShift": {
+    "0%": {
+      backgroundPosition: "0% 50%",
     },
-    "& .rightPart": {
-      width: "100%",
-      padding: "1rem",
+    "50%": {
+      backgroundPosition: "100% 50%",
+    },
+    "100%": {
+      backgroundPosition: "0% 50%",
     },
   },
 }));

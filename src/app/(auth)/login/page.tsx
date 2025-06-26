@@ -94,12 +94,12 @@ const Login = () => {
       >
         <Box
           width="100%"
-          maxWidth={{ xs: "100%", sm: "600px" }}
+          minWidth={{ xs: "100%", md: "600px", sm: "600px" }}
           bgcolor="#fff"
           borderRadius={4}
           boxShadow={3}
-          p={{ xs: 2, sm: 4 }}
-          mx="auto"
+          p={{ xs: 4, sm: 4 }}
+          mx={{ xs: "10px", sm: "50px" }}
           component="form"
           onSubmit={handleSubmit}
         >
@@ -108,7 +108,7 @@ const Login = () => {
             sx={{ fontWeight: 600, color: "#222325", fontSize: "26px", mb: 4 }}
             gutterBottom
           >
-            Continue with your email or username
+            Sign In
           </Typography>
 
           <CustomTextField
@@ -139,7 +139,7 @@ const Login = () => {
             justifyContent={"end"}
             mt={1}
             mb={4}
-            sx={{ textDecoration: "underline" , color: "#2e7d32",}}
+            sx={{ textDecoration: "underline", color: "#2e7d32" }}
           >
             Forgot Password ?
           </Typography>
@@ -154,7 +154,8 @@ const Login = () => {
           <Box mt={3} display="flex" justifyContent="center">
             Don&apos;t have an account?
             <Link href="/signup">
-               &nbsp;<Typography
+              &nbsp;
+              <Typography
                 component={"span"}
                 variant={"body2"}
                 sx={{
@@ -163,7 +164,7 @@ const Login = () => {
                   textDecoration: "underline",
                 }}
               >
-               Sign Up
+                Sign Up
               </Typography>
             </Link>
           </Box>
