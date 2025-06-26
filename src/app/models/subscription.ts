@@ -40,8 +40,16 @@ const subscriptionSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['active', 'expired', 'cancelled', 'trialing', 'pending'],
+      enum: ['active', 'expired', 'cancelled', 'trialing', 'pending', 'past_due', 'incomplete'],
       default: 'pending',
+    },
+    stripeSubscriptionId: {
+      type: String,
+      required: true,
+    },
+    stripeCustomerId: {
+      type: String,
+      required: true,
     },
     startDate: {
       type: Date,
@@ -56,6 +64,15 @@ const subscriptionSchema = new mongoose.Schema(
       default: false,
     },
     paymentMethod: {
+      type: String,
+    },
+    currentPeriodEnd: {
+      type: Date,
+    },
+    currentPeriodStart: {
+      type: Date,
+    },
+    planId: {
       type: String,
     },
   },

@@ -10,9 +10,9 @@ const PUBLIC_PATHS = [
   "/api/signup",
   "/api/admin/login",
   "/api/terms",
+  "/verify-email"
 ];
 
-const JWT_SECRET = process.env.JWT_SECRET ?? "your-secret-key";
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
