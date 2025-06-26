@@ -33,7 +33,8 @@ export async function PATCH(request: NextRequest) {
       user: {
         id: updatedUser._id,
         email: updatedUser.email,
-      }
+      },
+      hasSubscription: updatedUser.subscriptionCompleted,
     });
     response.cookies.set({
       name: 'token',

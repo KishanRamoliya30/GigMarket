@@ -1,44 +1,43 @@
-import { Box, Button, Container, Grid, Paper, Typography } from "@mui/material";
+"use client"
 
-const plans = [
-  {
-    title: "Free",
-    price: "$0/mo",
-    description: "Can only be a user (request gigs)",
-    features: [
-      "Voice messages anywhere",
-      "Voice messages anywhere",
-      "Voice messages anywhere",
-    ],
-    disabled: false,
-    buttonText: "Buy now",
-  },
-  {
-    title: "Basic",
-    price: "$10/mo",
-    tag: "MOST POPULAR",
-    description: "User + Provider (limited access)",
-    features: [
-      "Voice messages anywhere",
-      "Voice messages anywhere",
-      "Voice messages anywhere",
-    ],
-    buttonText: "Buy now",
-  },
-  {
-    title: "Pro",
-    price: "$20/mo",
-    description: "User + Provider (full access)",
-    features: [
-      "Voice messages anywhere",
-      "Voice messages anywhere",
-      "Voice messages anywhere",
-    ],
-    buttonText: "Buy now",
-  },
-];
+import { Box, Button, Container, Grid, Paper, Typography } from "@mui/material";
+import { useEffect,useState } from "react";
+import { apiRequest } from "@/app/lib/apiCall";
+import { Plan } from "@/app/utils/interfaces";
+import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
 export default function SubscriptionPlans() {
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const router = useRouter();
+
+  const fetchPlans = async () => {
+    const res = await apiRequest<{ success: boolean; data: Plan[] }>("plans");
+    if (res.ok && res.data?.success) {
+      setPlans(res.data.data);
+    }
+  };
+
+  const subscribePlan = async (planId:string) => {
+    //stripe logic added here
+    const response = await apiRequest("subscribe", {
+      method: "POST",
+      data: {
+        planId: planId,
+        stripeSubscriptionId: "test" //change with stripe Id
+      },
+    });
+    if (response.ok && response.data) {
+      toast.success("Subscription done successfully")
+      router.push("/dashboard");
+    } else {
+      toast.error("Something went wrong")
+    }
+  }
+  useEffect(() => {
+    fetchPlans();
+  }, []);
+
   return (
     <Box sx={{ bgcolor: "#fff", py: 8 }}>
       <Container maxWidth="lg">
@@ -48,7 +47,9 @@ export default function SubscriptionPlans() {
 
         <Grid container spacing={4} justifyContent="center" mt={4}>
           {plans.map((plan, index) => (
-            <Grid item xs={12} sm={6} md={4} key={index}>
+            <Grid size={{xs:12, sm:6, md:4}} key={plan._id} onClick={()=>{
+              subscribePlan(plan._id)
+            }}>
               <Paper
                 elevation={0}
                 sx={{
@@ -65,8 +66,7 @@ export default function SubscriptionPlans() {
                   },
                 }}
               >
-                {plan.tag && (
-                  <Box
+                {plan.ispopular && <Box
                     sx={{
                       position: "absolute",
                       top: -16,
@@ -81,22 +81,21 @@ export default function SubscriptionPlans() {
                       fontWeight: "bold",
                     }}
                   >
-                    {plan.tag}
-                  </Box>
-                )}
+                    Most Popular
+                  </Box>}
 
                 <Typography variant="h6" fontWeight={600} gutterBottom>
-                  {plan.title}
+                  {plan.description}
                 </Typography>
                 <Typography variant="h5" fontWeight="bold">
-                  {plan.price}
+                  ₹{plan.price}/mo
                 </Typography>
                 <Typography variant="body2" color="gray" mt={1} gutterBottom>
                   {plan.description}
                 </Typography>
 
                 <Box mt={2} mb={4}>
-                  {plan.features.map((feature, i) => (
+                  {plan.benefits.map((feature, i) => (
                     <Typography variant="body2" key={i} sx={{ mb: 1 }}>
                       ✓ {feature}
                     </Typography>
@@ -106,18 +105,17 @@ export default function SubscriptionPlans() {
                 <Button
                   variant="contained"
                   fullWidth
-                  disabled={plan.disabled}
                   sx={{
-                    bgcolor: plan.disabled ? "#555" : "#fff",
-                    color: plan.disabled ? "#ccc" : "#000",
+                    bgcolor:  "#fff",
+                    color: "#000",
                     textTransform: "none",
                     fontWeight: 600,
                     "&:hover": {
-                      bgcolor: plan.disabled ? "#555" : "#ddd",
+                      bgcolor: "#ddd",
                     },
                   }}
                 >
-                  {plan.buttonText}
+                  Buy now
                 </Button>
               </Paper>
             </Grid>

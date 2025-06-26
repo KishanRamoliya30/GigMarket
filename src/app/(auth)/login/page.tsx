@@ -41,7 +41,7 @@ const Login = () => {
           setTerms(res.data.terms);
           setShowTerms(true);
         } else {
-          redirectAfterLogin();
+          redirectAfterLogin(res.data.hasSubscription);
         }
       } else {
         setFieldError("password", res.error ?? "Invalid credentials");
@@ -51,8 +51,8 @@ const Login = () => {
     },
   });
 
-  const redirectAfterLogin = () => {
-    router.push("/subscription");
+  const redirectAfterLogin = (hasSubscription:boolean) => {
+    router.push(hasSubscription?"/dashboard":"/subscription");
   };
 
   const acceptTerms = async () => {
@@ -64,7 +64,7 @@ const Login = () => {
     });
 
     if (res.ok && res.data) {
-      redirectAfterLogin();
+      redirectAfterLogin(res.data.hasSubscription);
     }
   };
 
