@@ -10,6 +10,7 @@ import {
   Drawer,
   Menu,
   MenuItem,
+  Button,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import SearchIcon from "@mui/icons-material/Search";
@@ -18,12 +19,12 @@ import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import FiverrLogo from "@/components/logo";
-
 import { apiRequest } from "@/app/lib/apiCall";
 import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
 
 const HeaderWrapper = styled(Box)(({ theme }) => ({
   display: "flex",
@@ -39,11 +40,6 @@ const HeaderWrapper = styled(Box)(({ theme }) => ({
     display: "flex",
     alignItems: "center",
     gap: "12px",
-  },
-
-  "& .logo": {
-    fontWeight: 700,
-    fontSize: 24,
   },
 
   "& .searchContainer": {
@@ -119,7 +115,12 @@ export default function Header() {
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [id, setId] = useState<string | undefined>(undefined);
 
+  useEffect(() => {
+    const storedId = Cookies.get("id");
+    setId(storedId);
+  }, []);
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
@@ -132,17 +133,19 @@ export default function Header() {
     setAnchorEl(null);
   };
 
- const handleLogout = async () => {
-  const response = await apiRequest('logout', { method: 'POST' });
+  const handleLogout = async () => {
+    const response = await apiRequest("logout", { method: "POST" });
 
-  if (response.ok) {
-   router.push("/login")
-  } else {
-    console.error("Logout failed:", response.error);
-  }
+    if (response.ok) {
+      Cookies.remove("id");
+      setId(undefined);
+      router.push("/");
+    } else {
+      console.error("Logout failed:", response.error);
+    }
 
-  handleCloseMenu();
-};
+    handleCloseMenu();
+  };
 
   return (
     <>
@@ -152,25 +155,49 @@ export default function Header() {
             <MenuIcon />
           </IconButton>
 
-            <Link href="/">
-              <FiverrLogo />
-            </Link>
+          <Link href="/">
+            <FiverrLogo />
+          </Link>
 
-
-          <Box sx={{ display: { sm: "none" } }}>
-            <Badge
-              variant="dot"
-              color="success"
-              overlap="circular"
-              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-            >
-              <Avatar
-                sx={{ bgcolor: "#f66", cursor: "pointer" }}
-                onClick={handleAvatarClick}
+          {/* Mobile Auth Display */}
+          <Box sx={{ display: { xs: "flex", sm: "none" }, gap: 2 }}>
+            {!id ? (
+              <>
+                <Link href="/login">
+                  <Typography sx={{ fontWeight: 600, cursor: "pointer" }}>
+                    Sign in
+                  </Typography>
+                </Link>
+                <Link href="/signup">
+                  <Button
+                    variant="outlined"
+                    sx={{
+                       color: "rgb(29, 191, 115)",
+                    borderColor: "rgb(29, 191, 115)",
+                      textTransform: "none",
+                      fontWeight: 600,
+                      borderRadius: 1,
+                    }}
+                  >
+                    Join
+                  </Button>
+                </Link>
+              </>
+            ) : (
+              <Badge
+                variant="dot"
+                color="success"
+                overlap="circular"
+                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
               >
-                M
-              </Avatar>
-            </Badge>
+                <Avatar
+                  sx={{ bgcolor: "#f66", cursor: "pointer" }}
+                  onClick={handleAvatarClick}
+                >
+                  M
+                </Avatar>
+              </Badge>
+            )}
           </Box>
         </Box>
 
@@ -188,17 +215,45 @@ export default function Header() {
           <NotificationsNoneIcon />
           <MailOutlineIcon />
           <FavoriteBorderIcon />
-          <Typography variant="body2" sx={{ fontWeight: 500 }}>
-            Orders
-          </Typography>
-          <Badge
-            variant="dot"
-            color="success"
-            overlap="circular"
-            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-          >
-            <Avatar sx={{ bgcolor: "#f66" }} onClick={handleAvatarClick}>M</Avatar>
-          </Badge>
+          {id ? (
+            <>
+              <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                Orders
+              </Typography>
+              <Badge
+                variant="dot"
+                color="success"
+                overlap="circular"
+                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+              >
+                <Avatar sx={{ bgcolor: "#f66" }} onClick={handleAvatarClick}>
+                  M
+                </Avatar>
+              </Badge>
+            </>
+          ) : (
+            <>
+              <Link href="/login">
+                <Typography sx={{ fontWeight: 600, cursor: "pointer" }}>
+                  Sign in
+                </Typography>
+              </Link>
+              <Link href="/signup">
+                <Button
+                  variant="outlined"
+                  sx={{
+                    color: "rgb(29, 191, 115)",
+                    borderColor: "rgb(29, 191, 115)",
+                    textTransform: "none",
+                    fontWeight: 600,
+                    borderRadius: 1,
+                  }}
+                >
+                  Join
+                </Button>
+              </Link>
+            </>
+          )}
         </Box>
       </HeaderWrapper>
 
@@ -242,10 +297,17 @@ export default function Header() {
           <Box display="flex" alignItems="center" gap={2}>
             <Typography>Orders</Typography>
           </Box>
-          <Box display="flex" alignItems="center" gap={2}>
-            <Avatar sx={{ bgcolor: "#f66", width: 32, height: 32 }} onClick={handleAvatarClick}>M</Avatar>
-            <Typography>My Account</Typography>
-          </Box>
+          {id && (
+            <Box display="flex" alignItems="center" gap={2}>
+              <Avatar
+                sx={{ bgcolor: "#f66", width: 32, height: 32 }}
+                onClick={handleAvatarClick}
+              >
+                M
+              </Avatar>
+              <Typography>My Account</Typography>
+            </Box>
+          )}
         </Box>
       </Drawer>
 
@@ -256,8 +318,18 @@ export default function Header() {
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}
       >
-        <MenuItem onClick={handleCloseMenu}>My Profile</MenuItem>
-        <MenuItem onClick={handleLogout}>Logout</MenuItem>
+        {id ? (
+          <Box>
+            <MenuItem onClick={handleCloseMenu}>My Profile</MenuItem>
+            <MenuItem onClick={handleLogout}>Logout</MenuItem>
+          </Box>
+        ) : (
+          <Box>
+            <MenuItem onClick={() => router.push("/login")}>Sign in</MenuItem>
+            <MenuItem sx={{ color: "rgb(29, 191, 115)",
+                    borderColor: "rgb(29, 191, 115)"}} onClick={() => router.push("/signup")}>Join</MenuItem>
+          </Box>
+        )}
       </Menu>
     </>
   );

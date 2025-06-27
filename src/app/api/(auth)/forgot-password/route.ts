@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/app/lib/dbConnect";
 import User from "@/app/models/user";
-import { sendOtpEmail } from "../../../../utils/sendOtpEmail";
+import { sendOtpEmail } from "../../../../../utils/sendOtpEmail";
 
 interface ForgotPasswordRequestBody {
   email: string;

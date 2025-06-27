@@ -1,0 +1,40 @@
+export const Trusted = [
+  { image: "/trusted1.png" },
+  { image: "/trusted2.png" },
+  { image: "/trusted3.png" },
+  { image: "/trusted4.png" },
+  { image: "/trusted5.png" },
+];
+export const categories = [
+  "website development",
+  "architecture & interior design",
+  "UGC videos",
+  "video editing",
+];
+
+export const services = [
+  { name: "Ai Artists", label: "Add talent to AI", image: "/service1.png" },
+  { name: "Logo Design", label: "Build your brand", image: "/service2.jpeg" },
+  {
+    name: "Wordpress",
+    label: "Customize your site",
+    image: "/service3.jpeg",
+  },
+  {
+    name: "Voice Over",
+    label: "Share your message",
+    image: "/service4.jpeg",
+  },
+  {
+    name: "Social Media",
+    label: "Reach more customers",
+    image: "/service5.jpeg",
+  },
+  { name: "SEO", label: "Unlock growth online", image: "/service6.jpeg" },
+  {
+    name: "Illustration",
+    label: "Color your dreams",
+    image: "/service7.jpeg",
+  },
+  { name: "Translation", label: "Go global", image: "/service8.jpeg" },
+];
