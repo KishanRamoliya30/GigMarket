@@ -20,6 +20,7 @@ const PUBLIC_PATHS = [
   "/api/verify-otp",
   "/verify-email",
   "/forgot-password",
+  "/api/webhooks/stripe",
 ];
 
 
