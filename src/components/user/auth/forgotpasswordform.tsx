@@ -10,7 +10,7 @@ import { apiRequest } from "@/app/lib/apiCall";
 import { toast } from "react-toastify";
 import Cookies from "js-cookie";
 
-const ForgotPasswordForm = () => {
+const ForgotPasswordForm = ({isAdmin}:{isAdmin?:boolean}) => {
   const router = useRouter();
 
   const validationSchema = Yup.object({
@@ -31,9 +31,10 @@ const ForgotPasswordForm = () => {
     onSubmit: async (values, { setSubmitting, resetForm, setFieldError }) => {
       const response = await apiRequest("forgot-password", {
         method: "POST",
-        data: { email: values.email },
+        data: { email: values.email,isAdmin: isAdmin ? true : undefined },
       });
-
+      let redirectLink = "/verify-otp";
+      if(isAdmin) redirectLink = `/admin${redirectLink}`
       if (response.ok && response.data) {
         Cookies.set("email", values.email, {
           expires: 1,
@@ -42,7 +43,7 @@ const ForgotPasswordForm = () => {
           secure: process.env.NODE_ENV === "production",
         });
         toast.success(response.message ?? "OTP has been sent to your email!");
-        router.push(`/verify-otp`);
+        router.push(redirectLink);
         resetForm();
       } else {
         setFieldError("email", response.error ?? "Something went wrong.");
@@ -70,9 +71,9 @@ const ForgotPasswordForm = () => {
       bgcolor="#fff"
       borderRadius={4}
       boxShadow={3}
-      p={{ xs: 4, sm: 4 }}
-      mx={{ xs: "10px", sm: "50px" }}
-      component="form"
+      p={isAdmin ? { xs: 2, sm: 4 } : { xs: 4, sm: 4 }}
+      mx={isAdmin ? "auto" : { xs: "10px", sm: "50px" }}
+      component="form"  
     >
       <Typography variant="h6" fontWeight={600} mb={1}>
         Forgot Password?
