@@ -62,17 +62,16 @@ const email = Cookies.get("email");
 
   return (
     <Box
-      component="form"
       onSubmit={handleSubmit}
-      width="100%"
-      maxWidth={{ xs: "100%", sm: "600px" }}
+     minWidth={{ xs: "100%", md: "600px", sm: "600px" }}
       bgcolor="#fff"
       borderRadius={4}
       boxShadow={3}
-      p={{ xs: 2, sm: 4 }}
-      mx="auto"
+      p={{ xs: 4, sm: 4 }}
+      mx={{ xs: "10px", sm: "50px" }}
+      component="form"
     >
-      <Typography variant="h4" fontWeight={700} mb={2}>
+      <Typography variant="h6" fontWeight={600} mb={1}>
         Reset Password
       </Typography>
 
