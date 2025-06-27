@@ -4,5 +4,6 @@ export interface Plan {
   price: number;
   description: string;
   benefits: string[];
-  ispopular:boolean
+  ispopular:boolean;
+  type:number;
 }

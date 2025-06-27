@@ -24,6 +24,8 @@ import { apiRequest } from '@/app/lib/apiCall';
 interface IUser {
   _id?: string;
   email: string;
+  firstName: string;
+  lastName: string;
   password: string;
   termsAccepted: boolean;
   termsAcceptedAt?: Date | null;
@@ -84,20 +86,20 @@ export default function UserProviderManagementPage() {
             <TableRow>
               <TableCell>Name</TableCell>
               <TableCell>Email</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell align="right">Actions</TableCell>
+              <TableCell>Subscription Status</TableCell>
+              {/* <TableCell align="right">Actions</TableCell> */}
             </TableRow>
           </TableHead>
           <TableBody>
             {users.map((user) => (
               <TableRow key={user._id}>
-                <TableCell>Test</TableCell>
+                <TableCell>{user.firstName} {user.lastName}</TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>
-                  {user.isActive ? (
-                    <Chip label="Active" color="success" icon={<VerifiedIcon />} />
+                  {user.subscriptionCompleted ? (
+                    <Chip label="Subscribed" color="success" icon={<VerifiedIcon />} />
                   ) : (
-                    <Chip label="InActive" color="warning" />
+                    <Chip label="Not Subscribed" color="warning" />
                   )}
                 </TableCell>
                 <TableCell align="right">
