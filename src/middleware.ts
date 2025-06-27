@@ -15,9 +15,12 @@ const PUBLIC_PATHS = [
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get("token")?.value;
-  const isAdmin = request.cookies.get('role')?.value === 'Main';
+  const isAdmin = request.cookies.get("role")?.value === "Main";
   const email = request.cookies.get("email")?.value;
-
+  const isVerified = request.cookies.get("isVerified")?.value === "true";
+  if (pathname.startsWith("/verify-email") && !isVerified) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
   if (
     ["/verify-otp", "/reset-password"].some((path) => pathname.startsWith(path))
   ) {
@@ -28,7 +31,7 @@ export function middleware(request: NextRequest) {
   if (PUBLIC_PATHS.some((path) => pathname.includes(path))) {
     if (token && !pathname.startsWith("/api")) {
       try {
-        const redirectPath = isAdmin  ? "/admin"  : "/dashboard";
+        const redirectPath = isAdmin ? "/admin" : "/dashboard";
         return NextResponse.redirect(new URL(redirectPath, request.url));
       } catch {
         return NextResponse.next();
@@ -48,7 +51,7 @@ export function middleware(request: NextRequest) {
   if (
     isAdmin &&
     !pathname.includes("/admin") &&
-    ["/api/plans", "/api/logout","/api/verify-otp","/api/reset-password","/api/forgot-password"].every((path) => !pathname.includes(path))
+    ["/api/plans", "/api/logout","/api/verify-otp","/api/reset-password","/api/forgot-password","/api/verify-email"].every((path) => !pathname.includes(path))
   ) {
     return NextResponse.redirect(new URL("/admin", request.url));
   } else if (!isAdmin && pathname.includes("/admin")) {
