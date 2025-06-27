@@ -6,7 +6,7 @@ import { generateToken } from "@/app/utils/jwt";
 import { sendVerificationEmail } from "../../../../utils/emailService";
 
 interface SignupRequestBody {
-  firstName:string;
+  firstName: string;
   lastName: string;
   email: string;
   password: string;
@@ -23,18 +23,12 @@ interface SignupResponseError {
   error: string;
 }
 
-async function sendEmailVerification(email: string) {
-  // Simulate or use real email service
-  console.log(`Sending verification email to: ${email}`);
-}
-
 export async function POST(request: Request): Promise<Response> {
   try {
     await dbConnect();
     const reqBody: SignupRequestBody = await request.json();
     const { firstName, lastName, email, password, termsAccepted } = reqBody;
 
-    // Check if terms are accepted
     if (!termsAccepted) {
       return NextResponse.json<SignupResponseError>(
         { error: "You must accept the Terms of Service." },
@@ -42,7 +36,6 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
 
-    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return NextResponse.json<SignupResponseError>(
@@ -51,11 +44,14 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
 
-    // Hash the password
+    const verificationToken = generateToken({
+      email,
+      purpose: "verify-email",
+    });
+
     const salt = await bcryptjs.genSalt(10);
     const hashedPassword = await bcryptjs.hash(password, salt);
 
-    // Create and save new user
     const newUser = new User({
       firstName,
       lastName,
@@ -65,49 +61,50 @@ export async function POST(request: Request): Promise<Response> {
       subscriptionCompleted: false,
       profileCompleted: false,
       termsAcceptedAt: new Date(),
+      isVerified: false,
+      verificationToken,
     });
 
     const savedUser = await newUser.save();
 
-    // Generate JWT token
-    const token = generateToken({
-      userId: savedUser._id,
-      email: savedUser.email,
-      isAdmin: false
-    });
-
     // Send verification email
-
     try {
-      await sendVerificationEmail(email, token);
+      await sendVerificationEmail(email, verificationToken);
     } catch (error) {
-      console.log("Failed to send verification email error", error)
+      console.error("Failed to send verification email", error);
       return NextResponse.json<SignupResponseError>(
         { error: "Failed to send verification email" },
         { status: 500 }
       );
     }
-    await sendEmailVerification(email);
 
-    // Remove password from user object before sending response
-    const userResponse = savedUser.toObject ? savedUser.toObject() : { ...savedUser };
+    const userResponse = savedUser.toObject
+      ? savedUser.toObject()
+      : { ...savedUser };
     if (userResponse.password) delete userResponse.password;
 
     const response = NextResponse.json<SignupResponseSuccess>({
-      message: "User created successfully. Verification email sent.",
+      message: "User created successfully. Please check your email to verify your account.",
       success: true,
       savedUser: userResponse,
     });
-  
-    response.cookies.set({
-      name: 'token',
-      value: token,
-      httpOnly: true,
-      secure: false,
-      sameSite: 'strict',
-      path: '/',
-      maxAge: 60 * 60 ,
-    });     
+
+    // response.cookies.set({
+    //   name: "token",
+    //   value: verificationToken,
+    //   httpOnly: true,
+    //   secure: process.env.NODE_ENV === "production",
+    //   sameSite: "strict",
+    //   path: "/"
+    // });
+
+   response.cookies.set("isVerified", "true", {
+      httpOnly: false, 
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/"
+    });
+
     return response;
   } catch (error: unknown) {
     let errorMessage = "An unexpected error occurred.";

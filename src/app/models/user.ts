@@ -69,6 +69,11 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
+  verificationToken: String,
 });
 
 const User = mongoose.models.users || mongoose.model("users", userSchema);

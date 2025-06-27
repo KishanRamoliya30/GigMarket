@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const PUBLIC_PATHS = [
+  "/",
+  "/dashboard",
   "/login",
   "/signup",
   "/terms",
@@ -18,19 +20,20 @@ const PUBLIC_PATHS = [
   "/api/verify-otp",
   "/verify-email",
   "/forgot-password",
+  "/api/verify-email",
 ];
-
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get("token")?.value;
-  const isAdmin = request.cookies.get('role')?.value === 'Main';
+  const isAdmin = request.cookies.get("role")?.value === "Main";
   const email = request.cookies.get("email")?.value;
-
+  const isVerified = request.cookies.get("isVerified")?.value === "true";
+  if (pathname.startsWith("/verify-email") && !isVerified) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
   if (
-    ["/verify-otp", "/reset-password"].some((path) =>
-      pathname.startsWith(path)
-    )
+    ["/verify-otp", "/reset-password"].some((path) => pathname.startsWith(path))
   ) {
     if (!email) {
       return NextResponse.redirect(new URL("/login", request.url));
@@ -39,7 +42,7 @@ export function middleware(request: NextRequest) {
   if (PUBLIC_PATHS.some((path) => pathname.startsWith(path))) {
     if (token && !pathname.startsWith("/api")) {
       try {
-        const redirectPath = isAdmin  ? "/admin"  : "/dashboard";
+        const redirectPath = isAdmin ? "/admin" : "/dashboard";
         return NextResponse.redirect(new URL(redirectPath, request.url));
       } catch {
         return NextResponse.next();
@@ -66,9 +69,10 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: [
-      '/api/:path*',
-      '/admin/:path*',
-      '/:path',
-    ],
+  matcher: [
+    "/api/:path*",
+    "/admin/:path*",
+    "/:path",
+    "/((?!_next/static|_next/image|favicon.ico|robots.txt|.*\\.(?:png|jpg|jpeg|gif|svg|webp|mp4)).*)",
+  ],
 };
