@@ -11,7 +11,8 @@ import {
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import { styled } from "@mui/material/styles";
-
+import { apiRequest } from "@/app/lib/apiCall";
+import { useRouter } from "next/navigation";
 const HeaderWrapper = styled(Box)(({ theme }) => ({
   width: "100%,",
   height: 64,
@@ -45,7 +46,7 @@ const HeaderWrapper = styled(Box)(({ theme }) => ({
 
 export default function AdminHeader() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-
+  const router = useRouter();
   const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
@@ -53,13 +54,20 @@ export default function AdminHeader() {
   const handleClose = () => {
     setAnchorEl(null);
   };
+ const handleLogout = async () => {
+  const response = await apiRequest('logout', { method: 'POST' });
 
+  if (response.ok) {
+   router.push("/admin/login")
+  } else {
+    console.error("Logout failed:", response.error);
+  }
+
+  handleClose();
+};
   return (
     <HeaderWrapper>
       <Box className="left">
-        <IconButton sx={{ color: "#333" }}>
-          <MenuIcon />
-        </IconButton>
         <Typography variant="h6" fontWeight={600}>
           Admin Panel
         </Typography>
@@ -73,7 +81,7 @@ export default function AdminHeader() {
           <Avatar sx={{ bgcolor: "#f44336" }}>A</Avatar>
         </IconButton>
         <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
-          <MenuItem onClick={handleClose}>Logout</MenuItem>
+          <MenuItem onClick={handleLogout}>Logout</MenuItem>
         </Menu>
       </Box>
     </HeaderWrapper>

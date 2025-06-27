@@ -46,7 +46,10 @@ export default function SubscriptionPlans() {
     if (selectedPlan) {
       const res = await apiRequest("admin/plans", {
         method: "PATCH",
-        data: selectedPlan,
+        data: {
+          ...selectedPlan,
+          benefits:selectedPlan.benefits.filter((benefit)=> (benefit.trim()!==""))
+        },
       });
       if (res.ok) {
         fetchPlans();
@@ -108,11 +111,13 @@ export default function SubscriptionPlans() {
         onClose={() => setEditOpen(false)}
         maxWidth="sm"
         fullWidth
-        PaperProps={{ sx: { borderRadius: 3, p: 2, backgroundColor: "#fff" } }}
+        slotProps={{
+          paper:{sx: { borderRadius: 3, p: 2, backgroundColor: "#fff" }}
+        }}
       >
         <DialogTitle sx={{ fontWeight: 600, mb: 1 }}>Edit Subscription Plan</DialogTitle>
 
-        <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+        <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 3, pt:"10px !important" }}>
           <TextField
             label="Plan Name"
             fullWidth
@@ -150,6 +155,7 @@ export default function SubscriptionPlans() {
                 "&.Mui-focused fieldset": { borderColor: "#000" },
               },
             }}
+            disabled={selectedPlan?.type === 1}
           />
 
           <TextField
