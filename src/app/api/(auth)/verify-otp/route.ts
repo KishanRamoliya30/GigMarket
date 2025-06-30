@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/app/lib/dbConnect";
 import User from "@/app/models/user";
-// import Otp from "@/app/models/otp";
 
 interface VerifyOtpRequestBody {
   email: string;
@@ -37,7 +36,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         { status: 404 }
       );
     }
-    // // OTP verified
+    // OTP verified
     if (!user.resetPasswordOTP || !user.resetPasswordOTPExpiry) {
         return NextResponse.json<VerifyOtpError>(
         { error: "No OTP request found" },
