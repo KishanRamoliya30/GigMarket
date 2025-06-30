@@ -17,7 +17,6 @@ export async function POST(req: NextRequest) {
   let event;
   try {
     event = stripe.webhooks.constructEvent(rawBody, sig!, endpointSecret);
-    // console.log("#####555", event , endpointSecret)
   } catch (err: unknown) {
     if (err instanceof Error) {
       return new Response(`Webhook Error: ${err.message}`, { status: 400 });
@@ -26,7 +25,6 @@ export async function POST(req: NextRequest) {
   }
 
   const data = event.data.object;
-  // console.log("#####50", data, event , event.type , endpointSecret1)
 
   switch (event.type) {
     case 'customer.subscription.created':
@@ -39,12 +37,9 @@ export async function POST(req: NextRequest) {
       const customerId = sub.customer as string;
       const user = await User.findOne({ stripeCustomerId: customerId });
 
-      console.log("#####51", sub)
-      // console.log("#####52", user)
-
       if (!user) break;
 
-      const subsc = await Subscription.findOneAndUpdate(
+      await Subscription.findOneAndUpdate(
         { stripeSubscriptionId: sub.id },
         {
           user: user._id,
@@ -61,8 +56,6 @@ export async function POST(req: NextRequest) {
         { upsert: true, new: true }
       );
 
-      console.log("#####6", subsc)
-
       user.subscription = {
         status: sub.status,
         currentPeriodEnd: new Date(sub.current_period_end * 1000),
@@ -71,7 +64,6 @@ export async function POST(req: NextRequest) {
       user.subscriptionCompleted = true;
 
       await user.save();
-      console.log("#####56", user)
       break;
     }
     case 'customer.subscription.deleted': {
@@ -88,7 +80,6 @@ export async function POST(req: NextRequest) {
     }
     case 'invoice.paid':
     case 'invoice.payment_failed': {
-      console.log("####71");
       const invoice = data as Stripe.Invoice & {
         paid: boolean;
         subscription: string;

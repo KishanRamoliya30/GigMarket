@@ -2,69 +2,16 @@
 
 import { Box, Button, Container, Grid, Paper, Typography } from "@mui/material";
 import { loadStripe } from "@stripe/stripe-js";
-import { useEffect,useState } from "react";
+import { useEffect, useState } from "react";
 import { apiRequest } from "@/app/lib/apiCall";
 import { Plan } from "@/app/utils/interfaces";
-import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY!);
 
-// const plans = [
-//   {
-//     id: 1,
-//     title: "Free",
-//     duration: "/mo",
-//     currency: { name: "", symbole: "" },
-//     price: "Free",
-//     description: "Can only be a user (request gigs)",
-//     features: [
-//       "Only user account — can request gigs",
-//       "Cannot post gigs as provider",
-//       "No access to badges or bids",
-//     ],
-//     disabled: false,
-//     buttonText: "Join for free",
-//   },
-//   {
-//     id: 2,
-//     title: "Basic",
-//     duration: "/mo",
-//     currency: { name: "USD", symbole: "$" },
-//     price: 10,
-//     tag: "MOST POPULAR",
-//     description: "Limited access to provider features",
-//     features: [
-//       "Can post up to 3 gigs per month",
-//       "Can bid on up to 5 gigs per month",
-//       "Cannot earn badges like 'Top Rated Seller'",
-//       "Can act as user or provider (limited)",
-//     ],
-//     buttonText: "Upgrade to Basic",
-//     priceId: process.env.NEXT_PUBLIC_BASIC_STRIP_PRICE_ID,
-//   },
-//   {
-//     id: 3,
-//     title: "Pro",
-//     duration: "/mo",
-//     currency: { name: "USD", symbole: "$" },
-//     price: 20,
-//     description: "Full access as user and provider",
-//     features: [
-//       "Dual profile: user + provider in one account",
-//       "Unlimited gig posts and bids",
-//       "Eligible for all badges (e.g., Top Rated Seller)",
-//       "Priority support and full marketplace access",
-//     ],
-//     buttonText: "Go Pro",
-//     priceId: process.env.NEXT_PUBLIC_PRO_STRIP_PRICE_ID,
-//   },
-// ];
-
-export default function SubscriptionPlans() {
+const Subscription = () => {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   const fetchPlans = async () => {
     const res = await apiRequest<{ success: boolean; data: Plan[] }>("plans");
@@ -73,32 +20,15 @@ export default function SubscriptionPlans() {
     }
   };
 
-  const subscribePlan = async (planId:string) => {
-    //stripe logic added here
-    const response = await apiRequest("subscribe", {
-      method: "POST",
-      data: {
-        planId: planId,
-        stripeSubscriptionId: "test" //change with stripe Id
-      },
-    });
-    if (response.ok && response.data) {
-      toast.success("Subscription done successfully")
-      router.push("/dashboard");
-    } else {
-      toast.error("Something went wrong")
-    }
-  }
   useEffect(() => {
     fetchPlans();
   }, []);
 
-
   const handleCheckout = async (plan: (typeof plans)[number]) => {
     if (!plan.priceId) {
-      toast.success("Free account activated")
-      return
-    };
+      toast.success("Free account activated");
+      return;
+    }
     // if (!plan.priceId) return;
 
     setLoading(true);
@@ -158,7 +88,8 @@ export default function SubscriptionPlans() {
                   },
                 }}
               >
-                {plan.ispopular && <Box
+                {plan.ispopular && (
+                  <Box
                     sx={{
                       position: "absolute",
                       top: -16,
@@ -174,14 +105,15 @@ export default function SubscriptionPlans() {
                     }}
                   >
                     Most Popular
-                  </Box>}
+                  </Box>
+                )}
 
                 <Box>
                   <Typography variant="h4" fontWeight={600} gutterBottom>
                     {plan.name}
                   </Typography>
                   <Typography variant="h5" fontWeight="bold">
-                     ${plan.price}
+                    ${plan.price}
                     <span className="px-1 text-[14px]">/mo</span>
                   </Typography>
                   <Typography variant="body2" color="gray" mt={1} gutterBottom>
@@ -205,7 +137,7 @@ export default function SubscriptionPlans() {
                   sx={{
                     // bgcolor: plan.disabled ? "#555" : "#fff",
                     // color: plan.disabled ? "#ccc" : "#000",
-                    bgcolor:  "#fff",
+                    bgcolor: "#fff",
                     color: "#000",
                     textTransform: "none",
                     fontWeight: 600,
@@ -224,4 +156,6 @@ export default function SubscriptionPlans() {
       </Container>
     </Box>
   );
-}
+};
+
+export default Subscription;
