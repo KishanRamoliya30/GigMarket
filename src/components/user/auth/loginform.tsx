@@ -10,6 +10,7 @@ import Link from "next/link";
 import { apiRequest } from "@/app/lib/apiCall";
 import TermsPopup from "@/components/TermsPopup";
 import { useState } from "react";
+import Cookies from "js-cookie";
 
 const validationSchema = Yup.object({
   email: Yup.string()
@@ -42,6 +43,12 @@ const LoginForm = () => {
           setShowTerms(true);
         } else {
           redirectAfterLogin(res.data.hasSubscription);
+            Cookies.set("id", res.data.user.id, {
+            expires: 1,
+            path: "/",
+            sameSite: "Strict",
+            secure: process.env.NODE_ENV === "production",
+          });
         }
       } else {
         setFieldError("password", res.error ?? "Invalid credentials");
