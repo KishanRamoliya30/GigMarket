@@ -10,6 +10,7 @@ const PUBLIC_PATHS = [
   "/verify-otp",
   "/verify-email",
   "/forgot-password",
+  "/profile"
 ];
 
 export function middleware(request: NextRequest) {
