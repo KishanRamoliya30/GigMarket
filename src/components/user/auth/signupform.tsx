@@ -1,7 +1,6 @@
 "use client";
 
 import { Box, Typography, Checkbox, FormControlLabel } from "@mui/material";
-import { useRouter } from "next/navigation";
 import * as Yup from "yup";
 import { useFormik } from "formik";
 import CustomTextField from "@/components/customUi/CustomTextField";
@@ -9,9 +8,10 @@ import CustomButton from "@/components/customUi/CustomButton";
 import { apiRequest } from "@/app/lib/apiCall";
 import Link from "next/link";
 import { toast } from "react-toastify";
+import { useRef } from "react";
 
 const SignupForm = () => {
-  const router = useRouter();
+    const formRef = useRef<HTMLFormElement>(null);
 
   const validationSchema = Yup.object({
     firstName: Yup.string().required("First name is required"),
@@ -55,9 +55,8 @@ const SignupForm = () => {
           profileCompleted: false,
         },
       });
-      if (response.ok && response.data) {
-        toast.success(response.message || "Account created successfully!");
-        router.push("/subscription");
+      if (response.ok && response.data) {        
+        toast.success(response.message || "User created successfully. Please check your email to verify your account.");
         resetForm();
       } else {
         setFieldError("password", response.error ?? "Invalid credentials");
@@ -83,6 +82,9 @@ const SignupForm = () => {
     lowercase: /[a-z]/.test(values.password),
     number: /[0-9]/.test(values.password),
   };
+ const triggerFormSubmit = () => {
+    formRef.current?.requestSubmit();
+  };
 
   return (
     <Box
@@ -106,6 +108,7 @@ const SignupForm = () => {
 
       <Box
         component="form"
+        ref={formRef}
         onSubmit={handleSubmit}
         sx={{
           overflowY: "auto",
@@ -268,6 +271,7 @@ const SignupForm = () => {
         sx={{ mt: 3 }}
         type="submit"
         disabled={!formik.isValid || !formik.dirty || isSubmitting}
+         onClick={triggerFormSubmit}
       />
 
       <Typography

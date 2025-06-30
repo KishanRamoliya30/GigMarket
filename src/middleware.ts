@@ -7,17 +7,9 @@ const PUBLIC_PATHS = [
   "/signup",
   "/terms",
   "/privacy",
-  "/admin/login",
-  "/api/login",
-  "/api/signup",
-  "/api/admin/login",
-  "/api/terms",
   "/forgot-password",
-  "/api/forgot-password",
   "/reset-password",
-  "/api/reset-password",
   "/verify-otp",
-  "/api/verify-otp",
   "/verify-email",
   "/forgot-password",
   "/api/webhooks/stripe",
@@ -28,13 +20,14 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const token = request.cookies.get("token")?.value;
-  const isAdmin = request.cookies.get('role')?.value === 'Main';
+  const isAdmin = request.cookies.get("role")?.value === "Main";
   const email = request.cookies.get("email")?.value;
-
+  const isVerified = request.cookies.get("isVerified")?.value === "true";
+  if (pathname.startsWith("/verify-email") && !isVerified) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
   if (
-    ["/verify-otp", "/reset-password"].some((path) =>
-      pathname.startsWith(path)
-    )
+    ["/verify-otp", "/reset-password"].some((path) => pathname.startsWith(path))
   ) {
     if (!email) {
       return NextResponse.redirect(new URL("/login", request.url));
@@ -55,7 +48,7 @@ export async function middleware(request: NextRequest) {
   if (PUBLIC_PATHS.some((path) => pathname.startsWith(path))) {
     if (token && !pathname.startsWith("/api")) {
       try {
-        const redirectPath = isAdmin  ? "/admin"  : "/dashboard";
+        const redirectPath = isAdmin ? "/admin" : "/dashboard";
         return NextResponse.redirect(new URL(redirectPath, request.url));
       } catch {
         return NextResponse.next();
@@ -72,7 +65,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(loginPath, request.url));
   }
 
-  if (isAdmin && !pathname.includes("/admin") && !pathname.includes("/plans")) {
+  if (
+    isAdmin &&
+    !pathname.includes("/admin") &&
+    ["/api/plans", "/api/logout","/api/verify-otp","/api/reset-password","/api/forgot-password","/api/verify-email"].every((path) => !pathname.includes(path))
+  ) {
     return NextResponse.redirect(new URL("/admin", request.url));
   } else if (!isAdmin && pathname.includes("/admin")) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
@@ -82,9 +79,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: [
-      '/api/:path*',
-      '/admin/:path*',
-      '/:path',
-    ],
+  matcher: ["/api/:path*", "/admin/:path*", "/:path"],
 };

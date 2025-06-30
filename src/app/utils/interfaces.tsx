@@ -7,4 +7,5 @@ export interface Plan {
   ispopular:boolean;
   priceId?: string;
   productId?: string;
+  type:number;
 }

@@ -10,7 +10,7 @@ import { apiRequest } from "@/app/lib/apiCall";
 import { toast } from "react-toastify";
 import Cookies from "js-cookie";
 
-const ResetPasswordForm = () => {
+const ResetPasswordForm = ({isAdmin}:{isAdmin?:boolean}) => {
   const router = useRouter(); 
 const email = Cookies.get("email");
   const validationSchema = Yup.object({
@@ -36,11 +36,12 @@ const email = Cookies.get("email");
           newPassword: values.password,
         },
       });
-
+      let redirectLink = "/login";
+      if(isAdmin) redirectLink = `/admin${redirectLink}`
       if (response.ok) {
         Cookies.remove("email");
         toast.success(response.message || "Password reset successfully!");
-        router.push("/login");
+        router.push(redirectLink);
         resetForm();
       } else {
         setFieldError("password", response.error ?? "Something went wrong.");
@@ -59,7 +60,12 @@ const email = Cookies.get("email");
     isSubmitting,
     handleBlur,
   } = formik;
-
+  const passwordValid = {
+    length: values.password.length >= 8,
+    uppercase: /[A-Z]/.test(values.password),
+    lowercase: /[a-z]/.test(values.password),
+    number: /\d/.test(values.password),
+  };
   return (
     <Box
       onSubmit={handleSubmit}
@@ -67,8 +73,8 @@ const email = Cookies.get("email");
       bgcolor="#fff"
       borderRadius={4}
       boxShadow={3}
-      p={{ xs: 4, sm: 4 }}
-      mx={{ xs: "10px", sm: "50px" }}
+      p={isAdmin ? { xs: 2, sm: 4 } : { xs: 4, sm: 4 }}
+      mx={isAdmin ? "auto" : { xs: "10px", sm: "50px" }}
       component="form"
     >
       <Typography variant="h6" fontWeight={600} mb={1}>
@@ -83,18 +89,18 @@ const email = Cookies.get("email");
         fullWidth
         label="New Password"
         name="password"
-        type="password"
+        isPassword
         value={values.password}
         onChange={handleChange}
         onBlur={handleBlur}
         errorText={touched.password && errors.password ? errors.password : ""}
       />
-
+     
       <CustomTextField
         fullWidth
         label="Confirm Password"
         name="confirmPassword"
-        type="password"
+        isPassword
         value={values.confirmPassword}
         onChange={handleChange}
         onBlur={handleBlur}
@@ -104,7 +110,40 @@ const email = Cookies.get("email");
             : ""
         }
       />
-
+  <Box mt={2} mb={2} display="flex" flexWrap="wrap" justifyContent="space-between">
+        <Box width={{ xs: "100%", sm: "48%" }} mb={1}>
+          <Typography
+            variant="body2"
+            color={passwordValid.length ? "success.main" : "text.secondary"}
+          >
+            ✓ At least 8 characters
+          </Typography>
+        </Box>
+        <Box width={{ xs: "100%", sm: "48%" }} mb={1}>
+          <Typography
+            variant="body2"
+            color={passwordValid.uppercase ? "success.main" : "text.secondary"}
+          >
+            ✓ At least 1 uppercase letter
+          </Typography>
+        </Box>
+        <Box width={{ xs: "100%", sm: "48%" }} mb={1}>
+          <Typography
+            variant="body2"
+            color={passwordValid.lowercase ? "success.main" : "text.secondary"}
+          >
+            ✓ At least 1 lowercase letter
+          </Typography>
+        </Box>
+        <Box width={{ xs: "100%", sm: "48%" }} mb={1}>
+          <Typography
+            variant="body2"
+            color={passwordValid.number ? "success.main" : "text.secondary"}
+          >
+            ✓ At least 1 number
+          </Typography>
+        </Box>
+      </Box>
       <CustomButton
         fullWidth
         type="submit"

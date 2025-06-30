@@ -3,26 +3,22 @@ import bcryptjs from "bcryptjs";
 import dbConnect from "@/app/lib/dbConnect";
 import User from "@/app/models/user";
 import { generateToken } from "@/app/utils/jwt";
-interface LoginRequestBody {
-  email: string;
-  password: string;
-}
-
 interface LoginResponse {
   message: string;
   success?: boolean;
   error?: string;
   user?: {
     id: string;
-    name: string;
     email: string;
+    firstName: string;
+    lastName: string;
   };
 }
 
 export async function POST(request: NextRequest): Promise<Response> {
   try {
     await dbConnect();
-    const { email, password }: LoginRequestBody = await request.json();
+    const { email, password } = await request.json();
 
     if (!email || !password) {
       return NextResponse.json<LoginResponse>(
@@ -67,7 +63,8 @@ export async function POST(request: NextRequest): Promise<Response> {
       success: true,
       user: {
         id: user._id.toString(),
-        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
       },
     });

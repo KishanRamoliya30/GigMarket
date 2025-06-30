@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcryptjs from "bcryptjs";
 import dbConnect from "@/app/lib/dbConnect";
-import User from "../../models/user"; 
+import User from "../../../models/user"; 
 import { generateToken } from "@/app/utils/jwt";
 import Terms from "@/app/models/terms";
 interface LoginRequestBody {

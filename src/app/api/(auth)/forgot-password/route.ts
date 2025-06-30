@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/app/lib/dbConnect";
 import User from "@/app/models/user";
-import { sendOtpEmail } from "../../../../utils/sendOtpEmail";
+import { sendOtpEmail } from "../../../../../utils/sendOtpEmail";
 
 interface ForgotPasswordRequestBody {
   email: string;
+  isAdmin?: boolean;
 }
 
 interface ForgotPasswordSuccess {
@@ -19,7 +20,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   try {
     await dbConnect();
     const reqBody: ForgotPasswordRequestBody = await request.json();
-    const { email } = reqBody;
+    const { email,isAdmin } = reqBody;
 
     if (!email) {
       return NextResponse.json<ForgotPasswordError>(
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       );
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email,isAdmin });
 
     if (!user) {
       return NextResponse.json<ForgotPasswordError>(

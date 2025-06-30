@@ -10,7 +10,7 @@ import { apiRequest } from "@/app/lib/apiCall";
 import { toast } from "react-toastify";
 import Cookies from "js-cookie";
 
-const OtpVerificationForm = () => {
+const OtpVerificationForm = ({isAdmin}:{isAdmin?:boolean}) => {
   const router = useRouter();
   const email = Cookies.get("email");
 
@@ -34,10 +34,11 @@ const OtpVerificationForm = () => {
           otp: values.otp,
         },
       });
-
+      let redirectLink = "/reset-password";
+      if(isAdmin) redirectLink = `/admin${redirectLink}`
       if (response.ok) {
         toast.success(response.message || "OTP verified successfully!");
-        router.push("/reset-password");
+        router.push(redirectLink);
       } else {
         setFieldError("otp", response.error ?? "Invalid OTP.");
         toast.error(response.error ?? "Invalid OTP.");
@@ -64,8 +65,8 @@ const OtpVerificationForm = () => {
       bgcolor="#fff"
       borderRadius={4}
       boxShadow={3}
-      p={{ xs: 4, sm: 4 }}
-      mx={{ xs: "10px", sm: "50px" }}
+      p={isAdmin ? { xs: 2, sm: 4 } : { xs: 4, sm: 4 }}
+      mx={isAdmin ? "auto" : { xs: "10px", sm: "50px" }}
       component="form"
     >
       <Typography variant="h6" fontWeight={600} mb={1}>
