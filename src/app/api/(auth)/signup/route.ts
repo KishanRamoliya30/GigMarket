@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import bcryptjs from "bcryptjs";
-import User from "../../models/user";
 import dbConnect from "@/app/lib/dbConnect";
 import { generateToken } from "@/app/utils/jwt";
-import { sendVerificationEmail } from "../../../../utils/emailService";
+import User from "@/app/models/user";
+import { sendVerificationEmail } from "../../../../../utils/emailService";
+
 
 interface SignupRequestBody {
   firstName: string;
