@@ -104,7 +104,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         secure: false,
         sameSite: 'strict',
         path: '/',
-        maxAge: 60 * 60 ,
+        maxAge: 60 * 60 * 24 * 7,
       });
       return response;
     }

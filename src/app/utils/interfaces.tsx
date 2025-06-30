@@ -5,5 +5,7 @@ export interface Plan {
   description: string;
   benefits: string[];
   ispopular:boolean;
+  priceId?: string;
+  productId?: string;
   type:number;
 }

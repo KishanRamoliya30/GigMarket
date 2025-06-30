@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { jwtVerify } from 'jose';
+const getSecret = () => new TextEncoder().encode(process.env.JWT_SECRET);
 
 const PUBLIC_PATHS = [
   "/login",
@@ -10,10 +12,13 @@ const PUBLIC_PATHS = [
   "/verify-otp",
   "/verify-email",
   "/forgot-password",
+  "/api/webhooks/stripe",
 ];
 
-export function middleware(request: NextRequest) {
+
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
   const token = request.cookies.get("token")?.value;
   const isAdmin = request.cookies.get("role")?.value === "Main";
   const email = request.cookies.get("email")?.value;
@@ -28,6 +33,18 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
   }
+
+  if (token && pathname.startsWith("/api") && !PUBLIC_PATHS.some(route => pathname.startsWith(route))) {
+    try {
+      const { payload } = await jwtVerify(token!, getSecret());
+      const response = NextResponse.next();
+      response.headers.set('x-user', JSON.stringify(payload));
+      return response;
+    } catch {
+        return NextResponse.next();
+      }
+  }
+
   if (PUBLIC_PATHS.some((path) => pathname.includes(path))) {
     if (token && !pathname.startsWith("/api")) {
       try {

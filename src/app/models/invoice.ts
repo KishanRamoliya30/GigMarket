@@ -3,10 +3,9 @@ import mongoose from 'mongoose';
 const invoiceSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'Users', required: true },
-    subscription: { type: mongoose.Schema.Types.ObjectId, ref: 'Subscription', required: true },
-    invoiceId: { type: String, required: true }, // Stripe invoice ID
+    subscriptionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Subscription', required: true },
+    invoiceId: { type: String, required: true },
     invoiceNumber: { type: String },
-    paymentId: { type: String },
     amount: { type: Number, required: true },
     currency: { type: String, default: 'USD' },
     status: {
@@ -14,7 +13,8 @@ const invoiceSchema = new mongoose.Schema(
       enum: ['paid', 'failed', 'open', 'unpaid', 'void', 'draft'],
       default: 'open',
     },
-    invoiceUrl: { type: String },
+    invoicePdf: { type: String },
+    hoistedInvoiceUrl: { type: String },
     periodStart: { type: Date },
     periodEnd: { type: Date },
     paidAt: { type: Date },
