@@ -8,6 +8,9 @@ import { ApiError } from '@/app/lib/commonError';
 type PlanType = {
   name: string;
   priceId: string;
+  _id: string;
+  price: number;
+  type?: string;
 };
 
 type RequestBody = {
@@ -28,21 +31,43 @@ export async function POST(request: NextRequest) {
     throw new ApiError('Invalid JSON body', 400);
   }
 
-
   const xUser = request.headers.get('x-user');
   const userDetails = JSON.parse(xUser!);
-  const email = userDetails.email
+  const email = userDetails.email;
 
   const { plan, successUrl, cancelUrl } = body;
 
-  if (!plan || !plan.priceId || !successUrl || !cancelUrl) {
-    throw new ApiError('Invalid plan details or email', 400);
-  }
+  if (!plan || typeof plan.price !== 'number' || !successUrl || !cancelUrl) {
+  throw new ApiError('Invalid plan details or email', 400);
+}
+
+if (plan.price > 0 && !plan.priceId) {
+  throw new ApiError('Missing Stripe priceId for paid plan', 400);
+}
 
   const user = await User.findOne({ email });
   if (!user) {
     throw new ApiError('User not found', 404);
   }
+
+  if (plan.price <= 0) {
+    user.subscription = {
+      status: 'active',
+      subscriptionId: null,
+      planId: plan._id,
+      planName: plan.name,
+      planType: plan.type,
+    };
+    user.subscriptionCompleted = true;
+    await user.save();
+
+    return successResponse(
+      { message: 'Free subscription activated' },
+      'Subscription completed without payment',
+      200
+    );
+  }
+
   let customerId = user.stripeCustomerId;
 
   if (!customerId) {
@@ -62,14 +87,15 @@ export async function POST(request: NextRequest) {
         quantity: 1,
       },
     ],
-    metadata: {
-      userId: user._id.toString(),
-      planName: plan.name,
-      planData: JSON.stringify(plan),
+    subscription_data: {
+      metadata: {
+        userId: user._id.toString(),
+        planName: plan.name,
+        planData: JSON.stringify(plan),
+      },
     },
     success_url: successUrl,
     cancel_url: cancelUrl,
-    // customer_email: email,
   });
 
   return successResponse(
@@ -77,4 +103,4 @@ export async function POST(request: NextRequest) {
     'Stripe session created',
     200
   );
-};
+}

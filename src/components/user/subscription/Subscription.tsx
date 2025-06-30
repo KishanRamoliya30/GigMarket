@@ -25,12 +25,7 @@ const Subscription = () => {
   }, []);
 
   const handleCheckout = async (plan: (typeof plans)[number]) => {
-    if (!plan.priceId) {
-      toast.success("Free account activated");
-      return;
-    }
-    // if (!plan.priceId) return;
-
+    const isFree = !plan.priceId
     setLoading(true);
     try {
       const res = await apiRequest("create-checkout-session", {
@@ -42,10 +37,15 @@ const Subscription = () => {
         }),
       });
 
-      const { id } = await res.data.data;
+      if(isFree) {
+         toast.success(res.data.message);
+      } else {
+        const { id } = await res.data.data;
+  
+        const stripe = await stripePromise;
+        await stripe?.redirectToCheckout({ sessionId: id });
+      }
 
-      const stripe = await stripePromise;
-      await stripe?.redirectToCheckout({ sessionId: id });
     } catch (error) {
       console.error("Checkout error:", error);
     } finally {
@@ -56,7 +56,7 @@ const Subscription = () => {
   return (
     <Box sx={{ bgcolor: "#fff", py: 8 }}>
       <Container maxWidth="lg">
-        <Typography variant="h4" fontWeight="bold" align="center" gutterBottom>
+        <Typography className="mb-36" variant="h4" fontWeight="bold" align="center" gutterBottom>
           Choose your plan
         </Typography>
 

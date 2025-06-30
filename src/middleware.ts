@@ -45,7 +45,7 @@ export async function middleware(request: NextRequest) {
       }
   }
 
-  if (PUBLIC_PATHS.some((path) => pathname.startsWith(path))) {
+  if (PUBLIC_PATHS.some((path) => pathname.includes(path))) {
     if (token && !pathname.startsWith("/api")) {
       try {
         const redirectPath = isAdmin ? "/admin" : "/dashboard";

@@ -43,7 +43,7 @@ export async function PATCH(request: NextRequest) {
       secure: false,
       sameSite: 'strict',
       path: '/',
-      maxAge: 60 * 60 ,
+      maxAge: 60 * 60 * 24 * 7,
     });
     return response;
   } catch (error: any) {
