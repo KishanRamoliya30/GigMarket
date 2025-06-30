@@ -17,6 +17,7 @@ export async function POST(req: NextRequest) {
   let event;
   try {
     event = stripe.webhooks.constructEvent(rawBody, sig!, endpointSecret);
+    // console.log("#####555", event , endpointSecret)
   } catch (err: unknown) {
     if (err instanceof Error) {
       return new Response(`Webhook Error: ${err.message}`, { status: 400 });
@@ -25,45 +26,50 @@ export async function POST(req: NextRequest) {
   }
 
   const data = event.data.object;
+  // console.log("#####50", data, event , event.type , endpointSecret1)
 
   switch (event.type) {
     case 'customer.subscription.created':
     case 'customer.subscription.updated': {
-      const sub = data as Stripe.Subscription & {
-        start_date: number;
-        current_period_start: number;
-        current_period_end: number;
-      };
+      const sub = data as Stripe.Subscription;
+      const fullSub = await stripe.subscriptions.retrieve(sub.id)
       const customerId = sub.customer as string;
       const user = await User.findOne({ stripeCustomerId: customerId });
 
+      console.log("#####51", sub, fullSub)
+      // console.log("#####52", user)
+
       if (!user) break;
 
-      await Subscription.findOneAndUpdate(
+      const subsc = await Subscription.findOneAndUpdate(
         { stripeSubscriptionId: sub.id },
         {
           user: user._id,
           stripeSubscriptionId: sub.id,
           stripeCustomerId: customerId,
+          planId: sub.items?.data?.[0]?.price?.id || '',
           status: sub.status,
-          startDate: new Date(sub.start_date * 1000),
-          endDate: new Date(sub.current_period_end * 1000),
-          currentPeriodStart: new Date(sub.current_period_start * 1000),
-          currentPeriodEnd: new Date(sub.current_period_end * 1000),
-          cancelAtPeriodEnd: sub.cancel_at_period_end,
-          planId: sub.items.data[0].price.id,
+          startDate: sub.start_date ? new Date(sub.start_date * 1000) : null,
+          endDate: sub.ended_at ? new Date(sub.ended_at * 1000) : null,
+          cancelAtPeriodEnd: sub.cancel_at_period_end ?? false,
+          canceledAt: sub.canceled_at ? new Date(sub.canceled_at * 1000) : null,
+          trialStart: sub.trial_start ? new Date(sub.trial_start * 1000) : null,
+          trialEnd: sub.trial_end ? new Date(sub.trial_end * 1000) : null,
+          metadata: sub.metadata ?? {},
         },
         { upsert: true, new: true }
       );
 
+      console.log("#####6", subsc);
+
       user.subscription = {
         status: sub.status,
-        currentPeriodEnd: new Date(sub.current_period_end * 1000),
-        planId: sub.items.data[0].price.id,
+        planId: sub.items?.data?.[0]?.price?.id || '',
       };
-      user.subscriptionCompleted = true;
 
+      user.subscriptionCompleted = true;
       await user.save();
+      console.log("#####56", user)
       break;
     }
     case 'customer.subscription.deleted': {
@@ -80,6 +86,7 @@ export async function POST(req: NextRequest) {
     }
     case 'invoice.paid':
     case 'invoice.payment_failed': {
+      console.log("####71");
       const invoice = data as Stripe.Invoice & {
         paid: boolean;
         subscription: string;
