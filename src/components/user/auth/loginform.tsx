@@ -42,8 +42,8 @@ const LoginForm = () => {
           setTerms(res.data.terms);
           setShowTerms(true);
         } else {
-          redirectAfterLogin(res.data.hasSubscription);
-            Cookies.set("id", res.data.user.id, {
+          redirectAfterLogin(res.data.hasSubscription,res.data.user.id);
+          Cookies.set("id", res.data.user.id, {
             expires: 1,
             path: "/",
             sameSite: "Strict",
@@ -58,7 +58,13 @@ const LoginForm = () => {
     },
   });
 
-  const redirectAfterLogin = (hasSubscription:boolean) => {
+  const redirectAfterLogin = (hasSubscription:boolean,userId:string) => {
+    Cookies.set("id", userId, {
+      expires: 1,
+      path: "/",
+      sameSite: "Strict",
+      secure: process.env.NODE_ENV === "production",
+    });
     router.push(hasSubscription?"/dashboard":"/subscription");
   };
 
@@ -71,7 +77,7 @@ const LoginForm = () => {
     });
 
     if (res.ok && res.data) {
-      redirectAfterLogin(res.data.hasSubscription);
+      redirectAfterLogin(res.data.hasSubscription,res.data.user.id);
     }
   };
 
