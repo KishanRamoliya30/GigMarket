@@ -25,7 +25,7 @@ export async function PATCH(request: NextRequest) {
     const token = generateToken({
       userId: updatedUser._id,
       email: updatedUser.email,
-      isAdmin: false
+      role: "user"
     });
     const response = NextResponse.json({
       message: "Login successful.",
@@ -43,7 +43,7 @@ export async function PATCH(request: NextRequest) {
       secure: false,
       sameSite: 'strict',
       path: '/',
-      maxAge: 60 * 60 ,
+      maxAge: 60 * 60 * 24 * 7,
     });
     return response;
   } catch (error: any) {

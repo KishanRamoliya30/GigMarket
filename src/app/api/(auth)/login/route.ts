@@ -82,9 +82,8 @@ export async function POST(request: NextRequest): Promise<Response> {
       const token = generateToken({
         userId: user._id,
         email: user.email,
-        isAdmin: false
+        role: "user"
       });
-
       const response = NextResponse.json<LoginResponseSuccess>({
         message: "Login successful.",
         success: true,
@@ -104,7 +103,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         secure: false,
         sameSite: 'strict',
         path: '/',
-        maxAge: 60 * 60 ,
+        maxAge: 60 * 60 * 24 * 7,
       });
       return response;
     }

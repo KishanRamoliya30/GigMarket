@@ -56,12 +56,21 @@ const userSchema = new mongoose.Schema({
       enum: ['active', 'canceled', 'trialing', 'past_due', null],
       default: null
     },
-    currentPeriodEnd: {
-      type: Date,
+    subscriptionId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Subscription',
       default: null
     },
     planId: {
       type: String,
+      default: null
+    },
+    planName: {
+      type: String,
+      default: null
+    },
+    planType: {
+      type: Number,
       default: null
     },
   },

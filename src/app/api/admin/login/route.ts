@@ -56,7 +56,7 @@ export async function POST(request: NextRequest): Promise<Response> {
     const token = generateToken({
       userId: user._id,
       email: user.email,
-      isAdmin: true
+      role: "Admin"
     });
     const response = NextResponse.json<LoginResponse>({
       message: "Admin login successful.",
@@ -68,15 +68,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         email: user.email,
       },
     });
-    response.cookies.set({
-      name: 'role',
-      value: 'Main',
-      httpOnly: true,
-      secure: false,
-      sameSite: 'strict',
-      path: '/',
-      maxAge: 60 * 60 ,
-    });
+    
     response.cookies.set({
       name: 'token',
       value: token,
@@ -84,7 +76,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       secure: false,
       sameSite: 'strict',
       path: '/',
-      maxAge: 60 * 60 ,
+      maxAge: 60 * 60 * 24 * 7,
     });
     return response;
   } catch (error) {
