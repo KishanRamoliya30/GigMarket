@@ -9,3 +9,10 @@ export interface Plan {
   productId?: string;
   type:number;
 }
+
+export interface LoginUser {
+  _id: string;
+  email: string;
+  isAdmin: boolean;
+  role: string;
+}
