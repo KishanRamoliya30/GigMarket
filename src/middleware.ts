@@ -9,8 +9,7 @@ const PUBLIC_PATHS = [
   "/reset-password",
   "/verify-otp",
   "/verify-email",
-  "/forgot-password",
-  "/profile"
+  "/forgot-password",  
 ];
 
 export function middleware(request: NextRequest) {

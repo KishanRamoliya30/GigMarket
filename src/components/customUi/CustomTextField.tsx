@@ -13,7 +13,7 @@ type CustomTextFieldProps = TextFieldProps & {
   name?: string;
   errorText?: string;
   isPassword?: boolean;
-  isRequired?: boolean; 
+isAstrick?: boolean; 
 };
 
 export default function CustomTextField({
@@ -24,7 +24,7 @@ export default function CustomTextField({
   errorText = "",
   type = "text",
   isPassword = false,
-  isRequired = false, 
+ isAstrick = false, 
   sx,
   ...rest
 }: CustomTextFieldProps) {
@@ -34,7 +34,6 @@ export default function CustomTextField({
     setShowPassword((prev) => !prev);
   };
 
-  const isAutocomplete = rest.InputProps?.role === "combobox";
 
   return (
     <div style={{ marginBottom: "16px" }}>
@@ -50,7 +49,7 @@ export default function CustomTextField({
           }}
         >
           {label}
-          {isRequired && (
+          {isAstrick && (
             <Typography component="span" color="error" ml={0.5}>
               *
             </Typography>
@@ -66,7 +65,7 @@ export default function CustomTextField({
         onChange={onChange}
         variant="outlined"
         autoComplete="off"
-        required={!!isRequired && !isAutocomplete}
+        // required
         InputProps={{
           endAdornment: isPassword && (
             <InputAdornment position="end">

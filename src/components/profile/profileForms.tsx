@@ -12,14 +12,17 @@ import {
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 
-import { Formik, FieldArray } from "formik";
+import { Formik, FieldArray, FieldArrayRenderProps } from "formik";
 import * as Yup from "yup";
 import CustomTextField from "../customUi/CustomTextField";
 import CustomButton from "../customUi/CustomButton";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 
 const degreeTypes = ["Bachelor’s", "Master’s", "PhD", "Other"];
-const graduationYears = Array.from({ length: 10 }, (_, i) => `${2025 + i}`);
+const graduationYears = Array.from(
+  { length: 2026 - 1950 },
+  (_, i) => `${1950 + i}`
+);
 const interestOptions = ["Startups", "AI", "Mentoring", "Finance"];
 
 interface EducationEntry {
@@ -34,7 +37,7 @@ interface FormValues {
   professionalSummary: string;
   interests: string[];
   extracurricularActivities: string;
-  certifications: string[];
+  certifications: { file: File | null }[];
   skills: string[];
   currentSchool: string;
   degreeType: string;
@@ -50,7 +53,7 @@ const initialValues: FormValues = {
   professionalSummary: "",
   interests: [],
   extracurricularActivities: "",
-  certifications: [],
+  certifications: [{ file: null }],
   skills: [],
   currentSchool: "",
   degreeType: "",
@@ -70,12 +73,11 @@ const validationSchema = Yup.object({
     .of(Yup.string())
     .min(1, "Please select at least one interest"),
   extracurricularActivities: Yup.string().required("This field is required"),
-  // skills: Yup.array().of(Yup.string()).min(1, "At least one skill is required"),
+  skills: Yup.array().of(Yup.string()).min(1, "At least one skill is required"),
   currentSchool: Yup.string().required("Current School is required"),
   degreeType: Yup.string().required("Degree Type is required"),
   major: Yup.string().required("Major is required"),
   minor: Yup.string().required("Minor is required"),
- 
 });
 
 const ProfileFormCard = () => {
@@ -103,7 +105,6 @@ const ProfileFormCard = () => {
   };
   const formRef = useRef<HTMLFormElement>(null);
 
-
   return (
     <Box
       sx={{
@@ -111,20 +112,16 @@ const ProfileFormCard = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        px: 2,
-        py: 4,
-        mt: "50px",
+        backgroundColor: "#f5f5f5",
       }}
-      
     >
       <Box
         width="100%"
-        maxWidth={{ xs: "100%", md: "600px" }}
+        maxWidth={{ xs: "100%", md: "50%" }}
         bgcolor="#fff"
         borderRadius={4}
         boxShadow={3}
         mx={{ xs: "10px", sm: "50px" }}
-        height={{ xs: "90vh", sm: "80vh" }}
         display="flex"
         flexDirection="column"
         p={{ xs: 2, sm: 4 }}
@@ -143,7 +140,7 @@ const ProfileFormCard = () => {
             setFieldValue,
             errors,
             touched,
-            // handleSubmit,
+            handleSubmit,
             validateForm,
             setTouched,
           }) => {
@@ -161,7 +158,8 @@ const ProfileFormCard = () => {
 
               const formErrors = await validateForm();
               if (Object.keys(formErrors).length === 0) {
-                formRef.current?.requestSubmit();
+                // formRef.current?.requestSubmit();
+                handleSubmit()
               }
             };
             return (
@@ -221,92 +219,45 @@ const ProfileFormCard = () => {
                   Basic Information
                 </Typography>
 
-                <CustomTextField
-                  isRequired
-                  fullWidth
-                  label="Full Name"
-                  name="fullName"
-                  value={values.fullName}
-                  onChange={handleChange}
-                  errorText={
-                    touched.fullName && errors.fullName ? errors.fullName : ""
-                  }
-                />
-
-                <CustomTextField
-                  isRequired
-                  fullWidth
-                  label="Current School / University"
-                  name="currentSchool"
-                  value={values.currentSchool}
-                  onChange={handleChange}
-                  errorText={
-                    touched.currentSchool && errors.currentSchool
-                      ? errors.currentSchool
-                      : ""
-                  }
-                />
-
-                <CustomTextField
-                  isRequired
-                  select
-                  fullWidth
-                  label="Degree Type"
-                  name="degreeType"
-                  value={values.degreeType}
-                  onChange={handleChange}
-                  errorText={
-                    touched.degreeType && errors.degreeType
-                      ? errors.degreeType
-                      : ""
-                  }
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: { xs: "column", sm: "row" },
+                    gap: 2,
+                    mb: 2,
+                  }}
                 >
-                  {degreeTypes.map((type) => (
-                    <MenuItem key={type} value={type}>
-                      {type}
-                    </MenuItem>
-                  ))}
-                </CustomTextField>
-
-                <CustomTextField
-                  isRequired
-                  fullWidth
-                  label="Major"
-                  name="major"
-                  value={values.major}
-                  onChange={handleChange}
-                  errorText={touched.major && errors.major ? errors.major : ""}
-                />
-
-                <CustomTextField
-                  isRequired
-                  fullWidth
-                  label="Minor"
-                  name="minor"
-                  value={values.minor}
-                  onChange={handleChange}
-                  errorText={touched.minor && errors.minor ? errors.minor : ""}
-                />
-
-                <CustomTextField
-                  select
-                  fullWidth
-                  label="Graduation Year"
-                  name="graduationYear"
-                  value={values.graduationYear}
-                  onChange={handleChange}
-                  errorText={
-                    touched.graduationYear && errors.graduationYear
-                      ? errors.graduationYear
-                      : ""
-                  }
-                >
-                  {graduationYears.map((year) => (
-                    <MenuItem key={year} value={year}>
-                      {year}
-                    </MenuItem>
-                  ))}
-                </CustomTextField>
+                  <Box sx={{ flex: 1 }}>
+                    <CustomTextField
+                      isAstrick
+                      fullWidth
+                      label="Full Name"
+                      name="fullName"
+                      value={values.fullName}
+                      onChange={handleChange}
+                      errorText={
+                        touched.fullName && errors.fullName
+                          ? errors.fullName
+                          : ""
+                      }
+                    />
+                  </Box>
+                  <Box sx={{ flex: 1 }}>
+                    <CustomTextField
+                      isAstrick
+                      fullWidth
+                      label="Current School / University"
+                      name="currentSchool"
+                      value={values.currentSchool}
+                      onChange={handleChange}
+                      errorText={
+                        touched.currentSchool && errors.currentSchool
+                          ? errors.currentSchool
+                          : ""
+                      }
+                    />
+                  </Box>
+                </Box>
 
                 {/* ================= Biography ================= */}
                 <Typography variant="h6" mt={3} mb={1}>
@@ -314,7 +265,7 @@ const ProfileFormCard = () => {
                 </Typography>
 
                 <CustomTextField
-                  isRequired
+                  isAstrick
                   fullWidth
                   multiline
                   rows={3}
@@ -329,29 +280,8 @@ const ProfileFormCard = () => {
                   }
                 />
 
-                <Autocomplete
-                  multiple
-                  options={interestOptions}
-                  value={values.interests}
-                  onChange={(_, value) => setFieldValue("interests", value)}
-                  renderInput={(params) => (
-                    <CustomTextField
-                      {...params}
-                      isRequired
-                      name="interests"
-                      label="Interests"
-                      margin="normal"
-                      errorText={
-                        touched.interests && errors.interests
-                          ? (errors.interests as string)
-                          : ""
-                      }
-                    />
-                  )}
-                />
-
                 <CustomTextField
-                  isRequired
+                  isAstrick
                   fullWidth
                   multiline
                   rows={2}
@@ -367,37 +297,109 @@ const ProfileFormCard = () => {
                   }
                 />
 
+                <Autocomplete
+                  multiple
+                  options={interestOptions}
+                  value={values.interests}
+                  onChange={(_, value) => setFieldValue("interests", value)}
+                  renderInput={(params) => (
+                    <CustomTextField
+                      {...params}                      
+                      name="interests"
+                      label="Interests"
+                      margin="normal"
+                      errorText={
+                        touched.interests && errors.interests
+                          ? (errors.interests as string)
+                          : ""
+                      }
+                    />
+                  )}
+                />
+
                 <FieldArray
                   name="certifications"
-                  render={({ remove, push }) => (
-                    <Box>
-                      <Typography variant="subtitle1">
-                        Certifications
-                      </Typography>
-                      {values.certifications.map((cert, index) => (
-                        <Stack direction="row" spacing={1} key={index}>
-                          <CustomTextField
-                            value={cert}
-                            onChange={(e) =>
-                              setFieldValue(
-                                `certifications[${index}]`,
-                                e.target.value
-                              )
-                            }
+                  render={({ remove, push }: FieldArrayRenderProps) => (
+                    <Box mt={4}>
+                      <Stack
+                        direction="row"
+                        alignItems="center"
+                        justifyContent="space-between"
+                        mb={2}
+                      >
+                        <Typography variant="h6">Certifications</Typography>
+
+                        <Button
+                          variant="outlined"
+                          component="label"
+                          size="small"
+                        >
+                          Upload Certifications
+                          <input
+                            type="file"
+                            multiple
+                            accept="application/pdf"
+                            hidden
+                            onChange={(
+                              e: React.ChangeEvent<HTMLInputElement>
+                            ) => {
+                              const files = e.target.files;
+                              if (files && files.length > 0) {
+                                const fileArray = Array.from(files);
+                                fileArray.forEach((file) => {
+                                  push({ file });
+                                });
+                              }
+                            }}
                           />
-                            <IconButton
-                            aria-label="remove"
-                            color="error"
-                            onClick={() => remove(index)}
-                            sx={{ mt: 1 }}
-                          >
-                            <DeleteOutlineIcon />
-                          </IconButton>
-                        </Stack>
-                      ))}
-                      <Button onClick={() => push("")}>
-                        Add Certification
-                      </Button>
+                        </Button>
+                      </Stack>
+
+                      {/* Only show if there are uploaded certificates */}
+                      {values.certifications.length > 0 && (
+                        <Box>
+                          {values.certifications
+                            .filter((cert) => cert.file)
+                            .map((cert, index) => (
+                              <Box
+                                key={index}
+                                sx={{
+                                  border: "1px solid #ddd",
+                                  borderRadius: 2,
+                                  p: 2,
+                                  mb: 2,
+                                  backgroundColor: "#fafafa",
+                                }}
+                              >
+                                <Stack
+                                  direction="row"
+                                  spacing={2}
+                                  alignItems="center"
+                                  justifyContent="space-between"
+                                >
+                                  <Typography
+                                    variant="body2"
+                                    sx={{
+                                      flex: 1,
+                                      wordBreak: "break-word",
+                                      color: "text.secondary",
+                                    }}
+                                  >
+                                    {cert.file?.name}
+                                  </Typography>
+
+                                  <IconButton
+                                    aria-label="remove"
+                                    color="error"
+                                    onClick={() => remove(index)}
+                                  >
+                                    <DeleteOutlineIcon />
+                                  </IconButton>
+                                </Stack>
+                              </Box>
+                            ))}
+                        </Box>
+                      )}
                     </Box>
                   )}
                 />
@@ -405,7 +407,7 @@ const ProfileFormCard = () => {
                 <Autocomplete
                   multiple
                   freeSolo
-                  options={[]}
+                  options={["react", "node", "javascript", "python"]}
                   value={values.skills}
                   onChange={(_, val) => setFieldValue("skills", val)}
                   renderInput={(params) => (
@@ -427,69 +429,181 @@ const ProfileFormCard = () => {
                   Education
                 </Typography>
 
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: { xs: "column", sm: "row" },
+                    gap: 2,
+                    mb: 2,
+                  }}
+                >
+                  <Box sx={{ flex: 1 }}>
+                    <CustomTextField
+                      isAstrick
+                      fullWidth
+                      label="Major"
+                      name="major"
+                      value={values.major}
+                      onChange={handleChange}
+                      errorText={
+                        touched.major && errors.major ? errors.major : ""
+                      }
+                    />
+                  </Box>
+                  <Box sx={{ flex: 1 }}>
+                    <CustomTextField
+                      isAstrick
+                      fullWidth
+                      label="Minor"
+                      name="minor"
+                      value={values.minor}
+                      onChange={handleChange}
+                      errorText={
+                        touched.minor && errors.minor ? errors.minor : ""
+                      }
+                    />
+                  </Box>
+                </Box>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: { xs: "column", sm: "row" },
+                    gap: 2,
+                    mb: 2,
+                  }}
+                >
+                  <Box sx={{ flex: 1 }}>
+                    <CustomTextField
+                      isAstrick
+                      select
+                      fullWidth
+                      label="Degree Type"
+                      name="degreeType"
+                      value={values.degreeType}
+                      onChange={handleChange}
+                      errorText={
+                        touched.degreeType && errors.degreeType
+                          ? errors.degreeType
+                          : ""
+                      }
+                    >
+                      {degreeTypes.map((type) => (
+                        <MenuItem key={type} value={type}>
+                          {type}
+                        </MenuItem>
+                      ))}
+                    </CustomTextField>
+                  </Box>
+                  <Box sx={{ flex: 1 }}>
+                    <CustomTextField
+                      select
+                      fullWidth
+                      label="Graduation Year"
+                      name="graduationYear"
+                      value={values.graduationYear}
+                      onChange={handleChange}
+                      errorText={
+                        touched.graduationYear && errors.graduationYear
+                          ? errors.graduationYear
+                          : ""
+                      }
+                    >
+                      {graduationYears.map((year) => (
+                        <MenuItem key={year} value={year}>
+                          {year}
+                        </MenuItem>
+                      ))}
+                    </CustomTextField>
+                  </Box>
+                </Box>
+
                 <FieldArray
                   name="pastEducation"
                   render={({ push, remove }) => (
                     <Box>
-                      <Typography variant="subtitle1">
-                        Past Education
-                      </Typography>
-                      {values.pastEducation.map((edu, index) => (
                         <Stack
-                          direction="row"
-                          spacing={1}
-                          alignItems="center"
-                          key={index}
+                        direction="row"
+                        alignItems="center"
+                        justifyContent="space-between"
+                        mb={2}
+                      >
+                        <Typography variant="h6">Past Education</Typography>
+
+                        <Button
+                          onClick={() =>
+                            push({ school: "", degree: "", year: "" })
+                          }
+                          sx={{ mt: 2 }}
+                          variant="outlined"
                         >
-                          <CustomTextField
-                            label="School"
-                            value={edu.school}
-                            onChange={(e) =>
-                              setFieldValue(
-                                `pastEducation[${index}].school`,
-                                e.target.value
-                              )
-                            }
-                          />
-                          <CustomTextField
-                            label="Degree"
-                            value={edu.degree}
-                            onChange={(e) =>
-                              setFieldValue(
-                                `pastEducation[${index}].degree`,
-                                e.target.value
-                              )
-                            }
-                          />
-                          <CustomTextField
-                            label="Year"
-                            value={edu.year}
-                            onChange={(e) =>
-                              setFieldValue(
-                                `pastEducation[${index}].year`,
-                                e.target.value
-                              )
-                            }
-                          />
+                          Add Past Education
+                        </Button>
+                      </Stack>
+                      {values.pastEducation.map((edu, index) => (
+                        <Box
+                          key={index}
+                          sx={{
+                            display: "flex",
+                            flexDirection: { xs: "column", sm: "row" },
+                            gap: 2,
+                            mb: 2,
+                            alignItems: "flex-start",
+                          }}
+                        >
+                          <Box sx={{ flex: 1, width: "100%" }}>
+                            <CustomTextField
+                              fullWidth
+                              label="School"
+                              value={edu.school}
+                              onChange={(e) =>
+                                setFieldValue(
+                                  `pastEducation[${index}].school`,
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </Box>
+
+                          <Box sx={{ flex: 1, width: "100%" }}>
+                            <CustomTextField
+                              fullWidth
+                              label="Degree"
+                              value={edu.degree}
+                              onChange={(e) =>
+                                setFieldValue(
+                                  `pastEducation[${index}].degree`,
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </Box>
+
+                          <Box sx={{ flex: 1, width: "100%" }}>
+                            <CustomTextField
+                              fullWidth
+                              label="Year"
+                              value={edu.year}
+                              onChange={(e) =>
+                                setFieldValue(
+                                  `pastEducation[${index}].year`,
+                                  e.target.value
+                                )
+                              }
+                            />
+                          </Box>
+
                           <IconButton
                             aria-label="remove"
                             color="error"
                             onClick={() => remove(index)}
-                            sx={{ mt: 1 }}
+                            sx={{
+                              alignSelf: { xs: "flex-start", sm: "center" },
+                            }}
                           >
                             <DeleteOutlineIcon />
                           </IconButton>
-                        </Stack>
-                      ))}
-                      <Button
-                        onClick={() =>
-                          push({ school: "", degree: "", year: "" })
-                        }
-                        sx={{ mt: 2 }}
-                        variant="outlined"
-                      >
-                        Add Past Education
-                      </Button>
+                        </Box>
+                      ))}                     
                     </Box>
                   )}
                 />
