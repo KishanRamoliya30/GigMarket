@@ -24,7 +24,9 @@ const ProfileImageEditor: React.FC<ProfileImageEditorProps> = ({ avtar }) => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [open, setOpen] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string>(avtar || defaultAvatar);
+  const [imagePreview, setImagePreview] = useState<string>(
+    avtar || defaultAvatar
+  );
 
   // Update preview if avtar prop changes
   useEffect(() => {
@@ -65,8 +67,9 @@ const ProfileImageEditor: React.FC<ProfileImageEditorProps> = ({ avtar }) => {
             position: "absolute",
             bottom: 0,
             right: 0,
-            bgcolor: "white",
+            bgcolor: "#ffff",
             boxShadow: 1,
+            ":hover": { bgcolor: "#ffff" },
           }}
         >
           <EditIcon fontSize="small" />
@@ -109,18 +112,17 @@ const ProfileImageEditor: React.FC<ProfileImageEditorProps> = ({ avtar }) => {
               Delete
             </Button>
           </Stack>
-<Button
-    variant="contained"
-    color="primary"
-    sx={{ mt: 3 }}
-    onClick={() => {
-
-      console.log("Updated image:", imagePreview);
-      setOpen(false);
-    }}
-  >
-    Update
-  </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            sx={{ mt: 3 }}
+            onClick={() => {
+              console.log("Updated image:", imagePreview);
+              setOpen(false);
+            }}
+          >
+            Update
+          </Button>
           <input
             type="file"
             accept="image/*"
