@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ToastContainer } from 'react-toastify';
+import { cookies } from "next/headers";
+import { getUserFromSession } from "@/lib/getCurrentUser";
+import { UserProvider } from "@/context/UserContext";
+import { serializeDoc } from "@/utils/serialize";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,18 +23,23 @@ export const metadata: Metadata = {
     "GigMarket is a modern freelance marketplace connecting clients with skilled professionals across design, development, writing, marketing, and more. Hire or get hired with ease.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = cookies();
+  const user = await getUserFromSession(cookieStore);
+  const plainUser = user ? serializeDoc(user) : null;
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ToastContainer />
-        {children}
+        <UserProvider user={plainUser}>
+          {children}
+        </UserProvider>
       </body>
     </html>
   );

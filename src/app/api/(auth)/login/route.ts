@@ -4,6 +4,7 @@ import dbConnect from "@/app/lib/dbConnect";
 import { generateToken } from "@/app/utils/jwt";
 import Terms from "@/app/models/terms";
 import User from "@/app/models/user";
+import { expiryTime } from "../../../../../utils/constants";
 interface LoginRequestBody {
   email: string;
   password: string;
@@ -104,7 +105,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         secure: false,
         sameSite: 'strict',
         path: '/',
-        maxAge: 60 * 60 * 24 * 7,
+        maxAge: expiryTime,
       });
       return response;
     }

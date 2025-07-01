@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { ZodError } from 'zod';
 import { ApiError } from './commonError';
 
@@ -31,6 +31,14 @@ type MongooseValidationError = {
     }
   >;
 };
+export type HandlerContext = {
+  params?: Record<string, string>;
+};
+
+export type ApiHandler<T = unknown> = (
+  req: NextRequest,
+  context: HandlerContext
+) => Promise<NextResponse<T>>;
 
 export function successResponse<T>(
   data: T,
@@ -92,4 +100,18 @@ export function errorResponse(
   };
 
   return NextResponse.json(response, { status: customStatus });
+}
+
+export function withApiHandler<T>(handler: ApiHandler<T>) {
+  return async (
+    req: NextRequest,
+    context: HandlerContext = {}
+  ): Promise<NextResponse<T>> => {
+    try {
+      return await handler(req, context);
+    } catch (err) {
+      console.error('API Error:', err);
+      return errorResponse(err) as NextResponse<T>;
+    }
+  };
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/app/lib/dbConnect";
 import User from "@/app/models/user";
 import { generateToken } from "@/app/utils/jwt";
+import { expiryTime } from "../../../../../utils/constants";
 
 export async function PATCH(request: NextRequest) {
   try {
@@ -43,7 +44,7 @@ export async function PATCH(request: NextRequest) {
       secure: false,
       sameSite: 'strict',
       path: '/',
-      maxAge: 60 * 60 * 24 * 7,
+      maxAge: expiryTime,
     });
     return response;
   } catch (error: any) {

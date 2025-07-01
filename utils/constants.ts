@@ -38,3 +38,5 @@ export const services = [
   },
   { name: "Translation", label: "Go global", image: "/service8.jpeg" },
 ];
+
+export const expiryTime = 60 * 60 * 24 * 7 ; // 7 days
