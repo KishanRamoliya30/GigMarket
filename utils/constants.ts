@@ -38,3 +38,30 @@ export const services = [
   },
   { name: "Translation", label: "Go global", image: "/service8.jpeg" },
 ];
+
+export const profileData = {
+  fullName: "Jane Doe",
+  profilePicture: "https://i.pravatar.cc/150?img=47",
+  professionalSummary:
+    "A highly motivated computer science graduate with a passion for AI and startups. Experienced in building web applications with React and Node.js.",
+  extracurricularActivities:
+    "Volunteer at WomenWhoCode, Hackathon Winner 2023, Soccer Team Captain.",
+  interests: ["Startups", "AI", "Mentoring"],
+  certifications: [
+    { name: "AWS Certified Developer.pdf" },
+    { name: "Google UX Certificate.pdf" },
+  ],
+  skills: ["React", "Node.js", "TypeScript", "GraphQL"],
+  currentSchool: "MIT",
+  degreeType: "Bachelor’s",
+  major: "Computer Science",
+  minor: "Mathematics",
+  graduationYear: "2025",
+  pastEducation: [
+    {
+      school: "High School ABC",
+      degree: "High School Diploma",
+      year: "2021",
+    },
+  ],
+};

@@ -147,7 +147,10 @@ export default function Header() {
 
     handleCloseMenu();
   };
-
+ const handleProfileSection = async () => {
+   router.push("/myProfile");
+    handleCloseMenu();
+  };
   return (
     <>
       <HeaderWrapper>
@@ -331,7 +334,7 @@ export default function Header() {
       >
         {id ? (
           <Box>
-            <MenuItem onClick={handleCloseMenu}>My Profile</MenuItem>
+            <MenuItem onClick={handleProfileSection}>My Profile</MenuItem>
             <MenuItem onClick={handleLogout}>Logout</MenuItem>
           </Box>
         ) : (
