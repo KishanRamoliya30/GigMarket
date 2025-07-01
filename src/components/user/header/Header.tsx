@@ -11,6 +11,7 @@ import {
   Menu,
   MenuItem,
   Button,
+  Switch
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import SearchIcon from "@mui/icons-material/Search";
@@ -146,7 +147,10 @@ export default function Header() {
 
     handleCloseMenu();
   };
-
+ const handleProfileSection = async () => {
+   router.push("/myProfile");
+    handleCloseMenu();
+  };
   return (
     <>
       <HeaderWrapper>
@@ -210,7 +214,17 @@ export default function Header() {
             <SearchIcon />
           </IconButton>
         </Box>
-
+        <Switch
+            size="small"
+            sx={{
+              "& .MuiSwitch-thumb": {
+                backgroundColor: "#000",
+              },
+              "& .MuiSwitch-track": {
+                backgroundColor: "grey",
+              },
+            }}
+          />
         <Box className="rightIcons hideOnMobile">
           <NotificationsNoneIcon />
           <MailOutlineIcon />
@@ -320,7 +334,7 @@ export default function Header() {
       >
         {id ? (
           <Box>
-            <MenuItem onClick={handleCloseMenu}>My Profile</MenuItem>
+            <MenuItem onClick={handleProfileSection}>My Profile</MenuItem>
             <MenuItem onClick={handleLogout}>Logout</MenuItem>
           </Box>
         ) : (

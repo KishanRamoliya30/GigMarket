@@ -83,9 +83,8 @@ export async function POST(request: NextRequest): Promise<Response> {
       const token = generateToken({
         userId: user._id,
         email: user.email,
-        isAdmin: false
+        role: "user"
       });
-
       const response = NextResponse.json<LoginResponseSuccess>({
         message: "Login successful.",
         success: true,

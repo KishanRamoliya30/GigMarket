@@ -26,7 +26,7 @@ export async function PATCH(request: NextRequest) {
     const token = generateToken({
       userId: updatedUser._id,
       email: updatedUser.email,
-      isAdmin: false
+      role: "user"
     });
     const response = NextResponse.json({
       message: "Login successful.",

@@ -9,6 +9,7 @@ import Cookies from "js-cookie";
 import { useEffect, useState } from "react";
 import { categories, Trusted } from "../../../utils/constants";
 import HeroLanding from "./HeroLanding";
+import { apiRequest } from "@/app/lib/apiCall";
 
 const Dashboard = () => {
   const [id, setId] = useState<string | undefined>(undefined);
@@ -16,6 +17,16 @@ const Dashboard = () => {
   useEffect(() => {
     const storedId = Cookies.get("id");
     setId(storedId);
+
+    const fetchContent = async () => {
+      try {
+        const data = await apiRequest("switch-user"); 
+      } catch (error) {
+        console.error("Failed to load", error);
+      }
+    };
+
+    fetchContent();
   }, []);
   return (
     <>
@@ -206,6 +217,7 @@ const Dashboard = () => {
                         alt={`Trusted logo ${index + 1}`}
                         fill
                         style={{ objectFit: "fill" }}
+                        sizes="(max-width: 600px) 70px, (max-width: 960px) 80px, 100px"
                       />
                     </Box>
                   ))}
