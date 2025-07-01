@@ -63,13 +63,24 @@ const Subscription = () => {
       <Box sx={{ bgcolor: "#fff", py: 8 }}>
         <Container maxWidth="lg">
           <Typography
-            style={{marginBottom : "65px"}}
+            style={{ marginBottom: "16px" }}
             variant="h3"
             fontWeight="bold"
             align="center"
             gutterBottom
           >
-            Choose your plan
+            Upgrade to Grow
+          </Typography>
+
+          <Typography
+            variant="subtitle1"
+            align="center"
+            color="textSecondary"
+            style={{ maxWidth: 600, margin: "0 auto 65px" }}
+          >
+            Choose a subscription plan that fits your freelancing goals. Whether
+            you're just starting out or scaling your gig empire, we have the
+            right tools to help you succeed.
           </Typography>
 
           <Grid container spacing={4} justifyContent="center" mt={4}>
