@@ -82,7 +82,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       const token = generateToken({
         userId: user._id,
         email: user.email,
-        role: "user"
+        role: "User"
       });
       const response = NextResponse.json<LoginResponseSuccess>({
         message: "Login successful.",

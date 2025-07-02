@@ -6,6 +6,9 @@ import * as Yup from "yup";
 import { Box, Typography } from "@mui/material";
 import CustomTextField from "@/components/customUi/CustomTextField";
 import CustomButton from "@/components/customUi/CustomButton";
+import { LoginUser } from "@/app/utils/interfaces";
+import { useUser } from "@/app/context/UserContext";
+import { apiRequest } from "@/app/lib/apiCall";
 
 const validationSchema = Yup.object({
   email: Yup.string().email("Invalid email").required("Email is required"),
@@ -14,6 +17,7 @@ const validationSchema = Yup.object({
 
 export default function AdminLogin() {
   const router = useRouter();
+  const { setUser } = useUser();
 
   const formik = useFormik({
     initialValues: {
@@ -23,18 +27,22 @@ export default function AdminLogin() {
     validationSchema,
     onSubmit: async (values, { setSubmitting, setFieldError }) => {
       try {
-        const res = await fetch("/api/admin/login", {
+        const res = await apiRequest("/admin/login", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(values),
+          data: values,
         });
 
-        const data = await res.json();
-
-        if (res.ok) {
+        if (res.ok && res.data) {
+          const user = res.data?.user;
           router.push("/admin");
+          setUser({
+            _id: user.id,
+            email: user.email,
+            isAdmin: true,
+            role: "Admin",
+          });
         } else {
-          setFieldError("password", data.error || "Access denied");
+          setFieldError("password", res.error || "Access denied");
         }
       } catch (error) {
         setFieldError("password", "Server error. Try again.");
@@ -55,21 +63,20 @@ export default function AdminLogin() {
   } = formik;
 
   return (
-    <Box 
-     component="form" 
-     onSubmit={handleSubmit}
-     borderRadius={4}
-     boxShadow={3}
-     minWidth={{ xs: "100%",sm: "500px" }}
-     sx={{
-       minHeight: "85vh",
-       justifyContent: "center",
-       alignItems: "center",
-       p:  "25px",
-       m:"15px"
-     }}
-     
-     >
+    <Box
+      component="form"
+      onSubmit={handleSubmit}
+      borderRadius={4}
+      boxShadow={3}
+      minWidth={{ xs: "100%", sm: "500px" }}
+      sx={{
+        minHeight: "85vh",
+        justifyContent: "center",
+        alignItems: "center",
+        p: "25px",
+        m: "15px",
+      }}
+    >
       <Typography
         variant="h5"
         sx={{ fontWeight: 600, color: "#1A1A1A", fontSize: "24px", mb: 4 }}
@@ -104,8 +111,8 @@ export default function AdminLogin() {
         justifyContent={"end"}
         mt={1}
         mb={4}
-        sx={{ textDecoration: "underline",cursor:"pointer" }}
-        onClick={()=>router.push("/admin/forgot-password")}
+        sx={{ textDecoration: "underline", cursor: "pointer" }}
+        onClick={() => router.push("/admin/forgot-password")}
       >
         Forgot Password ?
       </Typography>

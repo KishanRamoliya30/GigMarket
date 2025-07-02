@@ -33,7 +33,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       const token = generateToken({
         userId: user._id,
         email: user.email,
-        role: payload.role == "user" ? "provider" : "user",
+        role: payload.role == "User" ? "Provider" : "User",
       });
       const response = NextResponse.json({
         message: "Switch User successful.",

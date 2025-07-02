@@ -11,7 +11,6 @@ import {
   Menu,
   MenuItem,
   Button,
-  Switch
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import SearchIcon from "@mui/icons-material/Search";
@@ -20,12 +19,12 @@ import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import FiverrLogo from "@/components/logo";
 import { apiRequest } from "@/app/lib/apiCall";
 import { useRouter } from "next/navigation";
-import Cookies from "js-cookie";
+import { useUser } from '@/app/context/UserContext';
 
 const HeaderWrapper = styled(Box)(({ theme }) => ({
   display: "flex",
@@ -116,12 +115,8 @@ export default function Header() {
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [id, setId] = useState<string | undefined>(undefined);
+  const { _id,role,setRole,resetUser } = useUser();
 
-  useEffect(() => {
-    const storedId = Cookies.get("id");
-    setId(storedId);
-  }, []);
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
@@ -138,8 +133,7 @@ export default function Header() {
     const response = await apiRequest("logout", { method: "POST" });
 
     if (response.ok) {
-      Cookies.remove("id");
-      setId(undefined);
+      resetUser()
       router.push("/");
     } else {
       console.error("Logout failed:", response.error);
@@ -147,6 +141,26 @@ export default function Header() {
 
     handleCloseMenu();
   };
+
+  const handleRoleSwitch = async () => {
+    try {
+      const newRole = role == "User"?"Provider":"User";
+      const response = await apiRequest<{ message: string }>("switch-user");
+  
+      if (response.ok && response.data?.message) {
+        setRole(newRole)
+        window.location.reload();
+      } else {
+        console.error("Switch failed:", response.error);
+      }
+    } catch (error) {
+      console.error("Switch error:", error);
+    }
+  };
+  
+  
+  
+
  const handleProfileSection = async () => {
    router.push("/myProfile");
     handleCloseMenu();
@@ -165,7 +179,7 @@ export default function Header() {
 
           {/* Mobile Auth Display */}
           <Box sx={{ display: { xs: "flex", sm: "none" }, gap: 2 }}>
-            {!id ? (
+            {!_id ? (
               <>
                 <Link href="/login">
                   <Typography sx={{ fontWeight: 600, cursor: "pointer" }}>
@@ -214,22 +228,12 @@ export default function Header() {
             <SearchIcon />
           </IconButton>
         </Box>
-        <Switch
-            size="small"
-            sx={{
-              "& .MuiSwitch-thumb": {
-                backgroundColor: "#000",
-              },
-              "& .MuiSwitch-track": {
-                backgroundColor: "grey",
-              },
-            }}
-          />
+     
         <Box className="rightIcons hideOnMobile">
           <NotificationsNoneIcon />
           <MailOutlineIcon />
           <FavoriteBorderIcon />
-          {id ? (
+          {_id ? (
             <>
               <Typography variant="body2" sx={{ fontWeight: 500 }}>
                 Orders
@@ -311,7 +315,7 @@ export default function Header() {
           <Box display="flex" alignItems="center" gap={2}>
             <Typography>Orders</Typography>
           </Box>
-          {id && (
+          {_id && (
             <Box display="flex" alignItems="center" gap={2}>
               <Avatar
                 sx={{ bgcolor: "#f66", width: 32, height: 32 }}
@@ -331,9 +335,38 @@ export default function Header() {
         onClose={handleCloseMenu}
         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
         transformOrigin={{ vertical: "top", horizontal: "right" }}
+        PaperProps={{
+          sx: {
+            minWidth: 200,
+            px: 1.5,
+            py: 1.2,
+          },
+        }}
       >
-        {id ? (
+        {_id ? (
           <Box>
+            <Button
+              fullWidth
+              variant="outlined"
+              onClick={handleRoleSwitch}
+              sx={{
+                textTransform: "none",
+                fontWeight: 600,
+                borderRadius: "8px",
+                border:"1.5px solid black",
+                color: "#333",
+                mb: 1,
+                transition: "all 0.3s ease",
+                "&:hover": {
+                  backgroundColor: "#f5f5f5",
+                  borderColor: "#bbb",
+                  boxShadow: "0 2px 6px rgba(0, 0, 0, 0.08)",
+                },
+              }}
+            >
+              Switch to {role === "User" ? "Provider" : "User"}
+            </Button>
+
             <MenuItem onClick={handleProfileSection}>My Profile</MenuItem>
             <MenuItem onClick={handleLogout}>Logout</MenuItem>
           </Box>
