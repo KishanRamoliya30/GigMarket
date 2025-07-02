@@ -8,10 +8,12 @@ import { Plan } from "@/app/utils/interfaces";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import Loader from "@/components/Loader";
+import { useUser } from "@/context/UserContext";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY!);
 
 const Subscription = () => {
+  const user = useUser();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -78,104 +80,156 @@ const Subscription = () => {
             color="textSecondary"
             style={{ maxWidth: 600, margin: "0 auto 65px" }}
           >
-            Choose a subscription plan that fits your freelancing goals. Whether
+            {`Choose a subscription plan that fits your freelancing goals. Whether
             you're just starting out or scaling your gig empire, we have the
-            right tools to help you succeed.
+            right tools to help you succeed.`}
           </Typography>
 
-          <Grid container spacing={4} justifyContent="center" mt={4}>
-            {plans.map((plan) => (
-              <Grid
-                display={"flex"}
-                // flex={1}
-                size={{ xs: 12, sm: 6, md: 4 }}
-                key={plan._id}
-              >
-                <Paper
-                  elevation={0}
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                    flex: 1,
-                    bgcolor: "#000",
-                    color: "#fff",
-                    p: 4,
-                    borderRadius: 4,
-                    textAlign: "center",
-                    position: "relative",
-                    transition: "transform 0.3s ease, box-shadow 0.3s ease",
-                    "&:hover": {
-                      transform: "scale(1.05)",
-                      boxShadow: 6,
-                    },
-                  }}
+          <Grid container spacing={4} justifyContent="center" mt={6}>
+            {plans.map((plan) => {
+              const isActivePlan = user?.subscription?.planId === plan._id;
+
+              return (
+                <Grid
+                  display={"flex"}
+                  size={{ xs: 12, sm: 6, md: 4 }}
+                  key={plan._id}
                 >
-                  {plan.ispopular && (
-                    <Box
-                      sx={{
-                        position: "absolute",
-                        top: -16,
-                        left: "50%",
-                        transform: "translateX(-50%)",
-                        bgcolor: "#555",
-                        color: "#fff",
-                        px: 2,
-                        py: 0.5,
-                        borderRadius: "20px",
-                        fontSize: 12,
-                        fontWeight: "bold",
-                      }}
-                    >
-                      Most Popular
-                    </Box>
-                  )}
-
-                  <Box>
-                    <Typography variant="h4" fontWeight={600} gutterBottom>
-                      {plan.name}
-                    </Typography>
-                    <Typography variant="h5" fontWeight="bold">
-                      ${plan.price}
-                      <span className="px-1 text-[14px]">/mo</span>
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      color="gray"
-                      mt={1}
-                      gutterBottom
-                    >
-                      {plan.description}
-                    </Typography>
-
-                    <Box mt={2} mb={4}>
-                      {plan.benefits.map((feature, i) => (
-                        <Typography variant="body2" key={i} sx={{ mb: 1 }}>
-                          ✓ {feature}
-                        </Typography>
-                      ))}
-                    </Box>
-                  </Box>
-
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    onClick={() => handleCheckout(plan)}
+                  <Paper
+                    elevation={isActivePlan ? 10 : 2}
                     sx={{
-                      bgcolor: "#fff",
-                      color: "#000",
-                      textTransform: "none",
-                      fontWeight: 600,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                      flex: 1,
+                      px: 4,
+                      py: 5,
+                      borderRadius: 5,
+                      textAlign: "center",
+                      transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                      bgcolor: isActivePlan ? "#1A1F36" : "#fff",
+                      color: isActivePlan ? "#fff" : "#000",
+                      border: isActivePlan
+                        ? "2px solid #1DBF73"
+                        : "1px solid #e0e0e0",
+                      position: "relative",
+                      overflow: "hidden",
                       "&:hover": {
-                        bgcolor: "#ddd",
+                        transform: "scale(1.05)",
+                        boxShadow: "0 6px 24px rgba(0,0,0,0.15)",
+                        bgcolor: "#1A1F36",
+                        color: "#fff",
                       },
                     }}
                   >
-                    Buy now
-                  </Button>
-                </Paper>
-              </Grid>
-            ))}
+                    {isActivePlan && (
+                      <Box
+                        sx={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          width: "180px",
+                          height: "180px",
+                          overflow: "hidden",
+                          pointerEvents: "none",
+                          zIndex: 3,
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            position: "absolute",
+                            top: 50,
+                            left: -65,
+                            width: "245px",
+                            height: "30px",
+                            transform: "rotate(-45deg)",
+                            background:
+                              "linear-gradient(135deg, #1DBF73, #13aa60)",
+                            color: "#000",
+                            textAlign: "center",
+                            fontSize: "13px",
+                            fontWeight: "bold",
+                            lineHeight: "30px",
+                            letterSpacing: "0.5px",
+                            boxShadow: "0 4px 12px rgba(29, 191, 115, 0.3)",
+                            animation: "ribbonShine 3s infinite linear",
+                          }}
+                        >
+                          <span style={{ fontSize: "18px" }}>👑</span> Current
+                          Plan
+                        </Box>
+                      </Box>
+                    )}
+
+                    <Box>
+                      <Typography variant="h4" fontWeight={700} gutterBottom>
+                        {plan.name}
+                      </Typography>
+                      <Typography variant="h3" fontWeight="bold" mb={1}>
+                        ${plan.price}
+                        <Typography
+                          component="span"
+                          sx={{ fontSize: 16, ml: 0.5 }}
+                        >
+                          /mo
+                        </Typography>
+                      </Typography>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{
+                          color: isActivePlan ? "#ccc" : "text.secondary",
+                          mb: 3,
+                        }}
+                      >
+                        {plan.description}
+                      </Typography>
+                    </Box>
+
+                    <Box mb={4}>
+                      {plan.benefits.map((feature: string, i: number) => (
+                        <Typography
+                          key={i}
+                          className="feature"
+                          variant="body1"
+                          sx={{
+                            mb: 1,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 1,
+                            transition: "color 0.3s ease",
+                          }}
+                        >
+                          ✅ {feature}
+                        </Typography>
+                      ))}
+                    </Box>
+
+                    <Button
+                      className="action-btn"
+                      variant="contained"
+                      fullWidth
+                      disabled={isActivePlan}
+                      onClick={() => handleCheckout(plan)}
+                      sx={{
+                        bgcolor: "#1DBF73 !important",
+                        color: isActivePlan ? "#0000009 !important" : "#000",
+                        textTransform: "none",
+                        fontWeight: 700,
+                        py: 1.2,
+                        borderRadius: 3,
+                        transition: "all 0.3s ease",
+                        "&:hover": {
+                          bgcolor: isActivePlan ? "#f4f4f4" : "#1de28f",
+                        },
+                      }}
+                    >
+                      {isActivePlan ? "Subscribed" : "Upgrade Now"}
+                    </Button>
+                  </Paper>
+                </Grid>
+              );
+            })}
           </Grid>
         </Container>
       </Box>
