@@ -10,7 +10,8 @@ import Link from "next/link";
 import { apiRequest } from "@/app/lib/apiCall";
 import TermsPopup from "@/components/TermsPopup";
 import { useState } from "react";
-import Cookies from "js-cookie";
+import { useUser } from "@/context/UserContext";
+import { UserType } from "@/utils/commonInterface/userInterface";
 
 const validationSchema = Yup.object({
   email: Yup.string()
@@ -24,6 +25,7 @@ const LoginForm = () => {
   const [showTerms, setShowTerms] = useState(false);
   const [terms, setTerms] = useState("");
   const [userId, setUserId] = useState("");
+  const { setUser } = useUser();
   const formik = useFormik({
     initialValues: {
       email: "",
@@ -42,13 +44,8 @@ const LoginForm = () => {
           setTerms(res.data.terms);
           setShowTerms(true);
         } else {
-          redirectAfterLogin(res.data.hasSubscription,res.data.user.id);
-          Cookies.set("id", res.data.user.id, {
-            expires: 1,
-            path: "/",
-            sameSite: "Strict",
-            secure: process.env.NODE_ENV === "production",
-          });
+          const user = res.data?.user
+          redirectAfterLogin(res.data.hasSubscription,{...user,role:"User"});          
         }
       } else {
         setFieldError("password", res.error ?? "Invalid credentials");
@@ -58,13 +55,8 @@ const LoginForm = () => {
     },
   });
 
-  const redirectAfterLogin = (hasSubscription:boolean,userId:string) => {
-    Cookies.set("id", userId, {
-      expires: 1,
-      path: "/",
-      sameSite: "Strict",
-      secure: process.env.NODE_ENV === "production",
-    });
+  const redirectAfterLogin = (hasSubscription:boolean,user:UserType) => {
+    setUser(user);
     router.push(hasSubscription?"/dashboard":"/subscription");
   };
 
@@ -77,7 +69,8 @@ const LoginForm = () => {
     });
 
     if (res.ok && res.data) {
-      redirectAfterLogin(res.data.hasSubscription,res.data.user.id);
+      const user = res.data?.user
+      redirectAfterLogin(res.data.hasSubscription,{...user,role:"User"});
     }
   };
 

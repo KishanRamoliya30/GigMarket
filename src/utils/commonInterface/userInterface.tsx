@@ -20,6 +20,7 @@ export interface UserType {
   isAdmin: boolean;
   isVerified: boolean;
   stripeCustomerId: string | null;
+  role?: string;
   subscription: UserSubscription;
   __v?: number;
 }

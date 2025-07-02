@@ -5,33 +5,18 @@ import SearchIcon from "@mui/icons-material/Search";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import Image from "next/image";
 import PopularServicesSlider from "@/components/dashboard/PopularServiceSlider";
-import Cookies from "js-cookie";
-import { useEffect, useState } from "react";
 import { categories, Trusted } from "../../../utils/constants";
 import HeroLanding from "./HeroLanding";
-import { apiRequest } from "@/app/lib/apiCall";
+import { useUser } from "@/context/UserContext";
+
 
 const Dashboard = () => {
-  const [id, setId] = useState<string | undefined>(undefined);
-
-  useEffect(() => {
-    const storedId = Cookies.get("id");
-    setId(storedId);
-
-    const fetchContent = async () => {
-      try {
-        const data = await apiRequest("switch-user"); 
-      } catch (error) {
-        console.error("Failed to load", error);
-      }
-    };
-
-    fetchContent();
-  }, []);
+  const { user} = useUser()
+  const _id = user?._id
   return (
     <>
       {/* Hero Section */}
-      {id ? (
+      {_id ? (
         <HeroLanding />
       ) : (
         <Box
@@ -90,7 +75,7 @@ const Dashboard = () => {
             </Typography>
 
             {/* Search bar */}
-            {!id && (
+            {!_id && (
               <Box
                 sx={{
                   bgcolor: "white",
@@ -174,7 +159,7 @@ const Dashboard = () => {
                 </Button>
               ))}
             </Box>
-            {!id && (
+            {!_id && (
               <Box
                 mt={4}
                 sx={{
@@ -242,7 +227,7 @@ const Dashboard = () => {
       </Box>
 
       {/* Highlight Section */}
-      {!id && (
+      {!_id && (
         <Box sx={{ px: { xs: 2, md: 4 }, py: 6, bgcolor: "#fff" }}>
           <Box
             sx={{

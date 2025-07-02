@@ -13,7 +13,7 @@ const SubscriptionSuccessPage = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
   const [loading, setLoading] = useState(true);
 
-  const user = useUser();
+  const {user} = useUser();
   const handleNavigate = () => {
     const pathName = user?.profileCompleted ? "/dashboard" : "/addProfile";
     router.push(pathName);

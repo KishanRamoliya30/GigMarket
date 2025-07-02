@@ -37,7 +37,7 @@ export default async function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ToastContainer />
-        <UserProvider user={plainUser}>
+        <UserProvider currentUser={plainUser}>
           {children}
         </UserProvider>
       </body>
