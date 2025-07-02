@@ -11,7 +11,6 @@ export async function getUserFromSession(cookieStore: ReturnType<typeof cookies>
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string };
-    console.log("####6", decoded)
     const user = await User.findById(decoded.userId).select('-password');
     return user || null;
   } catch (err) {
