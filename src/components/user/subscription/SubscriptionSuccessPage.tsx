@@ -6,14 +6,17 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/app/lib/apiCall";
 import Loader from "@/components/Loader";
+import { useUser } from "@/context/UserContext";
 
 const SubscriptionSuccessPage = () => {
   const router = useRouter();
   const { sessionId } = useParams<{ sessionId: string }>();
   const [loading, setLoading] = useState(true);
 
+  const {user} = useUser();
   const handleNavigate = () => {
-    router.push("/dashboard");
+    const pathName = user?.profileCompleted ? "/dashboard" : "/addProfile";
+    router.push(pathName);
   };
 
   const fetchSession = async () => {

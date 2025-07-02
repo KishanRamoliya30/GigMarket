@@ -24,7 +24,7 @@ import Link from "next/link";
 import FiverrLogo from "@/components/logo";
 import { apiRequest } from "@/app/lib/apiCall";
 import { useRouter } from "next/navigation";
-import { useUser } from '@/app/context/UserContext';
+import { useUser } from "@/context/UserContext";
 
 const HeaderWrapper = styled(Box)(({ theme }) => ({
   display: "flex",
@@ -115,7 +115,9 @@ export default function Header() {
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const { _id,role,setRole,resetUser } = useUser();
+  const { user,setRole,resetUser } = useUser();
+  const role = user?.role;
+  const _id = user?._id;
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);

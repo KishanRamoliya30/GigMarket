@@ -10,8 +10,8 @@ import Link from "next/link";
 import { apiRequest } from "@/app/lib/apiCall";
 import TermsPopup from "@/components/TermsPopup";
 import { useState } from "react";
-import { useUser } from '@/app/context/UserContext';
-import { LoginUser } from "@/app/utils/interfaces";
+import { useUser } from "@/context/UserContext";
+import { UserType } from "@/utils/commonInterface/userInterface";
 
 const validationSchema = Yup.object({
   email: Yup.string()
@@ -45,7 +45,7 @@ const LoginForm = () => {
           setShowTerms(true);
         } else {
           const user = res.data?.user
-          redirectAfterLogin(res.data.hasSubscription,{_id:user.id,email:user.email,isAdmin:false,role:"User"});          
+          redirectAfterLogin(res.data.hasSubscription,{...user,role:"User"});          
         }
       } else {
         setFieldError("password", res.error ?? "Invalid credentials");
@@ -55,7 +55,7 @@ const LoginForm = () => {
     },
   });
 
-  const redirectAfterLogin = (hasSubscription:boolean,user:LoginUser) => {
+  const redirectAfterLogin = (hasSubscription:boolean,user:UserType) => {
     setUser(user);
     router.push(hasSubscription?"/dashboard":"/subscription");
   };
@@ -70,7 +70,7 @@ const LoginForm = () => {
 
     if (res.ok && res.data) {
       const user = res.data?.user
-      redirectAfterLogin(res.data.hasSubscription,{_id:user.id,email:user.email,isAdmin:false,role:"User"});
+      redirectAfterLogin(res.data.hasSubscription,{...user,role:"User"});
     }
   };
 

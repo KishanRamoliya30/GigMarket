@@ -39,6 +39,7 @@ export const services = [
   { name: "Translation", label: "Go global", image: "/service8.jpeg" },
 ];
 
+export const expiryTime = 60 * 60 * 24 * 7 ; // 7 days
 export const profileData = {
   fullName: "Jane Doe",
   profilePicture: "https://i.pravatar.cc/150?img=47",

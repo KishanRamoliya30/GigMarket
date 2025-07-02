@@ -7,11 +7,12 @@ import Image from "next/image";
 import PopularServicesSlider from "@/components/dashboard/PopularServiceSlider";
 import { categories, Trusted } from "../../../utils/constants";
 import HeroLanding from "./HeroLanding";
-import { useUser } from '@/app/context/UserContext';
+import { useUser } from "@/context/UserContext";
 
 
 const Dashboard = () => {
-  const { _id} = useUser()
+  const { user} = useUser()
+  const _id = user?._id
   return (
     <>
       {/* Hero Section */}

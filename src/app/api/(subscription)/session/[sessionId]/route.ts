@@ -3,12 +3,10 @@ import { ApiError } from '@/app/lib/commonError';
 import { successResponse } from '@/app/lib/commonHandlers';
 import { stripe } from '@/app/lib/strip';
 
-interface Params {
-  sessionId: string;
-}
+type Params = { sessionId: string };
 
-export async function GET(request: NextRequest, { params }: { params: Params }) {
-  const { sessionId } = params;
+export async function GET(request: NextRequest, context: { params: Params }) {
+  const { sessionId } = context.params;
 
   try {
     const session = await stripe.checkout.sessions.retrieve(sessionId);

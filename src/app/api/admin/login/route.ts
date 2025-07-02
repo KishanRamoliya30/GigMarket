@@ -3,6 +3,7 @@ import bcryptjs from "bcryptjs";
 import dbConnect from "@/app/lib/dbConnect";
 import User from "@/app/models/user";
 import { generateToken } from "@/app/utils/jwt";
+import { expiryTime } from "../../../../../utils/constants";
 interface LoginResponse {
   message: string;
   success?: boolean;
@@ -76,7 +77,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       secure: false,
       sameSite: 'strict',
       path: '/',
-      maxAge: 60 * 60 * 24 * 7,
+      maxAge: expiryTime,
     });
     return response;
   } catch (error) {
