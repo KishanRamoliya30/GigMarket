@@ -91,14 +91,14 @@ export async function middleware(request: NextRequest) {
       }
 
       //pages with path in user can only be accessed by user role
-      else if (pathname.startsWith("/user") && userData.role != "user") {
+      else if (pathname.startsWith("/user") && userData.role != "User") {
         return NextResponse.redirect(new URL("/dashboard", request.url));
       }
 
       //pages with path in provider can only be accessed by provider role
       else if (
         pathname.startsWith("/provider") &&
-        userData.role != "provider"
+        userData.role != "Provider"
       ) {
         return NextResponse.redirect(new URL("/dashboard", request.url));
       }

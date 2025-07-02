@@ -10,9 +10,10 @@ export async function getUserFromSession(cookieStore: ReturnType<typeof cookies>
   if (!token) return null;
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string };
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string, role: string };
     const user = await User.findById(decoded.userId).select('-password');
-    return user || null;
+    const userWithRole = {...user._doc, role: decoded.role}
+    return user ? userWithRole : null;
   } catch (err) {
     console.error('Invalid token', err);
     return null;
