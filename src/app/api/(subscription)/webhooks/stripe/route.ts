@@ -18,10 +18,10 @@ export async function POST(req: NextRequest) {
   try {
     event = stripe.webhooks.constructEvent(rawBody, sig!, endpointSecret);
   } catch (err: unknown) {
-    if (err instanceof Error) {
-      return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
-    }
-    return new NextResponse('Webhook Error: Unknown error occurred', { status: 400 });
+    return new NextResponse(
+      `Webhook Error: ${err instanceof Error ? err.message : 'Unknown error'}`,
+      { status: 400 }
+    );
   }
 
   const data = event.data.object;
@@ -31,6 +31,59 @@ export async function POST(req: NextRequest) {
     : null;
 
   switch (event.type) {
+    case 'checkout.session.completed': {
+      // Get the new subscription
+      const subscriptionId = session.subscription as string;
+      const customerId = session.customer as string;
+
+      const user = await User.findOne({ stripeCustomerId: customerId });
+      if (!user) break;
+
+      const sub = await stripe.subscriptions.retrieve(subscriptionId);
+      const startDate = new Date(sub.start_date * 1000);
+      const endDate = new Date(startDate);
+      endDate.setMonth(endDate.getMonth() + 1);
+
+      const currentSubscription = await Subscription.findOne({ _id: user.subscription?.subscriptionId });
+      if (currentSubscription && currentSubscription.stripeSubscriptionId !== sub.id) {
+        await stripe.subscriptions.cancel(currentSubscription.stripeSubscriptionId);
+        await Subscription.findByIdAndUpdate(currentSubscription._id, {
+          status: 'cancelled',
+          endDate: new Date(),
+        });
+      }
+
+      const newSubscription = await Subscription.findOneAndUpdate(
+        { stripeSubscriptionId: sub.id },
+        {
+          user: user._id,
+          stripeSubscriptionId: sub.id,
+          stripeCustomerId: customerId,
+          planId: planData._id,
+          stripePriceId: sub.items?.data?.[0]?.price?.id || '',
+          planName: planData.name,
+          status: sub.status,
+          startDate,
+          endDate,
+          cancelAtPeriodEnd: sub.cancel_at_period_end ?? false,
+          canceledAt: sub.canceled_at ? new Date(sub.canceled_at * 1000) : null,
+        },
+        { upsert: true, new: true }
+      );
+
+      user.subscription = {
+        status: sub.status,
+        subscriptionId: newSubscription._id,
+        planId: planData._id,
+        planName: planData.name,
+        planType: planData.type,
+      };
+      user.subscriptionCompleted = true;
+      await user.save();
+
+      break;
+    }
+
     case 'customer.subscription.created':
     case 'customer.subscription.updated': {
       const sub = data as Stripe.Subscription;
@@ -41,18 +94,18 @@ export async function POST(req: NextRequest) {
       const startDate = sub.start_date ? new Date(sub.start_date * 1000) : null
       const endDate = startDate && new Date(new Date(startDate).setMonth(startDate.getMonth() + 1));
 
-      const subsc = await Subscription.findOneAndUpdate(
+      const newSub = await Subscription.findOneAndUpdate(
         { stripeSubscriptionId: sub.id },
         {
           user: user._id,
           stripeSubscriptionId: sub.id,
           stripeCustomerId: customerId,
           planId: planData._id,
-          stripePriceId: sub.items?.data?.[0]?.price?.id || '',
+          stripePriceId: sub.items.data[0]?.price.id || '',
           planName: planData.name,
           status: sub.status,
-          startDate: startDate,
-          endDate: endDate,
+          startDate,
+          endDate,
           cancelAtPeriodEnd: sub.cancel_at_period_end ?? false,
           canceledAt: sub.canceled_at ? new Date(sub.canceled_at * 1000) : null,
         },
@@ -61,7 +114,7 @@ export async function POST(req: NextRequest) {
 
       user.subscription = {
         status: sub.status,
-        subscriptionId: subsc._id,
+        subscriptionId: newSub._id,
         planId: planData._id,
         planName: planData.name,
         planType: planData.type,
@@ -71,6 +124,7 @@ export async function POST(req: NextRequest) {
       await user.save();
       break;
     }
+
     case 'customer.subscription.deleted': {
       const sub = data as Stripe.Subscription;
       await Subscription.findOneAndUpdate(
@@ -83,12 +137,11 @@ export async function POST(req: NextRequest) {
       );
       break;
     }
+
     case 'invoice.paid':
     case 'invoice.payment_failed': {
-
       const invoice = data as Stripe.Invoice;
       const user = await User.findOne({ stripeCustomerId: invoice.customer });
-
       if (!user) break;
 
       const subscriptionId = (await Subscription.findOne({ stripeSubscriptionId: invoice.parent?.subscription_details?.subscription }))?._id;
