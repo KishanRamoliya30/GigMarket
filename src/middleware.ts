@@ -12,6 +12,7 @@ const PUBLIC_PATHS = [
   "/reset-password",
   "/verify-otp",
   "/verify-email",
+  "/forgot-password",
 
   "/api/forgot-password",
   "/api/reset-password",

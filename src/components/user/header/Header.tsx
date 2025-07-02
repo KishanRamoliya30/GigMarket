@@ -161,6 +161,10 @@ export default function Header() {
   
   
 
+ const handleProfileSection = async () => {
+   router.push("/myProfile");
+    handleCloseMenu();
+  };
   return (
     <>
       <HeaderWrapper>
@@ -363,7 +367,7 @@ export default function Header() {
               Switch to {role === "User" ? "Provider" : "User"}
             </Button>
 
-            <MenuItem onClick={handleCloseMenu}>My Profile</MenuItem>
+            <MenuItem onClick={handleProfileSection}>My Profile</MenuItem>
             <MenuItem onClick={handleLogout}>Logout</MenuItem>
           </Box>
         ) : (

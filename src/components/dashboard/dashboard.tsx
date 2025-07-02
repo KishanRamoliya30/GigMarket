@@ -201,6 +201,7 @@ const Dashboard = () => {
                         alt={`Trusted logo ${index + 1}`}
                         fill
                         style={{ objectFit: "fill" }}
+                        sizes="(max-width: 600px) 70px, (max-width: 960px) 80px, 100px"
                       />
                     </Box>
                   ))}
