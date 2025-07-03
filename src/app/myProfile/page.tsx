@@ -9,6 +9,7 @@ import {
   Divider,
   Paper,
   CircularProgress,
+  IconButton,
 } from "@mui/material";
 import SchoolIcon from "@mui/icons-material/School";
 import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
@@ -19,8 +20,16 @@ import ProfileImageEditor from "@/components/profile/profileAvtarPopup";
 import { apiRequest } from "@/app/lib/apiCall";
 import { Profile } from "../utils/interfaces";
 import { useUser } from "@/context/UserContext";
+import EditIcon from "@mui/icons-material/Edit";
+import ProfileFormCard from "@/components/profile/profileFormsModal";
 
 const ProfileViewCard = () => {
+  const [open, setOpen] = useState(false);
+  const [isEdit , setIsEdit] = useState<boolean>(false);
+  const onEdit = () => {
+    setOpen(true);
+    setIsEdit(true);
+  };
   const [profileData, setProfileData] = useState<Profile | null>();
   const [loading, setLoading] = useState<boolean>(true);
   const { user } = useUser();
@@ -105,6 +114,7 @@ const ProfileViewCard = () => {
             borderRadius: 4,
             p: 4,
             background: "#fff",
+            position: "relative",
           }}
         >
           <Stack direction="row" spacing={3} alignItems="center" mb={4}>
@@ -115,7 +125,23 @@ const ProfileViewCard = () => {
               </Typography>
               <Typography color="text.secondary">{currentSchool}</Typography>
             </Box>
+            <IconButton
+              sx={{
+                position: "absolute",
+                top: "71px",
+                right: "20px",
+                bgcolor: "#fffgy",
+                boxShadow: 1,
+                ":hover": { bgcolor: "#fff" },
+              }}
+              onClick={onEdit}
+              size="small"
+            >
+              <EditIcon />
+            </IconButton>
           </Stack>
+
+          {open && <ProfileFormCard isEdit={isEdit} open={open} setOpen={setOpen} profileData={profileData}/>}
 
           <Divider sx={{ mb: 3 }} />
 
