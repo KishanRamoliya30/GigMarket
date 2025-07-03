@@ -3,13 +3,14 @@ import { Button, ButtonProps } from '@mui/material';
 type CustomButtonProps = ButtonProps & {
   label: string;
   btnType?: 'primary' | 'secondary';
+  variant?: 'contained' | 'outlined';
 };
 
-export default function CustomButton({ label, btnType = 'primary',sx, ...rest }: CustomButtonProps) {
+export default function CustomButton({ label,variant, btnType = 'primary',sx, ...rest }: CustomButtonProps) {
     const isContinue = btnType === 'primary';
     return (
     <Button
-      variant="contained"
+      variant={variant}
       fullWidth
       disableElevation
       {...rest}

@@ -43,8 +43,9 @@ export async function POST(request: Request) {
     }
 
     const formattedCertifications = certifications.map(
-      (cert: { file: { name: string } }) => ({
+      (cert: { file: { name: string , url:string } }) => ({
         fileName: cert?.file?.name || "Unnamed.pdf",
+        url: cert?.file?.url || "",
       })
     );
 
