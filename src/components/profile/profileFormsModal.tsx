@@ -233,7 +233,7 @@ const ProfileFormCard: React.FC<ProfileFormCardProps> = ({
         }}
       >
         <DialogTitle>
-          Create Profile
+          {isEdit ? "Edit Profile" : "Create Profile"}
           <IconButton
             onClick={() => setOpen(false)}
             sx={{ position: "absolute", right: 8, top: 8 }}
