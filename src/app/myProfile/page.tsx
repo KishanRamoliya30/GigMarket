@@ -10,6 +10,7 @@ import {
   Paper,
   CircularProgress,
   IconButton,
+  Tooltip
 } from "@mui/material";
 import SchoolIcon from "@mui/icons-material/School";
 import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
@@ -93,7 +94,9 @@ const ProfileViewCard = () => {
     graduationYear,
     pastEducation = [],
   } = profileData;
-
+const handleProfileUpdate = (updatedProfile: Profile) => {
+  setProfileData(updatedProfile);
+};
   return (
     <>
       <Header />
@@ -125,6 +128,7 @@ const ProfileViewCard = () => {
               </Typography>
               <Typography color="text.secondary">{currentSchool}</Typography>
             </Box>
+            <Tooltip title="Edit Profile" placement="top">
             <IconButton
               sx={{
                 position: "absolute",
@@ -139,9 +143,10 @@ const ProfileViewCard = () => {
             >
               <EditIcon />
             </IconButton>
+            </Tooltip>
           </Stack>
 
-          {open && <ProfileFormCard isEdit={isEdit} open={open} setOpen={setOpen} profileData={profileData}/>}
+          {open && <ProfileFormCard isEdit={isEdit} open={open} setOpen={setOpen} profileData={profileData}  onUpdate={handleProfileUpdate} />}
 
           <Divider sx={{ mb: 3 }} />
 
