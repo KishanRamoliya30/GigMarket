@@ -55,22 +55,33 @@ interface ProfileFormCardProps {
   setOpen: (open: boolean) => void;
   profileData?: Profile | null;
   isEdit?: boolean;
+  onUpdate?: (updatedProfile: Profile) => void;
 }
 
 const ProfileFormCard: React.FC<ProfileFormCardProps> = ({
   open,
   setOpen,
   profileData,
+  isEdit,
+  onUpdate,
 }) => {
-  console.log("ProfileFormCard", profileData);
-  const [profilePreview, setProfilePreview] = useState<string | null>(null);
+  const [profilePreview, setProfilePreview] = useState<string | null>(
+    profileData?.profilePicture || null
+  );
   const [pastEducation, setPastEducation] = useState<
     { school: string; degree: string; year: string }[]
-  >([]);
+  >(profileData?.pastEducation || []);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useUser();
   const userId = user?._id;
-  const [certifications, setCertifications] = useState<{ file: File }[]>([]);
+  const [certifications, setCertifications] = useState<{ file: any }[]>(
+    profileData?.certifications
+      ? profileData.certifications.map((cert) => ({
+          file: { name: cert.fileName },
+        }))
+      : []
+  );
 
   const handleCertUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -105,19 +116,19 @@ const ProfileFormCard: React.FC<ProfileFormCardProps> = ({
 
   const formik = useFormik({
     initialValues: {
-      fullName: "",
-      profilePicture: "",
-      professionalSummary: "",
-      interests: [],
-      extracurricularActivities: "",
-      certifications: [],
-      skills: [],
-      currentSchool: "",
-      degreeType: "",
-      major: "",
-      minor: "",
-      graduationYear: "",
-      pastEducation: [],
+      fullName: profileData?.fullName || "",
+      profilePicture: profilePreview || "",
+      professionalSummary: profileData?.professionalSummary || "",
+      interests: profileData?.interests || [],
+      extracurricularActivities: profileData?.extracurricularActivities || "",
+      certifications: certifications,
+      skills: profileData?.skills || [],
+      currentSchool: profileData?.currentSchool || "",
+      degreeType: profileData?.degreeType || "",
+      major: profileData?.major || "",
+      minor: profileData?.minor || "",
+      graduationYear: profileData?.graduationYear || "",
+      pastEducation: pastEducation || [],
     },
     validationSchema,
     onSubmit: async (values, { setSubmitting }) => {
@@ -129,20 +140,31 @@ const ProfileFormCard: React.FC<ProfileFormCardProps> = ({
           certifications: certifications.map((cert: { file: File }) => ({
             file: {
               name: cert.file?.name || "",
-              url: URL.createObjectURL(cert.file),
             },
           })),
         };
 
         const res = await apiRequest("profile", {
-          method: "POST",
+          method: isEdit ? "PUT" : "POST",
           data: payload,
         });
 
         if (res.ok && res.data) {
-          toast.success("Profile created successfully!");
+          if (isEdit) {
+            toast.success("Profile updated successfully");
+          } else {
+            toast.success("Profile created successfully");
+          }
+          const refreshed = await apiRequest(`profile?userId=${userId}`, {
+            method: "GET",
+          });
+          if (refreshed.ok && refreshed.data) {
+            onUpdate?.(refreshed.data.profile);
+          }
+          setOpen(false);
+          setOpen(false);
         } else {
-          toast.error(res.error || "! Failed to create profile");
+          toast.error(res.error);
         }
       } catch (err: unknown) {
         if (err instanceof Error) {
@@ -632,7 +654,7 @@ const ProfileFormCard: React.FC<ProfileFormCardProps> = ({
           <CustomButton
             type="submit"
             variant="contained"
-            label={isSubmitting ? "Saving..." : "Save Changes"}
+            label={isSubmitting ? "Saving..." : isEdit ? "Update" : "Create"}
             disabled={isSubmitting}
             onClick={() => handleSubmit()}
             sx={{ mt: 3, width: "150px" }}

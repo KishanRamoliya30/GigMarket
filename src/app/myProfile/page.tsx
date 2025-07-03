@@ -93,7 +93,9 @@ const ProfileViewCard = () => {
     graduationYear,
     pastEducation = [],
   } = profileData;
-
+const handleProfileUpdate = (updatedProfile: Profile) => {
+  setProfileData(updatedProfile);
+};
   return (
     <>
       <Header />
@@ -141,7 +143,7 @@ const ProfileViewCard = () => {
             </IconButton>
           </Stack>
 
-          {open && <ProfileFormCard isEdit={isEdit} open={open} setOpen={setOpen} profileData={profileData}/>}
+          {open && <ProfileFormCard isEdit={isEdit} open={open} setOpen={setOpen} profileData={profileData}  onUpdate={handleProfileUpdate} />}
 
           <Divider sx={{ mb: 3 }} />
 
