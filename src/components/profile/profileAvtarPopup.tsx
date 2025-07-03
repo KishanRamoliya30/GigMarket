@@ -14,12 +14,17 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import CloseIcon from "@mui/icons-material/Close";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { apiRequest } from "@/app/lib/apiCall"; 
 
 interface ProfileImageEditorProps {
   avtar?: string;
+  userId: string;
 }
 
-const ProfileImageEditor: React.FC<ProfileImageEditorProps> = ({ avtar }) => {
+const ProfileImageEditor: React.FC<ProfileImageEditorProps> = ({
+  avtar,
+  userId,
+}) => {
   const defaultAvatar = "/default-avatar.png";
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -27,33 +32,84 @@ const ProfileImageEditor: React.FC<ProfileImageEditorProps> = ({ avtar }) => {
   const [imagePreview, setImagePreview] = useState<string>(
     avtar || defaultAvatar
   );
+  const [newImageData, setNewImageData] = useState<string | null>(null);
 
-  // Update preview if avtar prop changes
   useEffect(() => {
-    if (avtar) {
-      setImagePreview(avtar);
-    }
+    if (avtar) setImagePreview(avtar);
   }, [avtar]);
+
+  const fetchProfile = async () => {
+    try {
+      const res = await apiRequest(`profile?userId=${userId}`, {
+        method: "GET",
+      });
+
+      if (res.data.success) {
+        const latestProfile = res.data.profile;
+        setImagePreview(latestProfile.profilePicture || defaultAvatar);
+      }
+    } catch (err) {
+      console.error("Failed to fetch updated profile", err);
+    }
+  };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result as string);
+        const base64 = reader.result as string;
+        setImagePreview(base64);
+        setNewImageData(base64);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleDelete = () => {
-    setImagePreview(defaultAvatar);
+  const handleUpdate = async () => {
+    if (!newImageData) return setOpen(false);
+
+    try {
+      const res = await apiRequest(`profile/picture/${userId}`, {
+        method: "PUT",
+        data: {
+          profilePicture: newImageData,
+        },
+      });
+
+      if (res.data.success) {
+        await fetchProfile();
+      } else {
+        console.error("Update failed:", res.error);
+      }
+    } catch (err) {
+      console.error("API Error:", err);
+    }
+
+    setOpen(false);
+  };
+
+  const handleDelete = async () => {
+    try {
+      const res = await apiRequest(`profile/picture/${userId}`, {
+        method: "DELETE",
+      });
+
+      if (res.data.success) {
+        await fetchProfile();
+      } else {
+        console.error("Delete failed:", res.error);
+      }
+    } catch (err) {
+      console.error("API Error:", err);
+    }
+
     setOpen(false);
   };
 
   return (
     <Box>
-      {/* Trigger Avatar */}
+      {/* Avatar Trigger */}
       <Box position="relative" width={100} height={100}>
         <Avatar
           src={imagePreview}
@@ -67,16 +123,16 @@ const ProfileImageEditor: React.FC<ProfileImageEditorProps> = ({ avtar }) => {
             position: "absolute",
             bottom: 0,
             right: 0,
-            bgcolor: "#ffff",
+            bgcolor: "#fff",
             boxShadow: 1,
-            ":hover": { bgcolor: "#ffff" },
+            ":hover": { bgcolor: "#fff" },
           }}
         >
           <EditIcon fontSize="small" />
         </IconButton>
       </Box>
 
-      {/* Popup Dialog */}
+      {/* Dialog */}
       <Dialog open={open} onClose={() => setOpen(false)}>
         <DialogTitle>
           Profile photo
@@ -112,17 +168,16 @@ const ProfileImageEditor: React.FC<ProfileImageEditorProps> = ({ avtar }) => {
               Delete
             </Button>
           </Stack>
+
           <Button
             variant="contained"
             color="primary"
             sx={{ mt: 3 }}
-            onClick={() => {
-              console.log("Updated image:", imagePreview);
-              setOpen(false);
-            }}
+            onClick={handleUpdate}
           >
             Update
           </Button>
+
           <input
             type="file"
             accept="image/*"

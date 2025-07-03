@@ -1,30 +1,88 @@
 "use client";
 
-import { Box, Chip, Stack, Typography, Divider, Paper } from "@mui/material";
+import React, { useEffect, useState } from "react";
+import {
+  Box,
+  Chip,
+  Stack,
+  Typography,
+  Divider,
+  Paper,
+  CircularProgress,
+} from "@mui/material";
 import SchoolIcon from "@mui/icons-material/School";
 import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
 import StarIcon from "@mui/icons-material/Star";
-import React from "react";
 import Header from "@/components/user/header/Header";
 import Footer from "@/components/user/footer/Footer";
 import ProfileImageEditor from "@/components/profile/profileAvtarPopup";
-import { profileData } from "../../../utils/constants";
+import { apiRequest } from "@/app/lib/apiCall";
+import { Profile } from "../utils/interfaces";
+import { useUser } from "@/context/UserContext";
 
 const ProfileViewCard = () => {
+  const [profileData, setProfileData] = useState<Profile | null>();
+  const [loading, setLoading] = useState<boolean>(true);
+  const { user } = useUser();
+  const userId = user?._id;
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await apiRequest(`profile?userId=${userId}`, {
+          method: "GET",
+        });
+        setProfileData(res.data.profile);
+      } catch (error) {
+        console.error("Failed to fetch profile:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [userId]);
+
+  if (loading) {
+    return (
+      <Box
+        minHeight="100vh"
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (!profileData) {
+    return (
+      <Box
+        minHeight="100vh"
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+      >
+        <Typography color="error">Profile not found</Typography>
+      </Box>
+    );
+  }
+
   const {
     fullName,
     profilePicture,
     professionalSummary,
     extracurricularActivities,
-    interests,
-    certifications,
-    skills,
+    interests = [],
+    certifications = [],
+    skills = [],
     currentSchool,
     degreeType,
     major,
     minor,
     graduationYear,
-    pastEducation,
+    pastEducation = [],
   } = profileData;
 
   return (
@@ -50,7 +108,7 @@ const ProfileViewCard = () => {
           }}
         >
           <Stack direction="row" spacing={3} alignItems="center" mb={4}>
-            <ProfileImageEditor avtar={profilePicture} />
+            <ProfileImageEditor avtar={profilePicture} userId={userId ?? ""} />
             <Box>
               <Typography variant="h5" fontWeight={600}>
                 {fullName}
@@ -61,7 +119,6 @@ const ProfileViewCard = () => {
 
           <Divider sx={{ mb: 3 }} />
 
-          {/* Summary Section */}
           <Typography variant="h6" gutterBottom>
             Professional Summary
           </Typography>
@@ -69,7 +126,6 @@ const ProfileViewCard = () => {
             {professionalSummary}
           </Typography>
 
-          {/* Extracurricular */}
           <Typography variant="h6" gutterBottom>
             Extracurricular Activities
           </Typography>
@@ -77,22 +133,20 @@ const ProfileViewCard = () => {
             {extracurricularActivities}
           </Typography>
 
-          {/* Interests */}
           <Typography variant="h6" gutterBottom>
             Interests
           </Typography>
           <Stack direction="row" spacing={1} flexWrap="wrap" mb={3}>
-            {interests.map((interest) => (
+            {interests.map((interest: string) => (
               <Chip key={interest} label={interest} color="primary" />
             ))}
           </Stack>
 
-          {/* Skills */}
           <Typography variant="h6" gutterBottom>
             Skills
           </Typography>
           <Stack direction="row" spacing={1} flexWrap="wrap" mb={3}>
-            {skills.map((skill) => (
+            {skills.map((skill: string) => (
               <Chip
                 key={skill}
                 label={skill}
@@ -102,7 +156,6 @@ const ProfileViewCard = () => {
             ))}
           </Stack>
 
-          {/* Education */}
           <Typography variant="h6" gutterBottom>
             Education
           </Typography>
@@ -120,40 +173,50 @@ const ProfileViewCard = () => {
             </Typography>
           </Box>
 
-          {/* Past Education */}
           {pastEducation.length > 0 && (
             <>
               <Typography variant="subtitle1" mb={1}>
                 Past Education
               </Typography>
-              {pastEducation.map((edu, idx) => (
-                <Box key={idx} display="flex" alignItems="center" mb={1}>
-                  <SchoolIcon
-                    fontSize="small"
-                    sx={{ mr: 1, color: "#1976d2" }}
-                  />
-                  <Typography color="text.secondary">
-                    {edu.degree}, {edu.school} ({edu.year})
-                  </Typography>
-                </Box>
-              ))}
+              {pastEducation.map(
+                (
+                  edu: { degree: string; school: string; year: string },
+                  idx: number
+                ) => (
+                  <Box key={idx} display="flex" alignItems="center" mb={1}>
+                    <SchoolIcon
+                      fontSize="small"
+                      sx={{ mr: 1, color: "#1976d2" }}
+                    />
+                    <Typography color="text.secondary">
+                      {edu.degree}, {edu.school} ({edu.year})
+                    </Typography>
+                  </Box>
+                )
+              )}
             </>
           )}
 
-          {/* Certifications */}
           <Typography variant="h6" mt={4} mb={2}>
             Certifications
           </Typography>
           {certifications.length > 0 ? (
-            certifications.map((cert, idx) => (
-              <Box key={idx} display="flex" alignItems="center" mb={1}>
-                <WorkspacePremiumIcon
-                  fontSize="small"
-                  sx={{ mr: 1, color: "green" }}
-                />
-                <Typography color="text.secondary">{cert.name}</Typography>
-              </Box>
-            ))
+            certifications.map(
+              (
+                cert: { fileName: string; file: { fileName: string } },
+                idx: number
+              ) => (
+                <Box key={idx} display="flex" alignItems="center" mb={1}>
+                  <WorkspacePremiumIcon
+                    fontSize="small"
+                    sx={{ mr: 1, color: "green" }}
+                  />
+                  <Typography color="text.secondary">
+                    {cert.fileName || cert.file?.fileName}
+                  </Typography>
+                </Box>
+              )
+            )
           ) : (
             <Typography color="text.secondary">
               No certifications uploaded

@@ -11,12 +11,14 @@ import {
   Autocomplete,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
-
-import { Formik, FieldArray, FieldArrayRenderProps } from "formik";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import { useFormik } from "formik";
 import * as Yup from "yup";
 import CustomTextField from "../customUi/CustomTextField";
 import CustomButton from "../customUi/CustomButton";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import { toast } from "react-toastify";
+import { apiRequest } from "@/app/lib/apiCall";
+import { useUser } from "@/context/UserContext";
 
 const degreeTypes = ["Bachelor’s", "Master’s", "PhD", "Other"];
 const graduationYears = Array.from(
@@ -25,50 +27,12 @@ const graduationYears = Array.from(
 );
 const interestOptions = ["Startups", "AI", "Mentoring", "Finance"];
 
-interface EducationEntry {
-  school: string;
-  degree: string;
-  year: string;
-}
-
-interface FormValues {
-  fullName: string;
-  profilePicture: string;
-  professionalSummary: string;
-  interests: string[];
-  extracurricularActivities: string;
-  certifications: { file: File | null }[];
-  skills: string[];
-  currentSchool: string;
-  degreeType: string;
-  major: string;
-  minor?: string;
-  graduationYear: string;
-  pastEducation: EducationEntry[];
-}
-
-const initialValues: FormValues = {
-  fullName: "",
-  profilePicture: "",
-  professionalSummary: "",
-  interests: [],
-  extracurricularActivities: "",
-  certifications: [{ file: null }],
-  skills: [],
-  currentSchool: "",
-  degreeType: "",
-  major: "",
-  minor: "",
-  graduationYear: "",
-  pastEducation: [],
-};
-
-const validationSchema = Yup.object({
+const validationSchema = Yup.object().shape({
   fullName: Yup.string().required("Full Name is required"),
   profilePicture: Yup.string().required("Profile picture is required"),
   professionalSummary: Yup.string()
     .required("Professional Summary is required")
-    .max(500, "Maximum 500 characters allowed"),
+    .max(500),
   interests: Yup.array()
     .of(Yup.string())
     .min(1, "Please select at least one interest"),
@@ -82,7 +46,105 @@ const validationSchema = Yup.object({
 
 const ProfileFormCard = () => {
   const [profilePreview, setProfilePreview] = useState<string | null>(null);
+  const [pastEducation, setPastEducation] = useState<
+    { school: string; degree: string; year: string }[]
+  >([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { user } = useUser();
+  const userId = user?._id;
+  const [certifications, setCertifications] = useState<{ file: File }[]>([]);
+  console.log("certifications", pastEducation);
+  const handleCertUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const fileArray = Array.from(files).map((file) => ({ file }));
+      setCertifications((prev) => [...prev, ...fileArray]);
+    }
+  };
+
+  const handleCertRemove = (index: number) => {
+    setCertifications((prev) => prev.filter((_, i) => i !== index));
+  };
+  const handleAddEducation = () => {
+    setPastEducation((prev) => [...prev, { school: "", degree: "", year: "" }]);
+  };
+
+  const handleRemoveEducation = (index: number) => {
+    setPastEducation((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleEducationChange = (
+    index: number,
+    field: string,
+    value: string
+  ) => {
+    setPastEducation((prev) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      return updated;
+    });
+  };
+
+  const formik = useFormik({
+    initialValues: {
+      fullName: "",
+      profilePicture: "",
+      professionalSummary: "",
+      interests: [],
+      extracurricularActivities: "",
+      certifications: [],
+      skills: [],
+      currentSchool: "",
+      degreeType: "",
+      major: "",
+      minor: "",
+      graduationYear: "",
+      pastEducation: [],
+    },
+    validationSchema,
+    onSubmit: async (values, { setSubmitting }) => {
+      try {
+        const payload = {
+          ...values,
+          userId: userId || "",
+          pastEducation: pastEducation,
+          certifications: certifications.map((cert: { file: File }) => ({
+            fileName: cert.file?.name || "",
+            url: URL.createObjectURL(cert.file),
+          })),
+        };
+
+        const res = await apiRequest("profile", {
+          method: "POST",
+          data: payload,
+        });
+
+        if (res.ok && res.data) {
+          toast.success("Profile created successfully!");
+        } else {
+          toast.error(res.error || "! Failed to create profile");
+        }
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          toast.error(err.message || "Submission failed");
+        } else {
+          toast.error("Submission failed");
+        }
+      } finally {
+        setSubmitting(false);
+      }
+    },
+  });
+
+  const {
+    values,
+    touched,
+    errors,
+    handleChange,
+    handleSubmit,
+    setFieldValue,
+    isSubmitting,
+  } = formik;
 
   const handleImageChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -103,12 +165,11 @@ const ProfileFormCard = () => {
       reader.readAsDataURL(file);
     }
   };
-  const formRef = useRef<HTMLFormElement>(null);
 
   return (
     <Box
       sx={{
-        minHeight: "calc(100vh - 100px)",
+        minHeight: "100vh",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -116,511 +177,391 @@ const ProfileFormCard = () => {
       }}
     >
       <Box
+        component="form"
+        onSubmit={handleSubmit}
         width="100%"
-        maxWidth={{ xs: "100%", md: "50%" }}
+        maxWidth="700px"
         bgcolor="#fff"
         borderRadius={4}
         boxShadow={3}
-        mx={{ xs: "10px", sm: "50px" }}
-        display="flex"
-        flexDirection="column"
-        p={{ xs: 2, sm: 4 }}
+        p={4}
       >
-        <Typography variant="h6" fontWeight={600} mb={1}>
+        <Typography variant="h6" fontWeight={600} mb={3}>
           Create Profile
         </Typography>
-        <Formik
-          initialValues={initialValues}
-          validationSchema={validationSchema}
-          onSubmit={(values) => console.log("Form Submitted:", values)}
-        >
-          {({
-            values,
-            handleChange,
-            setFieldValue,
-            errors,
-            touched,
-            handleSubmit,
-            validateForm,
-            setTouched,
-          }) => {
-            const triggerFormSubmit = async () => {
-              // Mark all fields as touched
-              setTouched(
-                Object.keys(initialValues).reduce(
-                  (acc, key) => {
-                    acc[key as keyof typeof initialValues] = true;
-                    return acc;
-                  },
-                  {} as Record<string, boolean>
-                )
-              );
 
-              const formErrors = await validateForm();
-              if (Object.keys(formErrors).length === 0) {
-                // formRef.current?.requestSubmit();
-                handleSubmit()
-              }
-            };
-            return (
-              <Box
-                component="form"
-                ref={formRef}
-                sx={{
-                  overflowY: "auto",
-                  p: { xs: 1, sm: 1 },
-                  flexGrow: 1,
-                  scrollbarWidth: "thin",
-                  "&::-webkit-scrollbar": {
-                    width: "6px",
-                  },
-                  "&::-webkit-scrollbar-thumb": {
-                    backgroundColor: "#ccc",
-                    borderRadius: "3px",
-                  },
-                }}
-              >
-                {/* Avatar Upload */}
-                <Stack alignItems="center" spacing={1} mt={2} mb={3}>
-                  <Box position="relative">
-                    <Avatar
-                      src={profilePreview || ""}
-                      sx={{ width: 72, height: 72 }}
-                    />
-                    <IconButton
-                      size="small"
-                      sx={{
-                        position: "absolute",
-                        bottom: -5,
-                        right: -5,
-                        bgcolor: "white",
-                      }}
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                    <input
-                      type="file"
-                      hidden
-                      accept="image/*"
-                      ref={fileInputRef}
-                      onChange={(e) => handleImageChange(e, setFieldValue)}
-                    />
-                  </Box>
-                  {touched.profilePicture && errors.profilePicture && (
-                    <Typography color="error" fontSize="0.8rem">
-                      {errors.profilePicture}
-                    </Typography>
-                  )}
-                </Stack>
+        <Stack alignItems="center" spacing={1} mt={2} mb={3}>
+          <Box position="relative">
+            <Avatar src={profilePreview || ""} sx={{ width: 72, height: 72 }} />
+            <IconButton
+              size="small"
+              sx={{
+                position: "absolute",
+                bottom: -5,
+                right: -5,
+                bgcolor: "white",
+              }}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <EditIcon fontSize="small" />
+            </IconButton>
+            <input
+              type="file"
+              hidden
+              accept="image/*"
+              ref={fileInputRef}
+              onChange={(e) => handleImageChange(e, setFieldValue)}
+            />
+          </Box>
+          {touched.profilePicture && errors.profilePicture && (
+            <Typography color="error" fontSize="0.8rem">
+              {errors.profilePicture}
+            </Typography>
+          )}
+        </Stack>
 
-                {/* ================= Basic Information ================= */}
-                <Typography variant="h6" mb={1}>
-                  Basic Information
-                </Typography>
+        {/* ================= Basic Information ================= */}
+        <Typography variant="h6" mb={1}>
+          Basic Information
+        </Typography>
 
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: { xs: "column", sm: "row" },
-                    gap: 2,
-                    mb: 2,
-                  }}
-                >
-                  <Box sx={{ flex: 1 }}>
-                    <CustomTextField
-                      isAstrick
-                      fullWidth
-                      label="Full Name"
-                      name="fullName"
-                      value={values.fullName}
-                      onChange={handleChange}
-                      errorText={
-                        touched.fullName && errors.fullName
-                          ? errors.fullName
-                          : ""
-                      }
-                    />
-                  </Box>
-                  <Box sx={{ flex: 1 }}>
-                    <CustomTextField
-                      isAstrick
-                      fullWidth
-                      label="Current School / University"
-                      name="currentSchool"
-                      value={values.currentSchool}
-                      onChange={handleChange}
-                      errorText={
-                        touched.currentSchool && errors.currentSchool
-                          ? errors.currentSchool
-                          : ""
-                      }
-                    />
-                  </Box>
-                </Box>
-
-                {/* ================= Biography ================= */}
-                <Typography variant="h6" mt={3} mb={1}>
-                  Biography
-                </Typography>
-
-                <CustomTextField
-                  isAstrick
-                  fullWidth
-                  multiline
-                  rows={3}
-                  label="Professional Summary"
-                  name="professionalSummary"
-                  value={values.professionalSummary}
-                  onChange={handleChange}
-                  errorText={
-                    touched.professionalSummary && errors.professionalSummary
-                      ? errors.professionalSummary
-                      : ""
-                  }
-                />
-
-                <CustomTextField
-                  isAstrick
-                  fullWidth
-                  multiline
-                  rows={2}
-                  label="Extracurricular Activities"
-                  name="extracurricularActivities"
-                  value={values.extracurricularActivities}
-                  onChange={handleChange}
-                  errorText={
-                    touched.extracurricularActivities &&
-                    errors.extracurricularActivities
-                      ? errors.extracurricularActivities
-                      : ""
-                  }
-                />
-
-                <Autocomplete
-                  multiple
-                  options={interestOptions}
-                  value={values.interests}
-                  onChange={(_, value) => setFieldValue("interests", value)}
-                  renderInput={(params) => (
-                    <CustomTextField
-                      {...params}                      
-                      name="interests"
-                      label="Interests"
-                      margin="normal"
-                      errorText={
-                        touched.interests && errors.interests
-                          ? (errors.interests as string)
-                          : ""
-                      }
-                    />
-                  )}
-                />
-
-                <FieldArray
-                  name="certifications"
-                  render={({ remove, push }: FieldArrayRenderProps) => (
-                    <Box mt={4}>
-                      <Stack
-                        direction="row"
-                        alignItems="center"
-                        justifyContent="space-between"
-                        mb={2}
-                      >
-                        <Typography variant="h6">Certifications</Typography>
-
-                        <Button
-                          variant="outlined"
-                          component="label"
-                          size="small"
-                        >
-                          Upload Certifications
-                          <input
-                            type="file"
-                            multiple
-                            accept="application/pdf"
-                            hidden
-                            onChange={(
-                              e: React.ChangeEvent<HTMLInputElement>
-                            ) => {
-                              const files = e.target.files;
-                              if (files && files.length > 0) {
-                                const fileArray = Array.from(files);
-                                fileArray.forEach((file) => {
-                                  push({ file });
-                                });
-                              }
-                            }}
-                          />
-                        </Button>
-                      </Stack>
-
-                      {/* Only show if there are uploaded certificates */}
-                      {values.certifications.length > 0 && (
-                        <Box>
-                          {values.certifications
-                            .filter((cert) => cert.file)
-                            .map((cert, index) => (
-                              <Box
-                                key={index}
-                                sx={{
-                                  border: "1px solid #ddd",
-                                  borderRadius: 2,
-                                  p: 2,
-                                  mb: 2,
-                                  backgroundColor: "#fafafa",
-                                }}
-                              >
-                                <Stack
-                                  direction="row"
-                                  spacing={2}
-                                  alignItems="center"
-                                  justifyContent="space-between"
-                                >
-                                  <Typography
-                                    variant="body2"
-                                    sx={{
-                                      flex: 1,
-                                      wordBreak: "break-word",
-                                      color: "text.secondary",
-                                    }}
-                                  >
-                                    {cert.file?.name}
-                                  </Typography>
-
-                                  <IconButton
-                                    aria-label="remove"
-                                    color="error"
-                                    onClick={() => remove(index)}
-                                  >
-                                    <DeleteOutlineIcon />
-                                  </IconButton>
-                                </Stack>
-                              </Box>
-                            ))}
-                        </Box>
-                      )}
-                    </Box>
-                  )}
-                />
-
-                <Autocomplete
-                  multiple
-                  freeSolo
-                  options={["react", "node", "javascript", "python"]}
-                  value={values.skills}
-                  onChange={(_, val) => setFieldValue("skills", val)}
-                  renderInput={(params) => (
-                    <CustomTextField
-                      {...params}
-                      label="Skills *"
-                      margin="normal"
-                      errorText={
-                        touched.skills && errors.skills
-                          ? (errors.skills as string)
-                          : ""
-                      }
-                    />
-                  )}
-                />
-
-                {/* ================= Education ================= */}
-                <Typography variant="h6" mt={3} mb={1}>
-                  Education
-                </Typography>
-
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: { xs: "column", sm: "row" },
-                    gap: 2,
-                    mb: 2,
-                  }}
-                >
-                  <Box sx={{ flex: 1 }}>
-                    <CustomTextField
-                      isAstrick
-                      fullWidth
-                      label="Major"
-                      name="major"
-                      value={values.major}
-                      onChange={handleChange}
-                      errorText={
-                        touched.major && errors.major ? errors.major : ""
-                      }
-                    />
-                  </Box>
-                  <Box sx={{ flex: 1 }}>
-                    <CustomTextField
-                      isAstrick
-                      fullWidth
-                      label="Minor"
-                      name="minor"
-                      value={values.minor}
-                      onChange={handleChange}
-                      errorText={
-                        touched.minor && errors.minor ? errors.minor : ""
-                      }
-                    />
-                  </Box>
-                </Box>
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexDirection: { xs: "column", sm: "row" },
-                    gap: 2,
-                    mb: 2,
-                  }}
-                >
-                  <Box sx={{ flex: 1 }}>
-                    <CustomTextField
-                      isAstrick
-                      select
-                      fullWidth
-                      label="Degree Type"
-                      name="degreeType"
-                      value={values.degreeType}
-                      onChange={handleChange}
-                      errorText={
-                        touched.degreeType && errors.degreeType
-                          ? errors.degreeType
-                          : ""
-                      }
-                    >
-                      {degreeTypes.map((type) => (
-                        <MenuItem key={type} value={type}>
-                          {type}
-                        </MenuItem>
-                      ))}
-                    </CustomTextField>
-                  </Box>
-                  <Box sx={{ flex: 1 }}>
-                    <CustomTextField
-                      select
-                      fullWidth
-                      label="Graduation Year"
-                      name="graduationYear"
-                      value={values.graduationYear}
-                      onChange={handleChange}
-                      errorText={
-                        touched.graduationYear && errors.graduationYear
-                          ? errors.graduationYear
-                          : ""
-                      }
-                    >
-                      {graduationYears.map((year) => (
-                        <MenuItem key={year} value={year}>
-                          {year}
-                        </MenuItem>
-                      ))}
-                    </CustomTextField>
-                  </Box>
-                </Box>
-
-                <FieldArray
-                  name="pastEducation"
-                  render={({ push, remove }) => (
-                    <Box>
-                        <Stack
-                        direction="row"
-                        alignItems="center"
-                        justifyContent="space-between"
-                        mb={2}
-                      >
-                        <Typography variant="h6">Past Education</Typography>
-
-                        <Button
-                          onClick={() =>
-                            push({ school: "", degree: "", year: "" })
-                          }
-                          sx={{ mt: 2 }}
-                          variant="outlined"
-                        >
-                          Add Past Education
-                        </Button>
-                      </Stack>
-                      {values.pastEducation.map((edu, index) => (
-                        <Box
-                          key={index}
-                          sx={{
-                            display: "flex",
-                            flexDirection: { xs: "column", sm: "row" },
-                            gap: 2,
-                            mb: 2,
-                            alignItems: "flex-start",
-                          }}
-                        >
-                          <Box sx={{ flex: 1, width: "100%" }}>
-                            <CustomTextField
-                              fullWidth
-                              label="School"
-                              value={edu.school}
-                              onChange={(e) =>
-                                setFieldValue(
-                                  `pastEducation[${index}].school`,
-                                  e.target.value
-                                )
-                              }
-                            />
-                          </Box>
-
-                          <Box sx={{ flex: 1, width: "100%" }}>
-                            <CustomTextField
-                              fullWidth
-                              label="Degree"
-                              value={edu.degree}
-                              onChange={(e) =>
-                                setFieldValue(
-                                  `pastEducation[${index}].degree`,
-                                  e.target.value
-                                )
-                              }
-                            />
-                          </Box>
-
-                          <Box sx={{ flex: 1, width: "100%" }}>
-                            <CustomTextField
-                              fullWidth
-                              label="Year"
-                              value={edu.year}
-                              onChange={(e) =>
-                                setFieldValue(
-                                  `pastEducation[${index}].year`,
-                                  e.target.value
-                                )
-                              }
-                            />
-                          </Box>
-
-                          <IconButton
-                            aria-label="remove"
-                            color="error"
-                            onClick={() => remove(index)}
-                            sx={{
-                              alignSelf: { xs: "flex-start", sm: "center" },
-                            }}
-                          >
-                            <DeleteOutlineIcon />
-                          </IconButton>
-                        </Box>
-                      ))}                     
-                    </Box>
-                  )}
-                />
-
-                <CustomButton
-                  type="submit"
-                  onClick={triggerFormSubmit}
-                  variant="contained"
-                  sx={{ mt: 3 }}
-                  label="Save Changes"
-                >
-                  Save Change
-                </CustomButton>
-              </Box>
-            );
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            gap: 2,
+            mb: 2,
           }}
-        </Formik>
+        >
+          <Box sx={{ flex: 1 }}>
+            <CustomTextField
+              isAstrick
+              fullWidth
+              label="Full Name"
+              name="fullName"
+              value={values.fullName}
+              onChange={handleChange}
+              errorText={
+                touched.fullName && errors.fullName ? errors.fullName : ""
+              }
+            />
+          </Box>
+          <Box sx={{ flex: 1 }}>
+            <CustomTextField
+              isAstrick
+              fullWidth
+              label="Current School / University"
+              name="currentSchool"
+              value={values.currentSchool}
+              onChange={handleChange}
+              errorText={
+                touched.currentSchool && errors.currentSchool
+                  ? errors.currentSchool
+                  : ""
+              }
+            />
+          </Box>
+        </Box>
+
+        {/* ================= Biography ================= */}
+        <Typography variant="h6" mt={3} mb={1}>
+          Biography
+        </Typography>
+
+        <CustomTextField
+          isAstrick
+          fullWidth
+          multiline
+          rows={3}
+          label="Professional Summary"
+          name="professionalSummary"
+          value={values.professionalSummary}
+          onChange={handleChange}
+          errorText={
+            touched.professionalSummary && errors.professionalSummary
+              ? errors.professionalSummary
+              : ""
+          }
+        />
+
+        <CustomTextField
+          isAstrick
+          fullWidth
+          multiline
+          rows={2}
+          label="Extracurricular Activities"
+          name="extracurricularActivities"
+          value={values.extracurricularActivities}
+          onChange={handleChange}
+          errorText={
+            touched.extracurricularActivities &&
+            errors.extracurricularActivities
+              ? errors.extracurricularActivities
+              : ""
+          }
+        />
+
+        <Autocomplete
+          multiple
+          options={interestOptions}
+          value={values.interests}
+          onChange={(_, value) => setFieldValue("interests", value)}
+          renderInput={(params) => (
+            <CustomTextField
+              {...params}
+              name="interests"
+              label="Interests"
+              margin="normal"
+              errorText={
+                touched.interests && errors.interests
+                  ? (errors.interests as string)
+                  : ""
+              }
+            />
+          )}
+        />
+
+        <Box mt={3}>
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+            mb={2}
+          >
+            <Typography variant="h6">Certifications</Typography>
+            <Button variant="outlined" component="label" size="small">
+              Upload Certifications
+              <input
+                type="file"
+                multiple
+                accept="application/pdf"
+                hidden
+                onChange={handleCertUpload}
+              />
+            </Button>
+          </Stack>
+
+          {certifications.length > 0 && (
+            <Box>
+              {certifications
+                .filter((cert) => cert.file)
+                .map((cert, index) => (
+                  <Box
+                    key={index}
+                    sx={{
+                      border: "1px solid #ddd",
+                      borderRadius: 2,
+                      p: 2,
+                      mb: 2,
+                      backgroundColor: "#fafafa",
+                    }}
+                  >
+                    <Stack
+                      direction="row"
+                      spacing={2}
+                      alignItems="center"
+                      justifyContent="space-between"
+                    >
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          flex: 1,
+                          wordBreak: "break-word",
+                          color: "text.secondary",
+                        }}
+                      >
+                        {cert.file.name}
+                      </Typography>
+                      <IconButton
+                        aria-label="remove"
+                        color="error"
+                        onClick={() => handleCertRemove(index)}
+                      >
+                        <DeleteOutlineIcon />
+                      </IconButton>
+                    </Stack>
+                  </Box>
+                ))}
+            </Box>
+          )}
+        </Box>
+
+        <Autocomplete
+          multiple
+          freeSolo
+          options={["react", "node", "javascript", "python"]}
+          value={values.skills}
+          onChange={(_, val) => setFieldValue("skills", val)}
+          renderInput={(params) => (
+            <CustomTextField
+              {...params}
+              label="Skills *"
+              margin="normal"
+              errorText={
+                touched.skills && errors.skills ? (errors.skills as string) : ""
+              }
+            />
+          )}
+        />
+
+        {/* ================= Education ================= */}
+        <Typography variant="h6" mt={3} mb={1}>
+          Education
+        </Typography>
+
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            gap: 2,
+            mb: 2,
+          }}
+        >
+          <Box sx={{ flex: 1 }}>
+            <CustomTextField
+              isAstrick
+              fullWidth
+              label="Major"
+              name="major"
+              value={values.major}
+              onChange={handleChange}
+              errorText={touched.major && errors.major ? errors.major : ""}
+            />
+          </Box>
+          <Box sx={{ flex: 1 }}>
+            <CustomTextField
+              isAstrick
+              fullWidth
+              label="Minor"
+              name="minor"
+              value={values.minor}
+              onChange={handleChange}
+              errorText={touched.minor && errors.minor ? errors.minor : ""}
+            />
+          </Box>
+        </Box>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            gap: 2,
+            mb: 2,
+          }}
+        >
+          <Box sx={{ flex: 1 }}>
+            <CustomTextField
+              isAstrick
+              select
+              fullWidth
+              label="Degree Type"
+              name="degreeType"
+              value={values.degreeType}
+              onChange={handleChange}
+              errorText={
+                touched.degreeType && errors.degreeType ? errors.degreeType : ""
+              }
+            >
+              {degreeTypes.map((type) => (
+                <MenuItem key={type} value={type}>
+                  {type}
+                </MenuItem>
+              ))}
+            </CustomTextField>
+          </Box>
+          <Box sx={{ flex: 1 }}>
+            <CustomTextField
+              select
+              fullWidth
+              label="Graduation Year"
+              name="graduationYear"
+              value={values.graduationYear}
+              onChange={handleChange}
+              errorText={
+                touched.graduationYear && errors.graduationYear
+                  ? errors.graduationYear
+                  : ""
+              }
+            >
+              {graduationYears.map((year) => (
+                <MenuItem key={year} value={year}>
+                  {year}
+                </MenuItem>
+              ))}
+            </CustomTextField>
+          </Box>
+        </Box>
+        <Box mt={3}>
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+            mb={2}
+          >
+            <Typography variant="h6">Past Education</Typography>
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={handleAddEducation}
+            >
+              Add
+            </Button>
+          </Stack>
+
+          {pastEducation.map((edu, index) => (
+            <Box
+              key={index}
+              sx={{
+                border: "1px solid #ddd",
+                borderRadius: 2,
+                p: 2,
+                mb: 2,
+                backgroundColor: "#fafafa",
+              }}
+            >
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+                <CustomTextField
+                  fullWidth
+                  label="School"
+                  value={edu.school}
+                  onChange={(e) =>
+                    handleEducationChange(index, "school", e.target.value)
+                  }
+                />
+                <CustomTextField
+                  fullWidth
+                  label="Degree"
+                  value={edu.degree}
+                  onChange={(e) =>
+                    handleEducationChange(index, "degree", e.target.value)
+                  }
+                />
+                <CustomTextField
+                  fullWidth
+                  label="Year"
+                  value={edu.year}
+                  onChange={(e) =>
+                    handleEducationChange(index, "year", e.target.value)
+                  }
+                />
+                <IconButton
+                  aria-label="remove"
+                  color="error"
+                  onClick={() => handleRemoveEducation(index)}
+                >
+                  <DeleteOutlineIcon />
+                </IconButton>
+              </Stack>
+            </Box>
+          ))}
+        </Box>
+
+        <CustomButton
+          type="submit"
+          variant="contained"
+          label={isSubmitting ? "Saving..." : "Save Changes"}
+          disabled={isSubmitting}
+          sx={{ mt: 3 }}
+        />
       </Box>
     </Box>
   );
