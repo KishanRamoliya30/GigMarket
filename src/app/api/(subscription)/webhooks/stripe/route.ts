@@ -47,6 +47,11 @@ export async function POST(req: NextRequest) {
 
       const currentSubscription = await Subscription.findOne({ _id: user.subscription?.subscriptionId });
       if (currentSubscription && currentSubscription.stripeSubscriptionId !== sub.id) {
+        // Mark this subscription as being cancelled due to switching
+        await Subscription.findByIdAndUpdate(currentSubscription._id, {
+          cancelReason: 'switching',
+        });
+
         await stripe.subscriptions.cancel(currentSubscription.stripeSubscriptionId);
         await Subscription.findByIdAndUpdate(currentSubscription._id, {
           status: 'cancelled',
@@ -54,7 +59,7 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      console.log("#####41", planData)
+      console.log("#####41", planData);
 
       // const newSubscription = await Subscription.findOneAndUpdate(
       //   { stripeSubscriptionId: sub.id },
@@ -70,11 +75,12 @@ export async function POST(req: NextRequest) {
       //     endDate,
       //     cancelAtPeriodEnd: sub.cancel_at_period_end ?? false,
       //     canceledAt: sub.canceled_at ? new Date(sub.canceled_at * 1000) : null,
+      //     cancelReason: null, // Reset
       //   },
       //   { upsert: true, new: true }
       // );
 
-      // console.log("#####42", newSubscription)
+      // console.log("#####42", newSubscription);
 
       // user.subscription = {
       //   status: sub.status,
@@ -96,7 +102,7 @@ export async function POST(req: NextRequest) {
       const user = await User.findOne({ stripeCustomerId: customerId });
 
       if (!user) break;
-      const startDate = sub.start_date ? new Date(sub.start_date * 1000) : null
+      const startDate = sub.start_date ? new Date(sub.start_date * 1000) : null;
       const endDate = startDate && new Date(new Date(startDate).setMonth(startDate.getMonth() + 1));
 
       const newSub = await Subscription.findOneAndUpdate(
@@ -113,6 +119,7 @@ export async function POST(req: NextRequest) {
           endDate,
           cancelAtPeriodEnd: sub.cancel_at_period_end ?? false,
           canceledAt: sub.canceled_at ? new Date(sub.canceled_at * 1000) : null,
+          cancelReason: null,
         },
         { upsert: true, new: true }
       );
@@ -137,25 +144,30 @@ export async function POST(req: NextRequest) {
       console.log("#####6", sub)
       console.log("#####61", customerId)
       const user = await User.findOne({ stripeCustomerId: customerId });
-      console.log("#####62", user)
+      console.log("#####62", user);
       if (!user) break;
 
-      const newS = await Subscription.findOneAndUpdate(
+      const updatedSub = await Subscription.findOneAndUpdate(
         { stripeSubscriptionId: sub.id },
         {
           status: 'cancelled',
           endDate: new Date(),
           canceledAt: new Date(),
-        }
+        },
+        { new: true }
       );
-      console.log("#####63", newS)
+      console.log("#####63", updatedSub);
+
+      if (updatedSub?.cancelReason === 'switching') {
+        break;
+      }
 
       const freePlan = await plans.findOne({ type: 1, price: 0 });
-      console.log("#####64", freePlan)
-      
+      console.log("#####64", freePlan);
+
       if (freePlan) {
         user.subscription = {
-          status: 'active', 
+          status: 'active',
           subscriptionId: null,
           planId: freePlan._id,
           planName: freePlan.name,
@@ -174,7 +186,7 @@ export async function POST(req: NextRequest) {
       }
 
       await user.save();
-      console.log("#####65", user)
+      console.log("#####65", user);
       break;
     }
 
