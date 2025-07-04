@@ -224,7 +224,7 @@ const Subscription = () => {
                         },
                       }}
                     >
-                      {isActivePlan ? "Subscribed" : "Upgrade Now"}
+                      {isActivePlan ? "Subscribed" : plan.price <= 0 ? "Get Started" :"Buy Now"}
                     </Button>
                   </Paper>
                 </Grid>
