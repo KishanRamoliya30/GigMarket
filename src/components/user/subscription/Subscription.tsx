@@ -30,7 +30,7 @@ const Subscription = () => {
     fetchPlans();
   }, []);
 
-  const handleCheckout = async (plan: (typeof plans)[number]) => {
+  const handleCheckout = async (plan: Plan) => {
     const isFree = !plan.priceId;
     setLoading(true);
     try {
@@ -48,12 +48,34 @@ const Subscription = () => {
         router.push("/add-profile");
       } else {
         const { id } = await res.data.data;
-
         const stripe = await stripePromise;
         await stripe?.redirectToCheckout({ sessionId: id });
       }
     } catch (error) {
       console.error("Checkout error:", error);
+      toast.error("Something went wrong during checkout.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancelSubscription = async () => {
+    if (!confirm("Are you sure you want to cancel your subscription?")) return;
+    setLoading(true);
+    try {
+      const res = await apiRequest("cancel-subscription", {
+        method: "POST",
+      });
+
+      if (res.ok) {
+        toast.success("Subscription cancelled successfully");
+        router.refresh();
+      } else {
+        toast.error(res.data?.message || "Failed to cancel subscription");
+      }
+    } catch (error) {
+      console.error("Cancellation error:", error);
+      toast.error("An error occurred while cancelling the subscription.");
     } finally {
       setLoading(false);
     }
@@ -80,9 +102,7 @@ const Subscription = () => {
             color="textSecondary"
             style={{ maxWidth: 600, margin: "0 auto 65px" }}
           >
-            {`Choose a subscription plan that fits your freelancing goals. Whether
-            you're just starting out or scaling your gig empire, we have the
-            right tools to help you succeed.`}
+            {`Choose a subscription plan that fits your freelancing goals. Whether you're just starting out or scaling your gig empire, we have the right tools to help you succeed.`}
           </Typography>
 
           <Grid container spacing={4} justifyContent="center" mt={6}>
@@ -143,8 +163,7 @@ const Subscription = () => {
                             width: "245px",
                             height: "30px",
                             transform: "rotate(-45deg)",
-                            background:
-                              "linear-gradient(135deg, #1DBF73, #13aa60)",
+                            background: "linear-gradient(135deg, #1DBF73, #13aa60)",
                             color: "#000",
                             textAlign: "center",
                             fontSize: "13px",
@@ -205,6 +224,32 @@ const Subscription = () => {
                       ))}
                     </Box>
 
+                    {isActivePlan && 
+                    user.subscription?.planName !== "Free" && 
+                    !user.subscription?.cancelAtPeriodEnd && (
+                      <Button
+                        variant="outlined"
+                        fullWidth
+                        onClick={handleCancelSubscription}
+                        sx={{
+                          mt: 1,
+                          mb: 2,
+                          py: 1.2,
+                          textTransform: "none",
+                          transition: "all 0.3s ease",
+                          color: "#f44336",
+                          borderColor: "#f44336",
+                          borderRadius: 3,
+                          fontWeight: 600,
+                          "&:hover": {
+                            bgcolor: "#ffe5e5",
+                            borderColor: "#f44336",
+                          },
+                        }}
+                      >
+                        Cancel Subscription
+                      </Button>
+                    )}
                     <Button
                       className="action-btn"
                       variant="contained"

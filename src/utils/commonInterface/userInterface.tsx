@@ -4,6 +4,7 @@ export interface UserSubscription {
   planId: string | null;
   planName: string | null;
   planType: number | null;
+  cancelAtPeriodEnd: boolean;
 }
 
 export interface UserType {

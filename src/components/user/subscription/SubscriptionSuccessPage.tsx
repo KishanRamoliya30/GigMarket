@@ -37,6 +37,7 @@ const SubscriptionSuccessPage = () => {
       handleNavigate();
       return;
     }
+    router.refresh();
 
     fetchSession();
   }, [sessionId]);
