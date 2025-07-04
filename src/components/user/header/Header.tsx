@@ -116,6 +116,7 @@ export default function Header() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const { user,setRole,resetUser } = useUser();
+  console.log("####5", user)
   const role = user?.role;
   const _id = user?._id;
 

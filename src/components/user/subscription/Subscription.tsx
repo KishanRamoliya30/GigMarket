@@ -13,7 +13,7 @@ import { useUser } from "@/context/UserContext";
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY!);
 
 const Subscription = () => {
-  const {user} = useUser();
+  const { user } = useUser();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -44,7 +44,7 @@ const Subscription = () => {
       });
 
       if (isFree) {
-        toast.success("res.data.message");
+        toast.success(res.data.message);
         router.push("/add-profile");
       } else {
         const { id } = await res.data.data;
@@ -224,7 +224,11 @@ const Subscription = () => {
                         },
                       }}
                     >
-                      {isActivePlan ? "Subscribed" : "Upgrade Now"}
+                      {isActivePlan
+                        ? "Subscribed"
+                        : plan.price <= 0
+                          ? "Get Started"
+                          : "Buy Now"}
                     </Button>
                   </Paper>
                 </Grid>
