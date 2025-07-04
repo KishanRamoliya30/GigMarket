@@ -42,7 +42,7 @@ const ProfileViewCard = () => {
         const res = await apiRequest(`profile?userId=${userId}`, {
           method: "GET",
         });
-        setProfileData(res.data.profile);
+        setProfileData(res.data?.profile);
       } catch (error) {
         console.error("Failed to fetch profile:", error);
       } finally {

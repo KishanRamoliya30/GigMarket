@@ -89,6 +89,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         message: "Login successful.",
         success: true,
         user: {
+          ...user.toObject(),
           id: user._id,
           email: user.email
         },

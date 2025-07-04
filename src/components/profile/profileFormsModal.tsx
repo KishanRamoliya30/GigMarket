@@ -15,7 +15,6 @@ import {
   DialogActions,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import CustomTextField from "../customUi/CustomTextField";
@@ -440,10 +439,10 @@ const ProfileFormCard: React.FC<ProfileFormCardProps> = ({
                             </Typography>
                             <IconButton
                               aria-label="remove"
-                              color="error"
+                              // color="error"
                               onClick={() => handleCertRemove(index)}
                             >
-                              <DeleteOutlineIcon />
+                               <CloseIcon />
                             </IconButton>
                           </Stack>
                         </Box>
@@ -461,7 +460,8 @@ const ProfileFormCard: React.FC<ProfileFormCardProps> = ({
                 renderInput={(params) => (
                   <CustomTextField
                     {...params}
-                    label="Skills *"
+                    isAstrick
+                    label="Skills"
                     margin="normal"
                     errorText={
                       touched.skills && errors.skills
@@ -619,10 +619,10 @@ const ProfileFormCard: React.FC<ProfileFormCardProps> = ({
                       />
                       <IconButton
                         aria-label="remove"
-                        color="error"
+                        // color="error"
                         onClick={() => handleRemoveEducation(index)}
                       >
-                        <DeleteOutlineIcon />
+                         <CloseIcon />
                       </IconButton>
                     </Stack>
                   </Box>
