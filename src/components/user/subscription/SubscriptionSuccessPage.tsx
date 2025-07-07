@@ -12,10 +12,11 @@ const SubscriptionSuccessPage = () => {
   const router = useRouter();
   const { sessionId } = useParams<{ sessionId: string }>();
   const [loading, setLoading] = useState(true);
+  const [profileCompleted, setsetProfileCompleted] = useState(true);
 
   const {user, setUser} = useUser();
   const handleNavigate = () => {
-    const pathName = user?.profileCompleted ? "/dashboard" : "/addProfile";
+    const pathName = profileCompleted ? "/dashboard" : "/myProfile";
     router.push(pathName);
   };
 
@@ -35,7 +36,7 @@ const SubscriptionSuccessPage = () => {
 
   const getAndSetUser = async () => {
     setLoading(true);
-    const response = await apiRequest(`user`, {
+    const response = await apiRequest("user", {
       method: "GET",
     });
     setLoading(false);
@@ -43,7 +44,8 @@ const SubscriptionSuccessPage = () => {
     const newUser = response?.data?.data
 
     if (newUser) {
-      setUser(newUser)
+      setsetProfileCompleted(newUser.profileCompleted)
+      setUser(newUser);
       return;
     } else {
       handleNavigate();
@@ -63,6 +65,7 @@ const SubscriptionSuccessPage = () => {
   return (
     <>
       <Loader loading={loading} />
+      {console.log("###6", user)}
       <Container maxWidth="sm" sx={{ py: 10, textAlign: "center" }}>
         <CheckCircleOutlineIcon sx={{ fontSize: 80, color: "green", mb: 2 }} />
 
@@ -81,7 +84,7 @@ const SubscriptionSuccessPage = () => {
           onClick={handleNavigate}
           sx={{ textTransform: "none" }}
         >
-          Go to Dashboard
+          {profileCompleted ?  "Go to Dashboard" : "Complete your profile"}
         </Button>
       </Container>
     </>

@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
         planId: planData._id,
         planName: planData.name,
         planType: planData.type,
-        cancelAtPeriodEnd: false,
+        cancelAtPeriodEnd: sub.cancel_at_period_end ?? false,
       };
 
       user.subscriptionCompleted = true;

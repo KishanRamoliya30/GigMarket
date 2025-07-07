@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
   });
 
   user.subscription.cancelAtPeriodEnd = true;
+  user.markModified('subscription');
   await user.save();
 
   return successResponse(

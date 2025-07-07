@@ -13,7 +13,7 @@ import { useUser } from "@/context/UserContext";
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY!);
 
 const Subscription = () => {
-  const { user } = useUser();
+  const { user, setUser } = useUser();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -24,6 +24,21 @@ const Subscription = () => {
       setPlans(res.data.data);
     }
     setLoading(false);
+  };
+
+  const getAndSetUser = async () => {
+    setLoading(true);
+    const response = await apiRequest("user", {
+      method: "GET",
+    });
+    setLoading(false);
+
+    const newUser = response?.data?.data;
+
+    if (newUser) {
+      setUser(newUser);
+      return;
+    }
   };
 
   useEffect(() => {
@@ -69,7 +84,7 @@ const Subscription = () => {
 
       if (res.ok) {
         toast.success("Subscription cancelled successfully");
-        router.refresh();
+        getAndSetUser();
       } else {
         toast.error(res.data?.message || "Failed to cancel subscription");
       }
@@ -224,32 +239,40 @@ const Subscription = () => {
                       ))}
                     </Box>
 
-                    {isActivePlan && 
-                    user.subscription?.planName !== "Free" && 
-                    !user.subscription?.cancelAtPeriodEnd && (
-                      <Button
-                        variant="outlined"
-                        fullWidth
-                        onClick={handleCancelSubscription}
-                        sx={{
-                          mt: 1,
-                          mb: 2,
-                          py: 1.2,
-                          textTransform: "none",
-                          transition: "all 0.3s ease",
-                          color: "#f44336",
-                          borderColor: "#f44336",
-                          borderRadius: 3,
-                          fontWeight: 600,
-                          "&:hover": {
-                            bgcolor: "#ffe5e5",
+                    {isActivePlan &&
+                      user.subscription?.planName !== "Free" &&
+                      !user.subscription?.cancelAtPeriodEnd && (
+                        <Button
+                          variant="outlined"
+                          fullWidth
+                          disabled={user.subscription.cancelAtPeriodEnd}
+                          onClick={handleCancelSubscription}
+                          sx={{
+                            mt: 1,
+                            mb: 2,
+                            py: 1.2,
+                            textTransform: "none",
+                            transition: "all 0.3s ease",
+                            color: "#f44336",
                             borderColor: "#f44336",
-                          },
-                        }}
-                      >
-                        Cancel Subscription
-                      </Button>
-                    )}
+                            borderRadius: 3,
+                            fontWeight: 600,
+                            "&:hover": {
+                              bgcolor: "#ffe5e5",
+                              borderColor: "#f44336",
+                            },
+                            "&:disabled": {
+                              bgcolor: "#fddcdc",
+                              borderColor: "#f44336",
+                              color: "#f44336",
+                              cursor: "not-allowed",
+                              opacity: 0.6,
+                            },
+                          }}
+                        >
+                          Cancel Subscription
+                        </Button>
+                      )}
                     <Button
                       className="action-btn"
                       variant="contained"
