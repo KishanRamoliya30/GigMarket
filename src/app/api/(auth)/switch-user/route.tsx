@@ -20,14 +20,14 @@ interface LoginResponseError {
   error: string;
 }
 const getSecret = () => new TextEncoder().encode(process.env.JWT_SECRET);
-export async function GET(request: NextRequest): Promise<Response> {
+export async function POST(request: NextRequest): Promise<Response> {
   try {
     await dbConnect();
     const { payload } = await jwtVerify(
       request.cookies.get("token")?.value ?? "",
       getSecret()
     );
-    const user = await User.findOne({ _id: payload.userId });
+    const user = await User.findOne({ _id: payload.userId });  
     
     if ((user.subscription?.planType ?? 0) > 1) {
       const token = generateToken({
