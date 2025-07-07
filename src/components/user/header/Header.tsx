@@ -148,7 +148,7 @@ export default function Header() {
   const handleRoleSwitch = async () => {
     try {
       const newRole = role == "User"?"Provider":"User";
-      const response = await apiRequest<{ message: string }>("switch-user");
+      const response = await apiRequest("switch-user", { method: "POST" });
   
       if (response.ok && response.data?.message) {
         setRole(newRole)
