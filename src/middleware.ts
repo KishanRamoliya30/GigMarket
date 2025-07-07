@@ -15,7 +15,6 @@ const PUBLIC_PATHS = [
   "/forgot-password",
   "/api/webhooks/stripe",
 
-
   "/api/forgot-password",
   "/api/reset-password",
   "/api/login",

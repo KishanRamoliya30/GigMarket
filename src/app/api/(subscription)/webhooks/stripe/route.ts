@@ -6,7 +6,7 @@ import { stripe } from '@/app/lib/strip';
 import User from '@/app/models/user';
 import Subscription from '@/app/models/subscription';
 import Invoice from '@/app/models/invoice';
-import plans from '@/app/models/plans';
+import { setFreePlanToUser } from '@/app/lib/subscriptionHelpers';
 
 export async function POST(req: NextRequest) {
   await dbConnect();
@@ -35,7 +35,6 @@ export async function POST(req: NextRequest) {
     case 'checkout.session.completed': {
       const subscriptionId = session.subscription as string;
       const customerId = session.customer as string;
-      console.log("#####40", session)
 
       const user = await User.findOne({ stripeCustomerId: customerId });
       if (!user) break;
@@ -58,40 +57,6 @@ export async function POST(req: NextRequest) {
           endDate: new Date(),
         });
       }
-
-      console.log("#####41", planData);
-
-      // const newSubscription = await Subscription.findOneAndUpdate(
-      //   { stripeSubscriptionId: sub.id },
-      //   {
-      //     user: user._id,
-      //     stripeSubscriptionId: sub.id,
-      //     stripeCustomerId: customerId,
-      //     planId: planData._id,
-      //     stripePriceId: sub.items?.data?.[0]?.price?.id || '',
-      //     planName: planData.name,
-      //     status: sub.status,
-      //     startDate,
-      //     endDate,
-      //     cancelAtPeriodEnd: sub.cancel_at_period_end ?? false,
-      //     canceledAt: sub.canceled_at ? new Date(sub.canceled_at * 1000) : null,
-      //     cancelReason: null, // Reset
-      //   },
-      //   { upsert: true, new: true }
-      // );
-
-      // console.log("#####42", newSubscription);
-
-      // user.subscription = {
-      //   status: sub.status,
-      //   subscriptionId: newSubscription._id,
-      //   planId: planData._id,
-      //   planName: planData.name,
-      //   planType: planData.type,
-      // };
-      // user.subscriptionCompleted = true;
-      // await user.save();
-
       break;
     }
 
@@ -130,6 +95,7 @@ export async function POST(req: NextRequest) {
         planId: planData._id,
         planName: planData.name,
         planType: planData.type,
+        cancelAtPeriodEnd: sub.cancel_at_period_end ?? false,
       };
 
       user.subscriptionCompleted = true;
@@ -141,10 +107,7 @@ export async function POST(req: NextRequest) {
       const sub = data as Stripe.Subscription;
       const customerId = sub.customer as string;
 
-      console.log("#####6", sub)
-      console.log("#####61", customerId)
       const user = await User.findOne({ stripeCustomerId: customerId });
-      console.log("#####62", user);
       if (!user) break;
 
       const updatedSub = await Subscription.findOneAndUpdate(
@@ -156,37 +119,12 @@ export async function POST(req: NextRequest) {
         },
         { new: true }
       );
-      console.log("#####63", updatedSub);
 
       if (updatedSub?.cancelReason === 'switching') {
         break;
       }
 
-      const freePlan = await plans.findOne({ type: 1, price: 0 });
-      console.log("#####64", freePlan);
-
-      if (freePlan) {
-        user.subscription = {
-          status: 'active',
-          subscriptionId: null,
-          planId: freePlan._id,
-          planName: freePlan.name,
-          planType: freePlan.type,
-        };
-        user.subscriptionCompleted = true;
-      } else {
-        user.subscription = {
-          status: 'cancelled',
-          subscriptionId: null,
-          planId: null,
-          planName: null,
-          planType: null,
-        };
-        user.subscriptionCompleted = false;
-      }
-
-      await user.save();
-      console.log("#####65", user);
+      await setFreePlanToUser(user);
       break;
     }
 

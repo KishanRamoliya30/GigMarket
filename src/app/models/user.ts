@@ -61,6 +61,10 @@ const userSchema = new mongoose.Schema({
       ref: 'Subscription',
       default: null
     },
+    cancelAtPeriodEnd : {
+      type: Boolean,
+      default: false
+    },
     planId: {
       type: String,
       default: null

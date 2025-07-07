@@ -74,6 +74,7 @@ export async function POST(request: NextRequest) {
       planId: plan._id,
       planName: plan.name,
       planType: plan.type,
+      cancelAtPeriodEnd: false,
     };
     user.subscriptionCompleted = true;
     await user.save();
