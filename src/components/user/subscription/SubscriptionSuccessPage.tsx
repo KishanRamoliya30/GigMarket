@@ -13,13 +13,14 @@ const SubscriptionSuccessPage = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
   const [loading, setLoading] = useState(true);
 
-  const {user} = useUser();
+  const {user, setUser} = useUser();
   const handleNavigate = () => {
     const pathName = user?.profileCompleted ? "/dashboard" : "/addProfile";
     router.push(pathName);
   };
 
   const fetchSession = async () => {
+    setLoading(true);
     const response = await apiRequest(`session/${sessionId}`, {
       method: "GET",
     });
@@ -32,14 +33,31 @@ const SubscriptionSuccessPage = () => {
     }
   };
 
+  const getAndSetUser = async () => {
+    setLoading(true);
+    const response = await apiRequest(`user`, {
+      method: "GET",
+    });
+    setLoading(false);
+
+    const newUser = response?.data?.data
+
+    if (newUser) {
+      setUser(newUser)
+      return;
+    } else {
+      handleNavigate();
+    }
+  };
+
   useEffect(() => {
     if (!sessionId) {
       handleNavigate();
       return;
     }
-    router.refresh();
 
     fetchSession();
+    getAndSetUser();
   }, [sessionId]);
 
   return (
