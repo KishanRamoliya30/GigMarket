@@ -18,20 +18,19 @@ import {
   Checkbox,
   Radio,
   RadioGroup,
-  Switch,
 } from "@mui/material";
+import CustomTextField from "@/components/customUi/CustomTextField";
 import { styled } from "@mui/system";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import {ExpandMoreOutlined} from "@mui/icons-material";
-
+import { ExpandMoreOutlined, Check as CheckIcon } from "@mui/icons-material";
 
 const tiers = ["Tier 1", "Tier 2", "Tier 3"];
 export const allGigs = new Array(50).fill(null).map((_, i) => ({
   id: (i + 1).toString(),
   title: `Gig Title ${i + 1}`,
   description: `Sample description for gig number ${i + 1}`,
-  tier: tiers[(i % 3)] || "Tier 1",
+  tier: tiers[i % 3] || "Tier 1",
   price: `₹${(i + 1) * 500}`,
   rating: 4 + (i % 2) * 0.5,
   reviews: (i + 1) * 2,
@@ -107,7 +106,16 @@ const StyledWrapper = styled(Box)(({ theme }) => ({
     border: "1px solid #388E3C",
     borderRadius: 8,
     color: "#388E3C",
-  }
+  },
+  ".tiersBox": {
+    display:"flex",
+    flexDirection:"column",
+    gap:1,
+    width: 250,
+    overflowY: "auto",
+    backgroundColor: "#f9f9f9",
+    }
+  
 }));
 
 export default function GigListing() {
@@ -120,10 +128,12 @@ export default function GigListing() {
 
   const [selectedSellers, setSelectedSellers] = useState<string[]>([]);
   const [selectedBudget, setSelectedBudget] = useState("");
+  const [selectedReviews, setSelectedReviews] = useState("");
   const [customMin, setCustomMin] = useState("");
   const [customMax, setCustomMax] = useState("");
-  const [selectedDelivery, setSelectedDelivery] = useState("");
-  const [proServices, setProServices] = useState(false);
+  const [selectedEdu, setselectedEdu] = useState<string[]>([]);
+  const [sortAnchorEl, setSortAnchorEl] = useState<null | HTMLElement>(null);
+  const [sortBy, setSortBy] = useState("Rating: High to Low");
 
   const startIndex = (page - 1) * gigsPerPage;
 
@@ -144,15 +154,38 @@ export default function GigListing() {
       if (selectedSellers.includes("Level 1") && gig.reviews < 10) return false;
       if (selectedSellers.includes("Level 2") && gig.reviews < 20) return false;
       return true;
-    })
-    .filter((gig) => (proServices ? gig.reviews >= 30 : true));
+    });
 
+  const sortOptions = [
+    "Pricing: High to Low",
+    "Pricing: Low to High",
+    "Rating: High to Low",
+    "Rating: Low to High",
+    "No of Reviews: High to Low",
+    "No of Reviews: Low to High",
+  ];
+
+  const handleSortClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    setSortAnchorEl(event.currentTarget);
+  };
+
+  const handleSortClose = () => {
+    setSortAnchorEl(null);
+  };
+
+  const handleSortSelect = (option: string) => {
+    setSortBy(option);
+    handleSortClose();
+  };
   const paginatedGigs = filteredGigs.slice(
     startIndex,
     startIndex + gigsPerPage
   );
 
-  const handleOpenMenu = (event: React.MouseEvent<HTMLButtonElement>, menuType: string) => {
+  const handleOpenMenu = (
+    event: React.MouseEvent<HTMLButtonElement>,
+    menuType: string
+  ) => {
     setAnchorEl(event.currentTarget);
     setOpenMenu(menuType);
   };
@@ -169,44 +202,68 @@ export default function GigListing() {
       </Typography>
 
       {/* Filter bar */}
-      <Box display="flex" flexWrap="wrap" alignItems="center" gap={2} className="filterMenu">
+      <Box
+        display="flex"
+        flexWrap="wrap"
+        alignItems="center"
+        gap={2}
+        className="filterMenu"
+      >
         <Button
           variant="outlined"
-          endIcon={<Box component="span"><ExpandMoreOutlined /></Box>}
+          endIcon={
+            <Box component="span">
+              <ExpandMoreOutlined />
+            </Box>
+          }
           onClick={(e) => handleOpenMenu(e, "sellers")}
         >
           Tiers
         </Button>
         <Button
           variant="outlined"
-          endIcon={<Box component="span"><ExpandMoreOutlined /></Box>}
+          endIcon={
+            <Box component="span">
+              <ExpandMoreOutlined />
+            </Box>
+          }
           onClick={(e) => handleOpenMenu(e, "rating")}
         >
           Rating
         </Button>
         <Button
           variant="outlined"
-          endIcon={<Box component="span"><ExpandMoreOutlined /></Box>}
+          endIcon={
+            <Box component="span">
+              <ExpandMoreOutlined />
+            </Box>
+          }
           onClick={(e) => handleOpenMenu(e, "budget")}
         >
           Budget
         </Button>
         <Button
           variant="outlined"
-          endIcon={<Box component="span"><ExpandMoreOutlined /></Box>}
-          onClick={(e) => handleOpenMenu(e, "delivery")}
-        >
-          Delivery time
-        </Button>
-        <FormControlLabel
-          control={
-            <Switch
-              checked={proServices}
-              onChange={() => setProServices(!proServices)}
-            />
+          endIcon={
+            <Box component="span">
+              <ExpandMoreOutlined />
+            </Box>
           }
-          label="Pro services"
-        />
+          onClick={(e) => handleOpenMenu(e, "reviews")}
+        >
+          No. of Reviews
+        </Button>
+        <Button
+          variant="outlined"
+          endIcon={
+            <Box component="span">
+              <ExpandMoreOutlined />
+            </Box>
+          }
+          onClick={(e) => handleOpenMenu(e, "type")}
+        >
+          Type of Education
+        </Button>
       </Box>
 
       {/* Selected filters */}
@@ -239,13 +296,16 @@ export default function GigListing() {
             className="chip"
           />
         )}
-        {selectedDelivery && (
+        {selectedEdu.map((label) => (
           <Chip
-            label={selectedDelivery}
-            onDelete={() => setSelectedDelivery("")}
+            key={label}
+            label={label}
+            onDelete={() =>
+              setselectedEdu((prev) => prev.filter((s) => s !== label))
+            }
             className="chip"
           />
-        )}
+        ))}
       </Box>
 
       <Menu
@@ -257,37 +317,45 @@ export default function GigListing() {
           <Typography fontWeight={600} mb={1}>
             Tiers
           </Typography>
+          <Box
+            display="flex"
+            flexDirection="column"
+            gap={1}
+            sx={{ width: 250, overflowY: "auto" }}
+            className="tiersBox"
+          >
             {tiers.map((option) => (
-            <FormControlLabel
-              key={option}
-              control={
-              <Checkbox
-                checked={selectedSellers.includes(option)}
-                onChange={(e) => {
-                const checked = e.target.checked;
-                setSelectedSellers((prev) =>
-                  checked
-                  ? [...prev, option]
-                  : prev.filter((s) => s !== option)
-                );
-                }}
+              <FormControlLabel
+                key={option}
+                control={
+                  <Checkbox
+                    checked={selectedSellers.includes(option)}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setSelectedSellers((prev) =>
+                        checked
+                          ? [...prev, option]
+                          : prev.filter((s) => s !== option)
+                      );
+                    }}
+                    sx={{
+                      color: "#388E3C",
+                      "&.Mui-checked": {
+                        color: "#388E3C",
+                      },
+                    }}
+                  />
+                }
+                label={option}
                 sx={{
-                color: "#388E3C",
-                "&.Mui-checked": {
-                  color: "#388E3C",
-                },
+                  ".MuiTypography-root": {
+                    fontWeight: 500,
+                    color: "#333",
+                  },
                 }}
               />
-              }
-              label={option}
-              sx={{
-              ".MuiTypography-root": {
-                fontWeight: 500,
-                color: "#333",
-              },
-              }}
-            />
             ))}
+          </Box>
         </Box>
       </Menu>
 
@@ -300,50 +368,49 @@ export default function GigListing() {
           <Typography fontWeight={600} mb={1}>
             Select Rating
           </Typography>
-            {["5⭐","4⭐ and above","3⭐ and above","2⭐ and above"].map(
-              (option) => (
-                <FormControlLabel
-                  key={option}
-                  control={
-                    <Checkbox
-                      checked={selectedSellers.includes(option)}
-                      onChange={(e) => {
+          {["5⭐", "4⭐ and above", "3⭐ and above", "2⭐ and above"].map(
+            (option) => (
+              <FormControlLabel
+                key={option}
+                control={
+                  <Checkbox
+                    checked={selectedSellers.includes(option)}
+                    onChange={(e) => {
                       const checked = e.target.checked;
                       setSelectedSellers((prev) =>
                         checked
-                        ? [...prev, option]
-                        : prev.filter((s) => s !== option)
+                          ? [...prev, option]
+                          : prev.filter((s) => s !== option)
                       );
-                      }}
-                      sx={{
+                    }}
+                    sx={{
                       color: "#388E3C",
                       "&.Mui-checked": {
                         color: "#388E3C",
                       },
-                      }}
-                    />
-                  }
-                  label={option}
-                  sx={{
-                    ".MuiTypography-root": {
-                      fontWeight: 500,
-                      color: "#333",
-                    },
-                  }}
-                />
-            ))}
-          
+                    }}
+                  />
+                }
+                label={option}
+                sx={{
+                  ".MuiTypography-root": {
+                    fontWeight: 500,
+                    color: "#333",
+                  },
+                }}
+              />
+            )
+          )}
         </Box>
       </Menu>
 
-      {/* Budget Filter */}
       <Menu
         anchorEl={anchorEl}
         open={openMenu === "budget"}
         onClose={handleCloseMenu}
       >
         <Box px={2} py={1} width={250}>
-          <Typography fontWeight={600} mb={1}>
+          <Typography fontWeight={600} mb={1} color="#333">
             Select Budget
           </Typography>
           <RadioGroup
@@ -359,85 +426,254 @@ export default function GigListing() {
                 <FormControlLabel
                   key={opt}
                   value={opt}
-                  control={<Radio />}
+                  control={
+                    <Radio
+                      sx={{
+                        color: "#388E3C",
+                        "&.Mui-checked": {
+                          color: "#388E3C",
+                        },
+                      }}
+                    />
+                  }
                   label={opt === "custom" ? "Custom" : opt}
+                  sx={{
+                    ".MuiTypography-root": {
+                      fontWeight: 500,
+                      color: "#333",
+                    },
+                  }}
                 />
               )
             )}
           </RadioGroup>
           {selectedBudget === "custom" && (
             <Box display="flex" gap={1} mt={1}>
-              <input
-                type="number"
-                placeholder="Min ₹"
-                style={{
-                  width: "100%",
-                  padding: "6px",
-                  border: "1px solid #ccc",
-                  borderRadius: "4px",
-                }}
-                value={customMin}
-                onChange={(e) => setCustomMin(e.target.value)}
-              />
-              <input
-                type="number"
-                placeholder="Max ₹"
-                style={{
-                  width: "100%",
-                  padding: "6px",
-                  border: "1px solid #ccc",
-                  borderRadius: "4px",
-                }}
-                value={customMax}
-                onChange={(e) => setCustomMax(e.target.value)}
-              />
+              <Box flex={1}>
+                <CustomTextField
+                  type="number"
+                  variant="outlined"
+                  size="small"
+                  fullWidth
+                  value={customMin}
+                  onChange={(e) => setCustomMin(e.target.value)}
+                  placeholder="Min ₹"
+                  slotProps={{
+                    input: {
+                      style: {
+                        fontSize: "0.9rem",
+                      },
+                    },
+                  }}
+                />
+              </Box>
+              <Box flex={1}>
+                <CustomTextField
+                  type="number"
+                  variant="outlined"
+                  size="small"
+                  fullWidth
+                  value={customMax}
+                  onChange={(e) => setCustomMax(e.target.value)}
+                  placeholder="Max ₹"
+                  slotProps={{
+                    input: {
+                      style: {
+                        fontSize: "0.9rem",
+                      },
+                    },
+                  }}
+                />
+              </Box>
             </Box>
           )}
-          <Box display="flex" justifyContent="space-between" mt={2}>
-            <Button
-              onClick={() => {
-                setSelectedBudget("");
-                setCustomMin("");
-                setCustomMax("");
-                handleCloseMenu();
-              }}
-            >
-              Clear
-            </Button>
-            <Button onClick={handleCloseMenu}>Apply</Button>
-          </Box>
         </Box>
       </Menu>
 
-      {/* Delivery Filter */}
       <Menu
         anchorEl={anchorEl}
-        open={openMenu === "delivery"}
+        open={openMenu === "reviews"}
+        onClose={handleCloseMenu}
+      >
+        <Box px={2} py={1} width={250}>
+          <Typography fontWeight={600} mb={1} color="#333">
+            No. of Reviews
+          </Typography>
+          <RadioGroup
+            value={selectedReviews}
+            onChange={(e) => {
+              setSelectedReviews(e.target.value);
+            }}
+          >
+            {["Under 500", "500–1000", "1000 & Above"].map((opt) => (
+              <FormControlLabel
+                key={opt}
+                value={opt}
+                control={
+                  <Radio
+                    sx={{
+                      color: "#388E3C",
+                      "&.Mui-checked": {
+                        color: "#388E3C",
+                      },
+                    }}
+                  />
+                }
+                label={opt}
+                sx={{
+                  ".MuiTypography-root": {
+                    fontWeight: 500,
+                    color: "#333",
+                  },
+                }}
+              />
+            ))}
+          </RadioGroup>
+        </Box>
+      </Menu>
+
+      <Menu
+        anchorEl={anchorEl}
+        open={openMenu === "type"}
         onClose={handleCloseMenu}
       >
         <Box px={2} py={1}>
           <Typography fontWeight={600} mb={1}>
-            Delivery Time
+            Type of Education
           </Typography>
-          {["24H", "Up to 3 days", "Up to 7 days", "Anytime"].map((option) => (
-            <MenuItem
-              key={option}
-              selected={selectedDelivery === option}
-              onClick={() => {
-                setSelectedDelivery(option);
-                handleCloseMenu();
-              }}
-            >
-              {option}
-            </MenuItem>
-          ))}
+          <Box
+            display="flex"
+            flexDirection="column"
+            gap={1}
+            sx={{ width: 250, overflowY: "auto" }}
+          >
+            {["Bachelor Degree", "Master Degree", "Diploma", "PhD"].map(
+              (option) => (
+                <FormControlLabel
+                  key={option}
+                  control={
+                    <Checkbox
+                      checked={selectedEdu.includes(option)}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setselectedEdu((prev) =>
+                          checked
+                            ? [...prev, option]
+                            : prev.filter((s) => s !== option)
+                        );
+                      }}
+                      sx={{
+                        color: "#388E3C",
+                        "&.Mui-checked": {
+                          color: "#388E3C",
+                        },
+                      }}
+                    />
+                  }
+                  label={option}
+                  sx={{
+                    ".MuiTypography-root": {
+                      fontWeight: 500,
+                      color: "#333",
+                    },
+                  }}
+                />
+              )
+            )}
+          </Box>
         </Box>
       </Menu>
 
-      {/* Gigs Grid */}
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems={"center"}
+        mt={2}
+        mb={1}
+      >
+        <Box>
+          <Typography fontWeight={600} color="#333">
+            {filteredGigs.length} Gigs found
+          </Typography>
+        </Box>
+        <Box display="flex" alignItems="center">
+          <Typography fontWeight={600} mr={1} color="#333">
+            Sort by:
+          </Typography>
+          <Box
+            onClick={handleSortClick}
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              px: 2,
+              py: 1,
+              cursor: "pointer",
+              position: "relative",
+              fontWeight: 500,
+              fontSize: "0.9rem",
+              color: "#333",
+              ":hover": {
+                backgroundColor: "#E8F5E9",
+                borderRadius: "8px",
+                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+              },
+            }}
+          >
+            {sortBy}
+            <ExpandMoreOutlined
+              sx={{ ml: 1, fontSize: "1rem", color: "#388E3C" }}
+            />
+          </Box>
+          <Menu
+            anchorEl={sortAnchorEl}
+            open={Boolean(sortAnchorEl)}
+            onClose={handleSortClose}
+            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+            transformOrigin={{ vertical: "top", horizontal: "right" }}
+            slotProps={{
+              paper: {
+                sx: {
+                  borderRadius: 2,
+                  mt: 1,
+                  boxShadow: 3,
+                  minWidth: 180,
+                  backgroundColor: "#fff",
+                },
+              },
+            }}
+          >
+            {sortOptions.map((option) => (
+              <MenuItem
+                key={option}
+                onClick={() => handleSortSelect(option)}
+                selected={sortBy === option}
+                sx={{
+                  fontWeight: sortBy === option ? 600 : 400,
+                  fontSize: "0.9rem",
+                  color: "#333",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  backgroundColor:
+                    sortBy === option ? "#E8F5E9 !important" : "transparent",
+                  "&:hover": {
+                    backgroundColor: "#E8F5E9 !important",
+                  },
+                }}
+              >
+                {option}
+                {sortBy === option && (
+                  <CheckIcon sx={{ color: "#333", fontSize: "1rem" }} />
+                )}
+              </MenuItem>
+            ))}
+          </Menu>
+        </Box>
+      </Box>
+
+
       <Grid container spacing={3} mt={2}>
         {paginatedGigs.map((gig) => (
-          <Grid size={{ xs: 12,sm:6, md: 3 }} key={gig.id}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }} key={gig.id}>
             <Card className="gigCard">
               <CardContent>
                 <Typography variant="h6" fontWeight={600} gutterBottom>
@@ -458,13 +694,20 @@ export default function GigListing() {
                 </Typography>
               </CardContent>
 
-              <CardActions sx={{ px: 2, pb: 2, justifyContent: "space-between" }}>
+              <CardActions
+                sx={{ px: 2, pb: 2, justifyContent: "space-between" }}
+              >
                 <Box display="flex" alignItems="center" gap={1}>
                   <Avatar src={gig.provider.avatar} alt={gig.provider.name} />
                   <Box>
                     <Typography variant="body2">{gig.provider.name}</Typography>
                     <Box display="flex" alignItems="center" gap={0.5}>
-                      <Rating value={gig.rating} precision={0.5} readOnly size="small" />
+                      <Rating
+                        value={gig.rating}
+                        precision={0.5}
+                        readOnly
+                        size="small"
+                      />
                       <Typography variant="caption">({gig.reviews})</Typography>
                     </Box>
                   </Box>
@@ -473,7 +716,7 @@ export default function GigListing() {
                   size="small"
                   variant="outlined"
                   className="viewBtn"
-                  // onClick={() => router.push(`/gigs/${gig.id}`)}
+                  onClick={() => router.push(`/gigs/${gig.id}`)}
                 >
                   View
                 </Button>
