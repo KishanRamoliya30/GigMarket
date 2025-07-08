@@ -1,44 +1,59 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document, Types } from 'mongoose';
+import { ServiceTier } from '../../../utils/constants';
+
+export interface ProviderInfo {
+  name: string;
+  avatar?: string;
+  skills: string[];
+  certifications: string[];
+  userId: Types.ObjectId;
+}
 
 export interface GigDocument extends Document {
   title: string;
   description: string;
-  tier: 'Basic' | 'Standard' | 'Premium';
+  tier: ServiceTier;
   price: number;
   rating: number;
   reviews: number;
   keywords: string[];
-  provider: {
-    name: string;
-    avatar: string;
-    skills: string[];
-    certifications: string[];
-    userId: mongoose.Types.ObjectId;
-  };
+  provider: ProviderInfo;
+  createdBy: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const GigSchema = new Schema<GigDocument>(
+const ProviderSchema = new Schema<ProviderInfo>(
   {
-    title: { type: String, required: true },
-    description: { type: String, required: true },
-    tier: { type: String, enum: ['Basic', 'Standard', 'Premium'], default: 'Basic' },
-    price: { type: Number, required: true },
-    rating: { type: Number, default: 0 },
-    reviews: { type: Number, default: 0 },
-    keywords: [{ type: String }],
-    provider: {
-      name: { type: String, required: true },
-      avatar: { type: String },
-      skills: [{ type: String }],
-      certifications: [{ type: String }],
-      userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    },
+    name: { type: String, required: true },
+    avatar: { type: String },
+    skills: [{ type: String }],
+    certifications: [{ type: String }],
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'Users', required: true },
   },
-  { timestamps: true }
+  { _id: false }
 );
 
-const Gigs = mongoose.models.Gig || mongoose.model<GigDocument>('gigs', GigSchema);
+const GigSchema = new Schema<GigDocument>(
+  {
+    title: { type: String, required: true, trim: true },
+    description: { type: String, required: true },
+    tier: {
+      type: String,
+      enum: Object.values(ServiceTier),
+      required: true,
+    },
+    price: { type: Number, required: true, min: 0 },
+    rating: { type: Number, default: 0, min: 0, max: 5 },
+    reviews: { type: Number, default: 0, min: 0 },
+    keywords: [{ type: String, trim: true }],
+    provider: { type: ProviderSchema, required: true },
+    createdBy: { type: Schema.Types.ObjectId, ref: 'Users', required: true },
+  },
+  {
+    timestamps: true,
+  }
+);
 
+const Gigs = mongoose.models.gigs || mongoose.model<GigDocument>('gigs', GigSchema);
 export default Gigs;

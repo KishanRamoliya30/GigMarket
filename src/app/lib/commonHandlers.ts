@@ -5,7 +5,7 @@ import { ApiError } from './commonError';
 type PaginationType = {
   total: number;
   page: number;
-  pageSize: number;
+  limit: number;
   totalPages: number;
 };
 

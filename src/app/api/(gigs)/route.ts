@@ -1,35 +1,76 @@
-import { NextRequest } from 'next/server';
-import dbConnect from '@/app/lib/dbConnect';
-import Gig from '@/app/models/gig';
-import { ApiError } from '@/app/lib/commonError';
-import { successResponse } from '@/app/lib/commonHandlers';
+import { NextRequest, NextResponse } from "next/server";
+import dbConnect from "@/app/lib/dbConnect";
+import Gig, { GigDocument } from "@/app/models/gig";
+import { ApiError } from "@/app/lib/commonError";
+import { successResponse } from "@/app/lib/commonHandlers";
+import { gigSchema } from "@/utils/beValidationSchema";
+import { ServiceTier } from "../../../../utils/constants";
+import { FilterQuery } from "mongoose";
 
 export async function POST(req: NextRequest) {
   await dbConnect();
-
   const body = await req.json();
 
-  const {
-    title,
-    description,
-    tier,
-    price,
-    keywords,
-    provider,
-  } = body;
+  const userHeader = req.headers.get("x-user");
+  if (!userHeader) throw new ApiError("Unauthorized", 401);
+  const userDetails = JSON.parse(userHeader);
 
-  if (!title || !description || !price || !provider?.userId || !provider?.name) {
-    throw new ApiError('Missing required fields', 400);
+  const data = {
+    ...body,
+    createdBy: userDetails.id,
+    provider: {
+      ...body.provider,
+      userId: userDetails.id,
+    },
+  }
+  gigSchema.safeParse(data);
+
+  const gig = await Gig.create(data);
+
+  return NextResponse.json(successResponse(gig, "Gig created successfully"));
+}
+
+export async function GET(req: NextRequest) {
+  await dbConnect();
+
+  const { searchParams } = new URL(req.url);
+  const tier = searchParams.get("tier");
+  const keyword = searchParams.get("keyword");
+  const minPrice = searchParams.get("minPrice");
+  const maxPrice = searchParams.get("maxPrice");
+  const page = parseInt(searchParams.get("page") || "1");
+  const limit = parseInt(searchParams.get("limit") || "10");
+
+  const query: FilterQuery<GigDocument> = {};
+
+  if (tier && Object.values(ServiceTier).includes(tier as ServiceTier)) {
+    query.tier = tier as ServiceTier;
   }
 
-  const gig = await Gig.create({
-    title,
-    description,
-    tier,
-    price,
-    keywords,
-    provider,
-  });
+  if (keyword) {
+    query.$or = [
+      { title: { $regex: keyword, $options: "i" } },
+      { description: { $regex: keyword, $options: "i" } },
+      { keywords: { $regex: keyword, $options: "i" } },
+    ];
+  }
 
-  return successResponse(gig, 'Gig created successfully', 201);
+  if (minPrice || maxPrice) {
+    query.price = {};
+    if (minPrice) query.price.$gte = Number(minPrice);
+    if (maxPrice) query.price.$lte = Number(maxPrice);
+  }
+
+  const skip = (page - 1) * limit;
+  const [gigs, total] = await Promise.all([
+    Gig.find(query).skip(skip).limit(limit),
+    Gig.countDocuments(query),
+  ]);
+
+  return successResponse(gigs, "Gigs fetched successfully", 200, {
+    total,
+    page,
+    limit,
+    totalPages: Math.ceil(total / limit),
+  });
 }
