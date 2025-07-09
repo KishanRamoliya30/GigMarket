@@ -66,3 +66,24 @@ export const profileData = {
     },
   ],
 };
+
+
+// constants/enums.ts
+
+export enum ServiceTier {
+  BASIC = "Basic",
+  ADVANCED = "Advanced",
+  EXPERT = "Expert",
+}
+
+export const TierDescriptions: Record<ServiceTier, string> = {
+  [ServiceTier.BASIC]: "Menial tasks - laundry, food pick up, move in/out, etc.",
+  [ServiceTier.ADVANCED]: "Advice - classes, major/minor, grad school, recruiting, etc.",
+  [ServiceTier.EXPERT]: "Hands-on - tutoring, homework help, schedule design, interview prep, etc.",
+};
+
+export const getTierDescription = (tier: ServiceTier): string => {
+  return TierDescriptions[tier];
+};
+
+export const TierList: ServiceTier[] = Object.values(ServiceTier);
