@@ -40,7 +40,7 @@ const LoginForm = () => {
 
       if (res.ok && res.data) {
         if (res.data.needToAcceptTerms) {
-          setUserId(res.data.user.id);
+          setUserId(res.data.user._id);
           setTerms(res.data.terms);
           setShowTerms(true);
         } else {

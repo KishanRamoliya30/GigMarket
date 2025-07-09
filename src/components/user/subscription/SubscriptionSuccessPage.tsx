@@ -14,7 +14,7 @@ const SubscriptionSuccessPage = () => {
   const [loading, setLoading] = useState(true);
   const [profileCompleted, setsetProfileCompleted] = useState(true);
 
-  const {user, setUser} = useUser();
+  const {setUser} = useUser();
   const handleNavigate = () => {
     const pathName = profileCompleted ? "/dashboard" : "/myProfile";
     router.push(pathName);
@@ -65,7 +65,6 @@ const SubscriptionSuccessPage = () => {
   return (
     <>
       <Loader loading={loading} />
-      {console.log("###6", user)}
       <Container maxWidth="sm" sx={{ py: 10, textAlign: "center" }}>
         <CheckCircleOutlineIcon sx={{ fontSize: 80, color: "green", mb: 2 }} />
 

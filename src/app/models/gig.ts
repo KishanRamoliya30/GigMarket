@@ -1,12 +1,9 @@
 import mongoose, { Schema, Document, Types } from 'mongoose';
 import { ServiceTier } from '../../../utils/constants';
 
-export interface ProviderInfo {
+export interface Certification {
   name: string;
-  avatar?: string;
-  skills: string[];
-  certifications: string[];
-  userId: Types.ObjectId;
+  url: string;
 }
 
 export interface GigDocument extends Document {
@@ -17,19 +14,17 @@ export interface GigDocument extends Document {
   rating: number;
   reviews: number;
   keywords: string[];
-  provider: ProviderInfo;
+  releventSkills: string[];
+  certification: Certification;
   createdBy: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const ProviderSchema = new Schema<ProviderInfo>(
+const CertificationSchema = new Schema<Certification>(
   {
-    name: { type: String, required: true },
-    avatar: { type: String },
-    skills: [{ type: String }],
-    certifications: [{ type: String }],
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'Users', required: true },
+    name: { type: String, required: true, trim: true },
+    url: { type: String, required: true, trim: true },
   },
   { _id: false }
 );
@@ -47,7 +42,8 @@ const GigSchema = new Schema<GigDocument>(
     rating: { type: Number, default: 0, min: 0, max: 5 },
     reviews: { type: Number, default: 0, min: 0 },
     keywords: [{ type: String, trim: true }],
-    provider: { type: ProviderSchema, required: true },
+    releventSkills: [{ type: String, trim: true }],
+    certification: { type: CertificationSchema },
     createdBy: { type: Schema.Types.ObjectId, ref: 'Users', required: true },
   },
   {

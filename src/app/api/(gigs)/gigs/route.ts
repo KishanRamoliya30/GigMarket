@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import dbConnect from "@/app/lib/dbConnect";
 import Gig, { GigDocument } from "@/app/models/gig";
 import { ApiError } from "@/app/lib/commonError";
 import { successResponse } from "@/app/lib/commonHandlers";
 import { gigSchema } from "@/utils/beValidationSchema";
-import { ServiceTier } from "../../../../utils/constants";
+import { ServiceTier } from "../../../../../utils/constants";
 import { FilterQuery } from "mongoose";
 
 export async function POST(req: NextRequest) {
@@ -12,22 +12,19 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
 
   const userHeader = req.headers.get("x-user");
-  if (!userHeader) throw new ApiError("Unauthorized", 401);
+  if (!userHeader) throw new ApiError("Unauthorized request", 401);
   const userDetails = JSON.parse(userHeader);
+  if (!userDetails?._id) throw new ApiError("Invalid user data", 401);
 
   const data = {
     ...body,
-    createdBy: userDetails.id,
-    provider: {
-      ...body.provider,
-      userId: userDetails.id,
-    },
-  }
+    createdBy: userDetails._id,
+  };
   gigSchema.safeParse(data);
 
   const gig = await Gig.create(data);
 
-  return NextResponse.json(successResponse(gig, "Gig created successfully"));
+  return successResponse(gig, "Gig created successfully", 201);
 }
 
 export async function GET(req: NextRequest) {

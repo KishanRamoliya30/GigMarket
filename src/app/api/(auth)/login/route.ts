@@ -67,14 +67,15 @@ export async function POST(request: NextRequest): Promise<Response> {
       needToAcceptTerms = new Date(userAcceptedAt) < new Date(termsUpdatedAt);
     } 
 
+    const plainUser = user.toObject();
+    delete plainUser.password;
+    plainUser.role = "User";
+
     if(needToAcceptTerms){
       return NextResponse.json<LoginResponseSuccess>({
         message: "Please Accept terms",
         success: true,
-        user: {
-          id: user._id,
-          email: user.email
-        },
+        user: plainUser,
         needToAcceptTerms: true,
         terms:terms.content
       });
@@ -88,10 +89,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       const response = NextResponse.json<LoginResponseSuccess>({
         message: "Login successful.",
         success: true,
-        user: {
-          id: user._id,
-          email: user.email
-        },
+        user: plainUser,
         hasSubscription: user.subscriptionCompleted,
         needToAcceptTerms: needToAcceptTerms,
         terms: needToAcceptTerms?terms.content:""
