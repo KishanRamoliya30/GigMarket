@@ -4,6 +4,8 @@ import { ServiceTier } from '../../../utils/constants';
 export interface Certification {
   name: string;
   url: string;
+  type?: string;
+  size?: number;
 }
 
 export interface GigDocument extends Document {
@@ -11,11 +13,13 @@ export interface GigDocument extends Document {
   description: string;
   tier: ServiceTier;
   price: number;
+  time: number;
   rating: number;
   reviews: number;
   keywords: string[];
   releventSkills: string[];
   certification: Certification;
+  createdByRole: 'User' | 'Provider';
   createdBy: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
@@ -23,8 +27,10 @@ export interface GigDocument extends Document {
 
 const CertificationSchema = new Schema<Certification>(
   {
-    name: { type: String, required: true, trim: true },
-    url: { type: String, required: true, trim: true },
+    name: { type: String, required: true },
+    url: { type: String, required: true },
+    type: { type: String },
+    size: { type: Number },
   },
   { _id: false }
 );
@@ -39,11 +45,17 @@ const GigSchema = new Schema<GigDocument>(
       required: true,
     },
     price: { type: Number, required: true, min: 0 },
+    time: { type: Number, required: true, min: 0 },
     rating: { type: Number, default: 0, min: 0, max: 5 },
     reviews: { type: Number, default: 0, min: 0 },
     keywords: [{ type: String, trim: true }],
     releventSkills: [{ type: String, trim: true }],
-    certification: { type: CertificationSchema },
+    certification: { type: CertificationSchema, required: true },
+    createdByRole: {
+      type: String,
+      enum: ['User', 'Provider'],
+      required: true,
+    },
     createdBy: { type: Schema.Types.ObjectId, ref: 'Users', required: true },
   },
   {
