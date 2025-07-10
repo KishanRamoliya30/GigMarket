@@ -21,9 +21,12 @@ import {
 } from "@mui/material";
 import CustomTextField from "@/components/customUi/CustomTextField";
 import { styled } from "@mui/system";
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ExpandMoreOutlined, Check as CheckIcon } from "@mui/icons-material";
+import { useUser } from "@/context/UserContext";  
+import { apiRequest } from '@/app/lib/apiCall';
+import { GigDocument } from "@/app/models/gig";
 
 const tiers = ["Tier 1", "Tier 2", "Tier 3"];
 export const allGigs = new Array(50).fill(null).map((_, i) => ({
@@ -39,6 +42,9 @@ export const allGigs = new Array(50).fill(null).map((_, i) => ({
     avatar: "/avatar1.png",
     skills: ["Adobe Illustrator", "Figma", "Creative Design"],
     certifications: ["Certified Graphic Designer"],
+  },
+  user: {
+    name: `User ${i + 1}`
   },
   keywords: ["logo", "branding", "startup", "vector"],
 }));
@@ -88,7 +94,7 @@ const StyledWrapper = styled(Box)(({ theme }) => ({
     flexDirection: "column",
     justifyContent: "space-between",
     transition: "0.3s",
-    height: "250px",
+    height: "270px",
     "&:hover": {
       transform: "translateY(-4px)",
       boxShadow: 6,
@@ -120,7 +126,9 @@ const StyledWrapper = styled(Box)(({ theme }) => ({
 
 export default function GigListing() {
   const router = useRouter();
-  const gigsPerPage = 25;
+  const { user } = useUser();
+  const isProvider = user?.role == "Provider";
+  const gigsPerPage = 5;
   const [page, setPage] = useState(1);
 
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
@@ -134,7 +142,13 @@ export default function GigListing() {
   const [selectedEdu, setselectedEdu] = useState<string[]>([]);
   const [sortAnchorEl, setSortAnchorEl] = useState<null | HTMLElement>(null);
   const [sortBy, setSortBy] = useState("Rating: High to Low");
-
+  const [allGig, setAllGig] = useState<GigDocument[]>(); 
+  const [pagination, setPagination] = useState({
+    total: 0,
+    page: 1,
+    limit: gigsPerPage,
+    totalPages: 0,
+  });
   const startIndex = (page - 1) * gigsPerPage;
 
   const filteredGigs = allGigs
@@ -177,10 +191,6 @@ export default function GigListing() {
     setSortBy(option);
     handleSortClose();
   };
-  const paginatedGigs = filteredGigs.slice(
-    startIndex,
-    startIndex + gigsPerPage
-  );
 
   const handleOpenMenu = (
     event: React.MouseEvent<HTMLButtonElement>,
@@ -194,7 +204,23 @@ export default function GigListing() {
     setAnchorEl(null);
     setOpenMenu("");
   };
+  const gigList = async () => {
+      const res = await apiRequest(`/gigs`, {
+        method: "GET",
+        params: {
+          limit: gigsPerPage,
+          page: page,
+        }
+      });
+      if(res.ok) {
+        setAllGig(res.data.data);
+        setPagination(res.data.pagination);
+      }
+  };
 
+  useEffect(() => {
+    gigList();
+  }, [page]);
   return (
     <StyledWrapper>
       <Typography variant="h4" fontWeight={600} mb={3}>
@@ -593,7 +619,7 @@ export default function GigListing() {
       >
         <Box>
           <Typography fontWeight={600} color="#333">
-            {filteredGigs.length} Gigs found
+            {pagination.total} Gigs found
           </Typography>
         </Box>
         <Box display="flex" alignItems="center">
@@ -670,9 +696,13 @@ export default function GigListing() {
         </Box>
       </Box>
 
-
+      {/* <Box textAlign="center" mt={4}>
+        <Typography variant="h6" color="text.secondary">
+          No gigs found
+        </Typography>
+      </Box> */}
       <Grid container spacing={3} mt={2}>
-        {paginatedGigs.map((gig) => (
+        {allGig?.map((gig) => (
           <Grid size={{ xs: 12, sm: 6, md: 3 }} key={gig.id}>
             <Card className="gigCard">
               <CardContent>
@@ -690,7 +720,7 @@ export default function GigListing() {
                   <Chip label={gig.tier} size="small" className="chipBlack" />
                 </Box>
                 <Typography variant="subtitle1" fontWeight={600}>
-                  {gig.price}
+                  $ {gig.price}
                 </Typography>
               </CardContent>
 
@@ -698,9 +728,9 @@ export default function GigListing() {
                 sx={{ px: 2, pb: 2, justifyContent: "space-between" }}
               >
                 <Box display="flex" alignItems="center" gap={1}>
-                  <Avatar src={gig.provider.avatar} alt={gig.provider.name} />
-                  <Box>
-                    <Typography variant="body2">{gig.provider.name}</Typography>
+                  {/* <Avatar src={gig.provider.avatar} alt={!isProvider?gig.provider.name:gig.user.name} /> */}
+                  {/* <Box>
+                    <Typography variant="body2">{!isProvider?gig.provider.name:gig.user.name}</Typography>
                     <Box display="flex" alignItems="center" gap={0.5}>
                       <Rating
                         value={gig.rating}
@@ -710,13 +740,13 @@ export default function GigListing() {
                       />
                       <Typography variant="caption">({gig.reviews})</Typography>
                     </Box>
-                  </Box>
+                  </Box> */}
                 </Box>
                 <Button
                   size="small"
                   variant="outlined"
                   className="viewBtn"
-                  onClick={() => router.push(`/gigs/${gig.id}`)}
+                  onClick={() => router.push(`/gigs/${gig._id}`)}
                 >
                   View
                 </Button>
@@ -728,7 +758,7 @@ export default function GigListing() {
 
       <Box display="flex" justifyContent="center" mt={4} className="pagination">
         <Pagination
-          count={Math.ceil(filteredGigs.length / gigsPerPage)}
+          count={pagination.totalPages}
           page={page}
           onChange={(_, value) => setPage(value)}
           shape="circular"

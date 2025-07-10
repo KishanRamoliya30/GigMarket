@@ -54,3 +54,10 @@ export interface PastEducation {
   year: string;
   _id: string;
 }
+
+export interface Gig {
+  _id: string; 
+  title: string;
+  description: string;
+  price: number;
+}
