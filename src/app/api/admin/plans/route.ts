@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import dbConnect from "@/app/lib/dbConnect";
 import Plan from "@/app/models/plans";
-import mongoose from "mongoose";
 import {stripe} from "@/app/lib/strip"; 
 
 export async function PATCH(req: NextResponse) {
