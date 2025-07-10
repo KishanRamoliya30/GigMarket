@@ -101,7 +101,7 @@ export async function POST(request: Request) {
       maxAge: expiryTime,
     });
 
-    return;
+    return response;
   } catch (error) {
     console.error("Profile Save Error:", error);
     return NextResponse.json(
