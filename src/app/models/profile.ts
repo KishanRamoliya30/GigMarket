@@ -62,5 +62,5 @@ const ProfileSchema = new Schema<IProfile>(
   { timestamps: true }
 );
 
-export default mongoose.models.Profile ||
-  mongoose.model<IProfile>("Profile", ProfileSchema);
+const Profile = mongoose.models.profiles || mongoose.model("profiles", ProfileSchema);
+export default Profile;

@@ -6,6 +6,7 @@ import { successResponse } from "@/app/lib/commonHandlers";
 import { gigSchema } from "@/utils/beValidationSchema";
 import { ServiceTier } from "../../../../../utils/constants";
 import { FilterQuery } from "mongoose";
+import Profile from "@/app/models/profile";
 
 export async function POST(req: NextRequest) {
   await dbConnect();
@@ -31,24 +32,31 @@ export async function GET(req: NextRequest) {
   await dbConnect();
 
   const { searchParams } = new URL(req.url);
-  const tier = searchParams.get("tier");
-  const keyword = searchParams.get("keyword");
+  const tierParams = searchParams.getAll("tier");
+  const search = searchParams.get("search");
   const minPrice = searchParams.get("minPrice");
   const maxPrice = searchParams.get("maxPrice");
+  const minRating = searchParams.get("minRating");
+  const minReviews = searchParams.get("minReviews");
   const page = parseInt(searchParams.get("page") || "1");
   const limit = parseInt(searchParams.get("limit") || "10");
 
   const query: FilterQuery<GigDocument> = {};
 
-  if (tier && Object.values(ServiceTier).includes(tier as ServiceTier)) {
-    query.tier = tier as ServiceTier;
+  if (tierParams.length > 0) {
+    const validTiers = tierParams.filter((t) =>
+      Object.values(ServiceTier).includes(t as ServiceTier)
+    );
+    if (validTiers.length > 0) {
+      query.tier = { $in: validTiers as ServiceTier[] };
+    }
   }
 
-  if (keyword) {
+  if (search) {
     query.$or = [
-      { title: { $regex: keyword, $options: "i" } },
-      { description: { $regex: keyword, $options: "i" } },
-      { keywords: { $regex: keyword, $options: "i" } },
+      { title: { $regex: search, $options: "i" } },
+      { description: { $regex: search, $options: "i" } },
+      { keywords: { $regex: search, $options: "i" } },
     ];
   }
 
@@ -58,11 +66,62 @@ export async function GET(req: NextRequest) {
     if (maxPrice) query.price.$lte = Number(maxPrice);
   }
 
+  if (minRating) {
+    query.rating = { $gte: Number(minRating) };
+  }
+
+  if (minReviews) {
+    query.reviews = { $gte: Number(minReviews) };
+  }
+
   const skip = (page - 1) * limit;
-  const [gigs, total] = await Promise.all([
-    Gig.find(query).skip(skip).limit(limit),
+
+  const [gigsRaw, total] = await Promise.all([
+    Gig.find(query)
+      .skip(skip)
+      .limit(limit)
+      .populate({ path: "createdBy", model: "users", select: "email" }),
     Gig.countDocuments(query),
   ]);
+
+  const userIds = gigsRaw
+    .map((gig) => gig.createdBy && gig.createdBy._id?.toString())
+    .filter(Boolean);
+
+  const profiles = await Profile.find(
+    { userId: { $in: userIds } }
+  )
+    .select("fullName pastEducation profilePicture userId")
+    .lean();
+
+  const profileMap = new Map(
+    profiles.map((p) => [p.userId.toString(), p])
+  );
+
+  const gigs = gigsRaw.map((gigDoc) => {
+    const gig = gigDoc.toObject();
+    const createdBy = gig.createdBy;
+
+    const userIdStr =
+      typeof createdBy?._id === "object"
+        ? createdBy._id.toString()
+        : createdBy?._id;
+
+    const profile = profileMap.get(userIdStr);
+
+    return {
+      ...gig,
+      createdBy: {
+        ...createdBy,
+        ...(profile && {
+          fullName: profile.fullName,
+          pastEducation: profile.pastEducation,
+          profilePicture: profile.profilePicture,
+        }),
+      },
+    };
+  });
+
 
   return successResponse(gigs, "Gigs fetched successfully", 200, {
     total,

@@ -87,6 +87,10 @@ const userSchema = new mongoose.Schema({
     default: false,
   },
   verificationToken: String,
+  profile: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Profile",
+  },
 });
 
 const User = mongoose.models.users || mongoose.model("users", userSchema);
