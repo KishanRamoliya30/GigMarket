@@ -168,6 +168,11 @@ export default function Header() {
    router.push("/myProfile");
     handleCloseMenu();
   };
+
+  const handleSubscriptions = async () =>{
+    router.push("/subscription");
+    handleCloseMenu();
+  }
   return (
     <>
       <HeaderWrapper>
@@ -369,8 +374,12 @@ export default function Header() {
             >
               Switch to {role === "User" ? "Provider" : "User"}
             </Button>
-
+{user.profileCompleted && 
             <MenuItem onClick={handleProfileSection}>My Profile</MenuItem>
+}
+{user.subscriptionCompleted && 
+ <MenuItem onClick={handleSubscriptions}>Subscriptions</MenuItem>
+}
             <MenuItem onClick={handleLogout}>Logout</MenuItem>
           </Box>
         ) : (

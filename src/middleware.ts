@@ -13,7 +13,6 @@ const PUBLIC_PATHS = [
   "/verify-otp",
   "/verify-email",
   "/forgot-password",
-  "/api/webhooks/stripe",
 
   "/api/forgot-password",
   "/api/reset-password",
@@ -40,6 +39,8 @@ export async function middleware(request: NextRequest) {
     email: "",
     isAdmin: false,
     role: "",
+    hasSubscription: false,
+    hasProfile: false
   };
 
   if (token) {
@@ -49,6 +50,8 @@ export async function middleware(request: NextRequest) {
       email: payload.email as string,
       isAdmin: payload.role == "Admin",
       role: payload.role?.toString() ?? "",
+      hasSubscription: payload.subscriptionCompleted as boolean,
+      hasProfile: payload.profileCompleted as boolean
     };
   }
   const email = request.cookies.get("email")?.value;
@@ -81,6 +84,34 @@ export async function middleware(request: NextRequest) {
     }
   } else {
     if (!isPublicPath && userData._id != "") {
+      //REDIRECTS BASED ON SUBSCRIPTION / PROFILE FLOW
+      const allowSubscriptionAccess = pathname === "/subscription";
+      const allowProfileAccess = pathname === "/add-profile";
+
+      //Not subscribed → force to /subscription (except /subscription itself)
+      if (!userData.hasSubscription && !allowSubscriptionAccess) {
+        return NextResponse.redirect(new URL("/subscription", request.url));
+      }
+
+      //Subscribed but no profile → force to /add-profile (except /add-profile and /subscription)
+      if (
+        userData.hasSubscription &&
+        !userData.hasProfile &&
+        !allowProfileAccess &&
+        !allowSubscriptionAccess
+      ) {
+        return NextResponse.redirect(new URL("/add-profile", request.url));
+      }
+
+      //Block /add-profile if profile is already completed
+      if (
+        userData.hasSubscription &&
+        userData.hasProfile &&
+        pathname === "/add-profile"
+      ) {
+        return NextResponse.redirect(new URL("/dashboard", request.url));
+      }
+
       //admin can only access pages with path admin
       if (userData.isAdmin && !pathname.includes("/admin")) {
         return NextResponse.redirect(new URL("/admin", request.url));

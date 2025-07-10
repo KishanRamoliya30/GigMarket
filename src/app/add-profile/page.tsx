@@ -20,6 +20,9 @@ import { useUser } from "@/context/UserContext";
 import CloseIcon from "@mui/icons-material/Close";
 import CustomTextField from "@/components/customUi/CustomTextField";
 import CustomButton from "@/components/customUi/CustomButton";
+import { useRouter } from "next/navigation";
+import Header from "@/components/user/header/Header";
+import Footer from "@/components/user/footer/Footer";
 
 const degreeTypes = ["Bachelor’s", "Master’s", "PhD", "Other"];
 const graduationYears = Array.from(
@@ -46,6 +49,7 @@ const validationSchema = Yup.object().shape({
 });
 
 const Profile = () => {
+  const route = useRouter();
   const [profilePreview, setProfilePreview] = useState<string | null>(null);
   const [pastEducation, setPastEducation] = useState<
     { school: string; degree: string; year: string }[]
@@ -124,6 +128,7 @@ const Profile = () => {
 
         if (res.ok && res.data) {
           toast.success("Profile created successfully");
+          route.push("/dashboard")
         } else {
           toast.error(res.error);
         }
@@ -170,6 +175,8 @@ const Profile = () => {
   };
 
   return (
+    <>
+    <Header/>
     <Box sx={{ display: "flex", justifyContent: "center" }}>
       <Box
         sx={{
@@ -567,6 +574,8 @@ const Profile = () => {
         </Box>
       </Box>
     </Box>
+    <Footer/>
+    </>
   );
 };
 
