@@ -374,12 +374,12 @@ export default function Header() {
             >
               Switch to {role === "User" ? "Provider" : "User"}
             </Button>
-{user.profileCompleted && 
-            <MenuItem onClick={handleProfileSection}>My Profile</MenuItem>
-}
-{user.subscriptionCompleted && 
- <MenuItem onClick={handleSubscriptions}>Subscriptions</MenuItem>
-}
+            {user.profileCompleted && 
+                        <MenuItem onClick={handleProfileSection}>My Profile</MenuItem>
+            }
+            {user.subscriptionCompleted && 
+            <MenuItem onClick={handleSubscriptions}>Subscriptions</MenuItem>
+            }
             <MenuItem onClick={handleLogout}>Logout</MenuItem>
           </Box>
         ) : (

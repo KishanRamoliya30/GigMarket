@@ -43,6 +43,8 @@ export async function middleware(request: NextRequest) {
     hasProfile: false
   };
 
+  console.log("test data123",userData)
+
   if (token) {
     const { payload } = await jwtVerify(token, getSecret());
     userData = {
@@ -68,6 +70,13 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
   }
+   if (
+        userData.hasProfile &&
+        pathname === "/add-profile"
+      ) {
+        return NextResponse.redirect(new URL("/dashboard", request.url));
+   }
+
   if (pathname.startsWith("/api")) {
     if (!isPublicPath && userData._id != "") {
       try {
@@ -85,33 +94,8 @@ export async function middleware(request: NextRequest) {
   } else {
     if (!isPublicPath && userData._id != "") {
       //REDIRECTS BASED ON SUBSCRIPTION / PROFILE FLOW
-      const allowSubscriptionAccess = pathname === "/subscription";
-      const allowProfileAccess = pathname === "/add-profile";
 
-      //Not subscribed → force to /subscription (except /subscription itself)
-      if (!userData.hasSubscription && !allowSubscriptionAccess) {
-        return NextResponse.redirect(new URL("/subscription", request.url));
-      }
-
-      //Subscribed but no profile → force to /add-profile (except /add-profile and /subscription)
-      if (
-        userData.hasSubscription &&
-        !userData.hasProfile &&
-        !allowProfileAccess &&
-        !allowSubscriptionAccess
-      ) {
-        return NextResponse.redirect(new URL("/add-profile", request.url));
-      }
-
-      //Block /add-profile if profile is already completed
-      if (
-        userData.hasSubscription &&
-        userData.hasProfile &&
-        pathname === "/add-profile"
-      ) {
-        return NextResponse.redirect(new URL("/dashboard", request.url));
-      }
-
+     
       //admin can only access pages with path admin
       if (userData.isAdmin && !pathname.includes("/admin")) {
         return NextResponse.redirect(new URL("/admin", request.url));
