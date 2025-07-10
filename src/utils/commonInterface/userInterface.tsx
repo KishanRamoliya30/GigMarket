@@ -12,16 +12,16 @@ export interface UserType {
   email: string;
   firstName: string;
   lastName: string;
-  termsAccepted: boolean;
-  termsAcceptedAt: string | null;
-  subscriptionCompleted: boolean;
-  profileCompleted: boolean;
-  createdAt: string;
+  termsAccepted?: boolean;
+  termsAcceptedAt?: string | null;
+  subscriptionCompleted?: boolean;
+  profileCompleted?: boolean;
+  createdAt?: string;
   isActive: boolean;
   isAdmin: boolean;
-  isVerified: boolean;
+  isVerified?: boolean;
   stripeCustomerId: string | null;
   role?: string;
-  subscription: UserSubscription;
+  subscription?: UserSubscription;
   __v?: number;
 }

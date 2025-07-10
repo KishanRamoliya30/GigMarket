@@ -14,6 +14,7 @@ type CustomTextFieldProps = TextFieldProps & {
   errorText?: string;
   isPassword?: boolean;
 isAstrick?: boolean; 
+isWithoutMargin?: boolean;
 };
 
 export default function CustomTextField({
@@ -24,7 +25,8 @@ export default function CustomTextField({
   errorText = "",
   type = "text",
   isPassword = false,
- isAstrick = false, 
+  isAstrick = false, 
+  isWithoutMargin = false,
   sx,
   ...rest
 }: CustomTextFieldProps) {
@@ -36,7 +38,7 @@ export default function CustomTextField({
 
 
   return (
-    <div style={{ marginBottom: "16px" }}>
+    <div style={{ marginBottom: isWithoutMargin?"0px":"16px" }}>
       {label && (
         <Typography
           sx={{
