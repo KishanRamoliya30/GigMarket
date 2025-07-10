@@ -8,10 +8,11 @@ import PopularServicesSlider from "@/components/dashboard/PopularServiceSlider";
 import { categories, Trusted } from "../../../utils/constants";
 import HeroLanding from "./HeroLanding";
 import { useUser } from "@/context/UserContext";
-
+import { useRouter } from "next/navigation";
 
 const Dashboard = () => {
   const { user} = useUser()
+  const router = useRouter();
   const _id = user?._id
   return (
     <>
@@ -215,14 +216,39 @@ const Dashboard = () => {
 
       {/* Popular Services Section */}
       <Box sx={{ px: { xs: 2, md: 4 }, py: 6, bgcolor: "#fff" }}>
-        <Typography
-          variant="h4"
-          fontWeight={600}
-          mb={4}
-          sx={{ fontSize: { xs: "28px", md: "36px" } }}
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mb: 4,
+          }}
         >
-          Popular services
-        </Typography>
+          <Typography
+        variant="h4"
+        fontWeight={600}
+          mb={4}
+        sx={{ fontSize: { xs: "28px", md: "36px" } }}
+          >
+        Popular services
+          </Typography>
+          <Button
+            variant="text"
+            endIcon={<ArrowForwardIcon />}
+            sx={{
+              textTransform: "none",
+              fontWeight: 600,
+              fontSize: { xs: "14px", md: "16px" },
+              color: "#1dbf73",
+              "&:hover": {
+                color: "#19a463",
+              },
+            }}
+            onClick={()=>router.push("/gigs")}
+          >
+        View All
+          </Button>
+        </Box>
         <PopularServicesSlider />
       </Box>
 

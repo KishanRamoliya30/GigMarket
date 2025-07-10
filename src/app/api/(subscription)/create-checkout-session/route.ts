@@ -4,6 +4,7 @@ import { stripe } from '@/app/lib/strip';
 import User from '@/app/models/user';
 import dbConnect from '@/app/lib/dbConnect';
 import { ApiError } from '@/app/lib/commonError';
+import Subscription from '@/app/models/subscription';
 
 type PlanType = {
   name: string;
@@ -38,12 +39,12 @@ export async function POST(request: NextRequest) {
   const { plan, successUrl, cancelUrl } = body;
 
   if (!plan || typeof plan.price !== 'number' || !successUrl || !cancelUrl) {
-  throw new ApiError('Invalid plan details or email', 400);
-}
+    throw new ApiError('Invalid plan details or email', 400);
+  }
 
-if (plan.price > 0 && !plan.priceId) {
-  throw new ApiError('Missing Stripe priceId for paid plan', 400);
-}
+  if (plan.price > 0 && !plan.priceId) {
+    throw new ApiError('Missing Stripe priceId for paid plan', 400);
+  }
 
   const user = await User.findOne({ email });
   if (!user) {
@@ -51,12 +52,29 @@ if (plan.price > 0 && !plan.priceId) {
   }
 
   if (plan.price <= 0) {
+    // Cancel existing Stripe subscription if any
+    if (user.subscription?.subscriptionId) {
+      const existingSub = await Subscription.findById(user.subscription.subscriptionId);
+
+      if (existingSub && existingSub.stripeSubscriptionId) {
+        await stripe.subscriptions.cancel(existingSub.stripeSubscriptionId);
+
+        await Subscription.findByIdAndUpdate(existingSub._id, {
+          status: 'cancelled',
+          endDate: new Date(),
+          canceledAt: new Date(),
+        });
+      }
+    }
+
+    // Update user with free plan
     user.subscription = {
       status: 'active',
       subscriptionId: null,
       planId: plan._id,
       planName: plan.name,
       planType: plan.type,
+      cancelAtPeriodEnd: false,
     };
     user.subscriptionCompleted = true;
     await user.save();
@@ -67,6 +85,7 @@ if (plan.price > 0 && !plan.priceId) {
       200
     );
   }
+
 
   let customerId = user.stripeCustomerId;
 

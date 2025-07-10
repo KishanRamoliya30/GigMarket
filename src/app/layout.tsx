@@ -2,10 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ToastContainer } from 'react-toastify';
-import { cookies } from "next/headers";
-import { getUserFromSession } from "@/lib/getCurrentUser";
 import { UserProvider } from "@/context/UserContext";
-import { serializeDoc } from "@/utils/serialize";
+import { getLoggedInUser } from "./lib/commonFunctions";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,16 +26,14 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const cookieStore = cookies();
-  const user = await getUserFromSession(cookieStore);
-  const plainUser = user ? serializeDoc(user) : null;
+  const user = await getLoggedInUser();
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ToastContainer />
-        <UserProvider currentUser={plainUser}>
+        <UserProvider currentUser={user}>
           {children}
         </UserProvider>
       </body>

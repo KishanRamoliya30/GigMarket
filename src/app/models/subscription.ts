@@ -45,6 +45,10 @@ const subscriptionSchema = new mongoose.Schema(
     canceledAt: {
       type: Date,
     },
+    cancelReason: {
+      type: String,
+      default: null,
+    }
   },
   { timestamps: true }
 );

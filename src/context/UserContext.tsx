@@ -34,7 +34,8 @@ export const UserProvider = ({
 }) => {
   const [user, setUserState] = useState<UserType | null>(currentUser);
 
-  const setUser = (newUser: UserType | null) => setUserState(newUser);
+  const setUser = (newUser: UserType | null) => setUserState({ ...user, ...(newUser as UserType) });
+
 
   const setRole = (role: string) => {
     setUserState((prev) => (prev ? { ...prev, role } : prev));

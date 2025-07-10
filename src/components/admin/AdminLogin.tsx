@@ -7,7 +7,7 @@ import { Box, Typography } from "@mui/material";
 import CustomTextField from "@/components/customUi/CustomTextField";
 import CustomButton from "@/components/customUi/CustomButton";
 import { LoginUser } from "@/app/utils/interfaces";
-import { useUser } from "@/app/context/UserContext";
+import { useUser } from "@/context/UserContext";
 import { apiRequest } from "@/app/lib/apiCall";
 
 const validationSchema = Yup.object({
@@ -40,6 +40,10 @@ export default function AdminLogin() {
             email: user.email,
             isAdmin: true,
             role: "Admin",
+            firstName: user.firstName || "",
+            lastName: user.lastName || "",
+            isActive: true,
+            stripeCustomerId:null
           });
         } else {
           setFieldError("password", res.error || "Access denied");
