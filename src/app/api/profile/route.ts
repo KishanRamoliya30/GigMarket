@@ -3,6 +3,8 @@ import dbConnect from "@/app/lib/dbConnect";
 import Profile from "@/app/models/profile";
 import User from "@/app/models/user";
 import mongoose from "mongoose";
+import { generateToken } from "@/app/utils/jwt";
+import { expiryTime } from "../../../../utils/constants";
 
 export async function POST(request: Request) {
   try {
@@ -43,7 +45,7 @@ export async function POST(request: Request) {
     }
 
     const formattedCertifications = certifications.map(
-      (cert: { file: { name: string , url:string } }) => ({
+      (cert: { file: { name: string; url: string } }) => ({
         fileName: cert?.file?.name || "Unnamed.pdf",
         url: cert?.file?.url || "",
       })
@@ -72,12 +74,34 @@ export async function POST(request: Request) {
     await User.findByIdAndUpdate(userId, {
       profileCompleted: true,
     });
+    // ✅ Fetch updated user to get the latest subscription/profile info
+    const user = await User.findById(userId);
 
-    return NextResponse.json({
+    // ✅ Generate new token
+    const token = generateToken({
+      userId: user._id,
+      email: user.email,
+      role: user.role,
+      subscriptionCompleted: user.subscriptionCompleted,
+      profileCompleted: user.profileCompleted,
+    });
+
+    const response = NextResponse.json({
       success: true,
       message: "Profile created successfully.",
       profile: savedProfile,
     });
+    response.cookies.set({
+      name: "token",
+      value: token,
+      httpOnly: true,
+      secure: false,
+      sameSite: "strict",
+      path: "/",
+      maxAge: expiryTime,
+    });
+
+    return;
   } catch (error) {
     console.error("Profile Save Error:", error);
     return NextResponse.json(
