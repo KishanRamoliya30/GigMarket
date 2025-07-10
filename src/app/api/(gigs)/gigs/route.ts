@@ -8,6 +8,7 @@ import { ServiceTier } from "../../../../../utils/constants";
 import { FilterQuery } from "mongoose";
 import Profile from "@/app/models/profile";
 import { uploadToCloudinary } from "@/lib/cloudinaryFileUpload";
+import User from "@/app/models/user";
 
 export async function POST(req: NextRequest) {
   await dbConnect();
@@ -18,6 +19,27 @@ export async function POST(req: NextRequest) {
   const userDetails = JSON.parse(userHeader);
   if (!userDetails?._id || !userDetails?.role) {
     throw new ApiError("Invalid user data", 401);
+  }
+
+  const user = await User.findById(userDetails._id);
+  if (!user) throw new ApiError("User not found", 404);
+  const plan = user.subscription?.planName || "Free";
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  if (plan === "Free") {
+    throw new ApiError("Free plan users are not allowed to post gigs", 403);
+  }
+
+  if (plan === "Basic") {
+    const currentMonthGigCount = await Gig.countDocuments({
+      createdBy: user._id,
+      createdAt: { $gte: startOfMonth },
+    });
+
+    if (currentMonthGigCount >= 3) {
+      throw new ApiError("Basic plan allows only 3 gig posts per month", 403);
+    }
   }
 
   const formData = await req.formData();
