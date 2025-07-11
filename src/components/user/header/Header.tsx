@@ -35,6 +35,10 @@ const HeaderWrapper = styled(Box)(({ theme }) => ({
   backgroundColor: "#fff",
   flexWrap: "wrap",
   gap: "12px",
+  position: "fixed",
+  width:" 100%",
+  zIndex: 1111,
+
 
   "& .logoGroup": {
     display: "flex",

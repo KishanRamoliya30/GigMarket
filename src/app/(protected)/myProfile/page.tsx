@@ -105,6 +105,7 @@ const handleProfileUpdate = (updatedProfile: Profile) => {
           display: "flex",
           justifyContent: "center",
           p: 3,
+          pt:12,
           backgroundColor: "#f7f9fc",
         }}
       >

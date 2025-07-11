@@ -73,6 +73,7 @@ export async function POST(request: Request) {
     // ✅ Mark profileCompleted = true in the User model
     await User.findByIdAndUpdate(userId, {
       profileCompleted: true,
+      profile: savedProfile
     });
     // ✅ Fetch updated user to get the latest subscription/profile info
     const user = await User.findById(userId);

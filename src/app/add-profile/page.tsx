@@ -186,6 +186,7 @@ const Profile = () => {
           justifyContent: "center",
           padding: "30px 60px",
           width: "800px",
+          pt:12,
           // backgroundColor: "#f5f5f5",
         }}
       >

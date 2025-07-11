@@ -15,14 +15,16 @@ export const GET = withApiHandler(async (request: NextRequest): Promise<NextResp
 
   await dbConnect();
 
-  const foundUser = await User.findById(user._id).select('-password');
+  const foundUser = await User.findById(user._id)
+    .select('-password')
+    .populate('profile'); //populate the linked profile
 
   if (!foundUser) {
     throw new ApiError('User not found', 404);
   }
-  
+
   const userWithRole = {
-    ...foundUser.toObject(), 
+    ...foundUser.toObject(),
     role: user.role,
   };
 
