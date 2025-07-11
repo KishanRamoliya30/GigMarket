@@ -7,24 +7,84 @@ import { gigSchema } from "@/utils/beValidationSchema";
 import { ServiceTier } from "../../../../../utils/constants";
 import { FilterQuery } from "mongoose";
 import Profile from "@/app/models/profile";
+import { uploadToCloudinary } from "@/lib/cloudinaryFileUpload";
+import User from "@/app/models/user";
 
 export async function POST(req: NextRequest) {
   await dbConnect();
-  const body = await req.json();
 
   const userHeader = req.headers.get("x-user");
   if (!userHeader) throw new ApiError("Unauthorized request", 401);
+
   const userDetails = JSON.parse(userHeader);
-  if (!userDetails?._id) throw new ApiError("Invalid user data", 401);
+  if (!userDetails?._id || !userDetails?.role) {
+    throw new ApiError("Invalid user data", 401);
+  }
+
+  const user = await User.findById(userDetails._id);
+  if (!user) throw new ApiError("User not found", 404);
+  const plan = user.subscription?.planName || "Free";
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  if (plan === "Free") {
+    throw new ApiError("Free plan users are not allowed to post gigs", 403);
+  }
+
+  if (plan === "Basic") {
+    const currentMonthGigCount = await Gig.countDocuments({
+      createdBy: user._id,
+      createdAt: { $gte: startOfMonth },
+    });
+
+    if (currentMonthGigCount >= 3) {
+      throw new ApiError("Basic plan allows only 3 gig posts per month", 403);
+    }
+  }
+
+  const formData = await req.formData();
+
+  const file = formData.get("certification") as File | null;
+  const title = formData.get("title")?.toString();
+  const description = formData.get("description")?.toString();
+  const tier = formData.get("tier")?.toString();
+  const price = Number(formData.get("price"));
+  const time = Number(formData.get("time"));
+  const keywords = formData.getAll("keywords").map(k => k.toString());
+  const releventSkills = formData.getAll("releventSkills").map(s => s.toString());
+
+  if (!title || !description || !tier || isNaN(price) || isNaN(time)) {
+    throw new ApiError("Missing or invalid required fields", 400);
+  }
+
+  let uploadedFile = null;
+  if (file) {
+    const url = await uploadToCloudinary(file, { folder: "gig_certifications" });
+    uploadedFile = {
+      url,
+      name: file.name,
+      type: file.type,
+      size: file.size,
+    };
+  }
 
   const data = {
-    ...body,
+    title,
+    description,
+    tier,
+    price,
+    time,
+    keywords,
+    releventSkills,
+    certification: uploadedFile,
+    createdByRole: userDetails.role,
     createdBy: userDetails._id,
   };
-  gigSchema.safeParse(data);
+
+  const parsed = gigSchema.safeParse(data);
+  if (!parsed.success) throw new ApiError("Validation failed", 400);
 
   const gig = await Gig.create(data);
-
   return successResponse(gig, "Gig created successfully", 201);
 }
 

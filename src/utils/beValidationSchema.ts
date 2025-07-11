@@ -18,6 +18,13 @@ export const gigSchema = z.object({
     required_error: "Tier is required and must be one of Basic, Advanced, or Expert",
   }),
 
+  time: z
+    .number({
+      required_error: "Time is required",
+      invalid_type_error: "Time must be a number",
+    })
+    .positive({ message: "Time must be a positive number" }),
+
   price: z
     .number({
       required_error: "Price is required",
@@ -33,9 +40,13 @@ export const gigSchema = z.object({
     invalid_type_error: "Skills must be an array of strings",
   }).optional(),
 
-  certifications: z.array(z.string(), {
-    invalid_type_error: "Certifications must be an array of strings",
-  }).optional(),
+  // certifications: z.array(z.string(), {
+  //   invalid_type_error: "Certifications must be an array of strings",
+  // }).optional(),
+
+  createdByRole: z.enum(["User", "Provider"], {
+    errorMap: () => ({ message: "createdByRole must be either 'User' or 'Provider'" }),
+  }),
 
   createdBy: z
     .string({
