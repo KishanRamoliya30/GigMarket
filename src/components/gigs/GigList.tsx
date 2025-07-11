@@ -21,14 +21,14 @@ import {
 } from "@mui/material";
 import CustomTextField from "@/components/customUi/CustomTextField";
 import { styled } from "@mui/system";
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ExpandMoreOutlined, Check as CheckIcon } from "@mui/icons-material";
-import { useUser } from "@/context/UserContext";  
-import { apiRequest } from '@/app/lib/apiCall';
+import { useUser } from "@/context/UserContext";
+import { apiRequest } from "@/app/lib/apiCall";
 import { GigDocument } from "@/app/models/gig";
-
-const tiers = ["Tier 1", "Tier 2", "Tier 3"];
+import { ServiceTier } from "../../../utils/constants";
+const tiers = [ServiceTier.BASIC, ServiceTier.EXPERT, ServiceTier.ADVANCED];
 export const allGigs = new Array(50).fill(null).map((_, i) => ({
   id: (i + 1).toString(),
   title: `Gig Title ${i + 1}`,
@@ -44,84 +44,9 @@ export const allGigs = new Array(50).fill(null).map((_, i) => ({
     certifications: ["Certified Graphic Designer"],
   },
   user: {
-    name: `User ${i + 1}`
+    name: `User ${i + 1}`,
   },
   keywords: ["logo", "branding", "startup", "vector"],
-}));
-
-const StyledWrapper = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(2),
-  [theme.breakpoints.up("md")]: { padding: theme.spacing(4) },
-  ".chip": {
-    backgroundColor: "#E0E0E0",
-    color: "#333",
-    fontSize: "0.8rem",
-    fontWeight: 500,
-    transition: "opacity 0.3s ease, transform 0.3s ease",
-    "& .MuiChip-deleteIcon": { color: "#888" },
-  },
-  ".chipBlack": {
-    backgroundColor: "#E8F5E9",
-    color: "#388E3C",
-    fontSize: "0.75rem",
-    fontWeight: 500,
-  },
-  ".viewBtn": {
-    color: "#388E3C",
-    textTransform: "none",
-    borderColor: "#388E3C",
-    fontWeight: 600,
-    "&:hover": {
-      borderColor: "#388E3C",
-      backgroundColor: "#f4f4f4",
-    },
-  },
-  ".pagination": {
-    "& .Mui-selected": {
-      backgroundColor: "#000",
-      color: "#fff",
-      fontWeight: 600,
-      "&:hover": {
-        backgroundColor: "#000",
-      },
-    },
-  },
-  ".gigCard": {
-    border: "1px solid #ddd",
-    borderRadius: 12,
-    boxShadow: 3,
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
-    transition: "0.3s",
-    height: "270px",
-    "&:hover": {
-      transform: "translateY(-4px)",
-      boxShadow: 6,
-    },
-  },
-  ".descClamp": {
-    marginBottom: "12px",
-    display: "-webkit-box",
-    WebkitLineClamp: "2",
-    WebkitBoxOrient: "vertical",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-  },
-  ".filterMenu button": {
-    border: "1px solid #388E3C",
-    borderRadius: 8,
-    color: "#388E3C",
-  },
-  ".tiersBox": {
-    display:"flex",
-    flexDirection:"column",
-    gap:1,
-    width: 250,
-    overflowY: "auto",
-    backgroundColor: "#f9f9f9",
-    }
-  
 }));
 
 export default function GigListing() {
@@ -133,42 +58,22 @@ export default function GigListing() {
 
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const [openMenu, setOpenMenu] = useState("");
-
-  const [selectedSellers, setSelectedSellers] = useState<string[]>([]);
   const [selectedBudget, setSelectedBudget] = useState("");
   const [selectedReviews, setSelectedReviews] = useState("");
   const [customMin, setCustomMin] = useState("");
   const [customMax, setCustomMax] = useState("");
-  const [selectedEdu, setselectedEdu] = useState<string[]>([]);
   const [sortAnchorEl, setSortAnchorEl] = useState<null | HTMLElement>(null);
   const [sortBy, setSortBy] = useState("Rating: High to Low");
-  const [allGig, setAllGig] = useState<GigDocument[]>(); 
+  const [allGig, setAllGig] = useState<GigDocument[]>();
   const [pagination, setPagination] = useState({
     total: 0,
     page: 1,
     limit: gigsPerPage,
     totalPages: 0,
   });
+  const [selectedTiers, setSelectedTiers] = useState<string[]>([]);
+  const [selectedRating, setSelectedRating] = useState("");
   const startIndex = (page - 1) * gigsPerPage;
-
-  const filteredGigs = allGigs
-    .filter((gig) => {
-      const price = parseInt(gig.price.replace("\u20b9", ""));
-      if (selectedBudget === "Under ₹2,252") return price < 2252;
-      if (selectedBudget === "₹2,252–₹5,404")
-        return price >= 2252 && price <= 5404;
-      if (selectedBudget === "₹5,404 & Above") return price > 5404;
-      if (selectedBudget === "custom" && customMin && customMax)
-        return price >= Number(customMin) && price <= Number(customMax);
-      return true;
-    })
-    .filter((gig) => {
-      if (selectedSellers.includes("Top Rated Seller") && gig.reviews < 30)
-        return false;
-      if (selectedSellers.includes("Level 1") && gig.reviews < 10) return false;
-      if (selectedSellers.includes("Level 2") && gig.reviews < 20) return false;
-      return true;
-    });
 
   const sortOptions = [
     "Pricing: High to Low",
@@ -205,22 +110,64 @@ export default function GigListing() {
     setOpenMenu("");
   };
   const gigList = async () => {
-      const res = await apiRequest(`/gigs`, {
-        method: "GET",
-        params: {
-          limit: gigsPerPage,
-          page: page,
-        }
-      });
-      if(res.ok) {
-        setAllGig(res.data.data);
-        setPagination(res.data.pagination);
-      }
+    let priceParams: any = { minPrice: undefined, maxPrice: undefined };
+    if (selectedBudget === "Under ₹2,252") {
+      priceParams.maxPrice = 2252;
+    } else if (selectedBudget === "₹2,252–₹5,404") {
+      priceParams.minPrice = 2252;
+      priceParams.maxPrice = 5404;
+    } else if (selectedBudget === "₹5,404 & Above") {
+      priceParams.minPrice = 5405;
+    } else if (selectedBudget === "custom" && customMin && customMax) {
+      priceParams.minPrice = Number(customMin);
+      priceParams.maxPrice = Number(customMax);
+    }
+
+    let minReviews: number | undefined = undefined;
+
+    if (selectedReviews === "Under 500") {
+      minReviews = 0;
+    } else if (selectedReviews === "500–1000") {
+      minReviews = 500;
+    } else if (selectedReviews === "1000 & Above") {
+      minReviews = 1000;
+    }
+
+    let minRating: number | undefined = undefined;
+
+    if (selectedRating === "5⭐") minRating = 5;
+    else if (selectedRating === "4⭐ and above") minRating = 4;
+    else if (selectedRating === "3⭐ and above") minRating = 3;
+    else if (selectedRating === "2⭐ and above") minRating = 2;
+    const res = await apiRequest(`/gigs`, {
+      method: "GET",
+      params: {
+        limit: gigsPerPage,
+        page: page,
+        tier: selectedTiers,
+        minPrice: priceParams.minPrice,
+        maxPrice: priceParams.maxPrice,
+        minReviews: minReviews,
+        minRating: minRating,
+      },
+    });
+    if (res.ok) {
+      setAllGig(res.data.data);
+      setPagination(res.data.pagination);
+    }
   };
 
   useEffect(() => {
     gigList();
-  }, [page]);
+  }, [
+    page,
+    selectedTiers,
+    selectedBudget,
+    customMin,
+    customMax,
+    selectedReviews,
+    selectedRating,
+  ]);
   return (
     <StyledWrapper>
       <Typography variant="h4" fontWeight={600} mb={3}>
@@ -279,27 +226,16 @@ export default function GigListing() {
         >
           No. of Reviews
         </Button>
-        <Button
-          variant="outlined"
-          endIcon={
-            <Box component="span">
-              <ExpandMoreOutlined />
-            </Box>
-          }
-          onClick={(e) => handleOpenMenu(e, "type")}
-        >
-          Type of Education
-        </Button>
       </Box>
 
       {/* Selected filters */}
       <Box display="flex" flexWrap="wrap" gap={1} mt={1}>
-        {selectedSellers.map((label) => (
+        {selectedTiers.map((label) => (
           <Chip
             key={label}
             label={label}
             onDelete={() =>
-              setSelectedSellers((prev) => prev.filter((s) => s !== label))
+              setSelectedTiers((prev) => prev.filter((s) => s !== label))
             }
             className="chip"
           />
@@ -322,16 +258,20 @@ export default function GigListing() {
             className="chip"
           />
         )}
-        {selectedEdu.map((label) => (
+        {selectedReviews && (
           <Chip
-            key={label}
-            label={label}
-            onDelete={() =>
-              setselectedEdu((prev) => prev.filter((s) => s !== label))
-            }
+            label={selectedReviews}
+            onDelete={() => setSelectedReviews("")}
             className="chip"
           />
-        ))}
+        )}
+        {selectedRating && (
+          <Chip
+            label={selectedRating}
+            onDelete={() => setSelectedRating("")}
+            className="chip"
+          />
+        )}
       </Box>
 
       <Menu
@@ -355,10 +295,10 @@ export default function GigListing() {
                 key={option}
                 control={
                   <Checkbox
-                    checked={selectedSellers.includes(option)}
+                    checked={selectedTiers.includes(option)}
                     onChange={(e) => {
                       const checked = e.target.checked;
-                      setSelectedSellers((prev) =>
+                      setSelectedTiers((prev) =>
                         checked
                           ? [...prev, option]
                           : prev.filter((s) => s !== option)
@@ -394,39 +334,38 @@ export default function GigListing() {
           <Typography fontWeight={600} mb={1}>
             Select Rating
           </Typography>
-          {["5⭐", "4⭐ and above", "3⭐ and above", "2⭐ and above"].map(
-            (option) => (
-              <FormControlLabel
-                key={option}
-                control={
-                  <Checkbox
-                    checked={selectedSellers.includes(option)}
-                    onChange={(e) => {
-                      const checked = e.target.checked;
-                      setSelectedSellers((prev) =>
-                        checked
-                          ? [...prev, option]
-                          : prev.filter((s) => s !== option)
-                      );
-                    }}
-                    sx={{
-                      color: "#388E3C",
-                      "&.Mui-checked": {
+          <RadioGroup
+            value={selectedRating}
+            onChange={(e) => {
+              setSelectedRating(e.target.value);
+            }}
+          >
+            {["5⭐", "4⭐ and above", "3⭐ and above", "2⭐ and above"].map(
+              (opt) => (
+                <FormControlLabel
+                  key={opt}
+                  value={opt}
+                  control={
+                    <Radio
+                      sx={{
                         color: "#388E3C",
-                      },
-                    }}
-                  />
-                }
-                label={option}
-                sx={{
-                  ".MuiTypography-root": {
-                    fontWeight: 500,
-                    color: "#333",
-                  },
-                }}
-              />
-            )
-          )}
+                        "&.Mui-checked": {
+                          color: "#388E3C",
+                        },
+                      }}
+                    />
+                  }
+                  label={opt}
+                  sx={{
+                    ".MuiTypography-root": {
+                      fontWeight: 500,
+                      color: "#333",
+                    },
+                  }}
+                />
+              )
+            )}
+          </RadioGroup>
         </Box>
       </Menu>
 
@@ -558,58 +497,6 @@ export default function GigListing() {
         </Box>
       </Menu>
 
-      <Menu
-        anchorEl={anchorEl}
-        open={openMenu === "type"}
-        onClose={handleCloseMenu}
-      >
-        <Box px={2} py={1}>
-          <Typography fontWeight={600} mb={1}>
-            Type of Education
-          </Typography>
-          <Box
-            display="flex"
-            flexDirection="column"
-            gap={1}
-            sx={{ width: 250, overflowY: "auto" }}
-          >
-            {["Bachelor Degree", "Master Degree", "Diploma", "PhD"].map(
-              (option) => (
-                <FormControlLabel
-                  key={option}
-                  control={
-                    <Checkbox
-                      checked={selectedEdu.includes(option)}
-                      onChange={(e) => {
-                        const checked = e.target.checked;
-                        setselectedEdu((prev) =>
-                          checked
-                            ? [...prev, option]
-                            : prev.filter((s) => s !== option)
-                        );
-                      }}
-                      sx={{
-                        color: "#388E3C",
-                        "&.Mui-checked": {
-                          color: "#388E3C",
-                        },
-                      }}
-                    />
-                  }
-                  label={option}
-                  sx={{
-                    ".MuiTypography-root": {
-                      fontWeight: 500,
-                      color: "#333",
-                    },
-                  }}
-                />
-              )
-            )}
-          </Box>
-        </Box>
-      </Menu>
-
       <Box
         display="flex"
         justifyContent="space-between"
@@ -703,7 +590,7 @@ export default function GigListing() {
       </Box> */}
       <Grid container spacing={3} mt={2}>
         {allGig?.map((gig) => (
-          <Grid size={{ xs: 12, sm: 6, md: 3 }} key={gig.id}>
+          <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={gig.id}>
             <Card className="gigCard">
               <CardContent>
                 <Typography variant="h6" fontWeight={600} gutterBottom>
@@ -767,3 +654,77 @@ export default function GigListing() {
     </StyledWrapper>
   );
 }
+
+const StyledWrapper = styled(Box)(({ theme }) => ({
+  padding: theme.spacing(2),
+  [theme.breakpoints.up("md")]: { padding: theme.spacing(4) },
+  ".chip": {
+    backgroundColor: "#E0E0E0",
+    color: "#333",
+    fontSize: "0.8rem",
+    fontWeight: 500,
+    transition: "opacity 0.3s ease, transform 0.3s ease",
+    "& .MuiChip-deleteIcon": { color: "#888" },
+  },
+  ".chipBlack": {
+    backgroundColor: "#E8F5E9",
+    color: "#388E3C",
+    fontSize: "0.75rem",
+    fontWeight: 500,
+  },
+  ".viewBtn": {
+    color: "#388E3C",
+    textTransform: "none",
+    borderColor: "#388E3C",
+    fontWeight: 600,
+    "&:hover": {
+      borderColor: "#388E3C",
+      backgroundColor: "#f4f4f4",
+    },
+  },
+  ".pagination": {
+    "& .Mui-selected": {
+      backgroundColor: "#000",
+      color: "#fff",
+      fontWeight: 600,
+      "&:hover": {
+        backgroundColor: "#000",
+      },
+    },
+  },
+  ".gigCard": {
+    border: "1px solid #ddd",
+    borderRadius: 12,
+    boxShadow: 3,
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
+    transition: "0.3s",
+    height: "270px",
+    "&:hover": {
+      transform: "translateY(-4px)",
+      boxShadow: 6,
+    },
+  },
+  ".descClamp": {
+    marginBottom: "12px",
+    display: "-webkit-box",
+    WebkitLineClamp: "2",
+    WebkitBoxOrient: "vertical",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+  },
+  ".filterMenu button": {
+    border: "1px solid #388E3C",
+    borderRadius: 8,
+    color: "#388E3C",
+  },
+  ".tiersBox": {
+    display: "flex",
+    flexDirection: "column",
+    gap: 1,
+    width: 250,
+    overflowY: "auto",
+    backgroundColor: "#f9f9f9",
+  },
+}));

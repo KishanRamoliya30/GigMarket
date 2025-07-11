@@ -92,7 +92,7 @@ export async function GET(req: NextRequest) {
   await dbConnect();
 
   const { searchParams } = new URL(req.url);
-  const tierParams = searchParams.getAll("tier");
+  const tierParams = searchParams.getAll("tier[]");
   const search = searchParams.get("search");
   const minPrice = searchParams.get("minPrice");
   const maxPrice = searchParams.get("maxPrice");
@@ -100,7 +100,6 @@ export async function GET(req: NextRequest) {
   const minReviews = searchParams.get("minReviews");
   const page = parseInt(searchParams.get("page") || "1");
   const limit = parseInt(searchParams.get("limit") || "10");
-
   const query: FilterQuery<GigDocument> = {};
 
   if (tierParams.length > 0) {
