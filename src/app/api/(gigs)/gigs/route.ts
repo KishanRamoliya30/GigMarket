@@ -92,7 +92,7 @@ export async function GET(req: NextRequest) {
   await dbConnect();
 
   const { searchParams } = new URL(req.url);
-  const tierParams = searchParams.getAll("tier");
+  const tierParams = searchParams.getAll("tier[]");
   const search = searchParams.get("search");
   const minPrice = searchParams.get("minPrice");
   const maxPrice = searchParams.get("maxPrice");
