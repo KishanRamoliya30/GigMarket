@@ -13,7 +13,6 @@ const PUBLIC_PATHS = [
   "/verify-otp",
   "/verify-email",
   "/forgot-password",
-  "/api/webhooks/stripe",
 
   "/api/forgot-password",
   "/api/reset-password",
@@ -40,7 +39,11 @@ export async function middleware(request: NextRequest) {
     email: "",
     isAdmin: false,
     role: "",
+    hasSubscription: false,
+    hasProfile: false
   };
+
+  console.log("test data123",userData)
 
   if (token) {
     const { payload } = await jwtVerify(token, getSecret());
@@ -49,6 +52,8 @@ export async function middleware(request: NextRequest) {
       email: payload.email as string,
       isAdmin: payload.role == "Admin",
       role: payload.role?.toString() ?? "",
+      hasSubscription: payload.subscriptionCompleted as boolean,
+      hasProfile: payload.profileCompleted as boolean
     };
   }
   const email = request.cookies.get("email")?.value;
@@ -65,6 +70,13 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
   }
+   if (
+        userData.hasProfile &&
+        pathname === "/add-profile"
+      ) {
+        return NextResponse.redirect(new URL("/dashboard", request.url));
+   }
+
   if (pathname.startsWith("/api")) {
     if (!isPublicPath && userData._id != "") {
       try {
@@ -81,6 +93,9 @@ export async function middleware(request: NextRequest) {
     }
   } else {
     if (!isPublicPath && userData._id != "") {
+      //REDIRECTS BASED ON SUBSCRIPTION / PROFILE FLOW
+
+     
       //admin can only access pages with path admin
       if (userData.isAdmin && !pathname.includes("/admin")) {
         return NextResponse.redirect(new URL("/admin", request.url));

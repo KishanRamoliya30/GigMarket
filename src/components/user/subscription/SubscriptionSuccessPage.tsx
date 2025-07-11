@@ -16,7 +16,7 @@ const SubscriptionSuccessPage = () => {
 
   const {setUser} = useUser();
   const handleNavigate = () => {
-    const pathName = profileCompleted ? "/dashboard" : "/myProfile";
+    const pathName = profileCompleted ? "/dashboard" : "/add-profile";
     router.push(pathName);
   };
 

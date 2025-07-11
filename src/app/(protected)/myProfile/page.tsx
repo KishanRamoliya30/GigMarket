@@ -19,7 +19,7 @@ import Header from "@/components/user/header/Header";
 import Footer from "@/components/user/footer/Footer";
 import ProfileImageEditor from "@/components/profile/profileAvtarPopup";
 import { apiRequest } from "@/app/lib/apiCall";
-import { Profile } from "../utils/interfaces";
+import { Profile } from "../../utils/interfaces";
 import { useUser } from "@/context/UserContext";
 import EditIcon from "@mui/icons-material/Edit";
 import ProfileFormCard from "@/components/profile/profileFormsModal";
@@ -42,7 +42,7 @@ const ProfileViewCard = () => {
         const res = await apiRequest(`profile?userId=${userId}`, {
           method: "GET",
         });
-        setProfileData(res.data.profile);
+        setProfileData(res.data?.profile);
       } catch (error) {
         console.error("Failed to fetch profile:", error);
       } finally {
@@ -99,7 +99,6 @@ const handleProfileUpdate = (updatedProfile: Profile) => {
 };
   return (
     <>
-      <Header />
       <Box
         sx={{
           minHeight: "100vh",
@@ -255,7 +254,6 @@ const handleProfileUpdate = (updatedProfile: Profile) => {
           )}
         </Paper>
       </Box>
-      <Footer />
     </>
   );
 };

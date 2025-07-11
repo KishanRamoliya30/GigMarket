@@ -56,8 +56,20 @@ const LoginForm = () => {
   });
 
   const redirectAfterLogin = (hasSubscription:boolean,user:UserType) => {
+    console.log("Redirecting after login with user:", user);
     setUser(user);
-    router.push(hasSubscription?"/dashboard":"/subscription");
+     // Step 1: Send to subscription first
+    if (!hasSubscription) {
+      router.push("/subscription");
+      return;
+    }
+
+    // Step 2: After subscription, check profile
+    if (!user.profileCompleted) {
+      router.push("/profile");
+      return;
+    }
+    router.push("/dashboard");
   };
 
   const acceptTerms = async () => {
