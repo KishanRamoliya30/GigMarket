@@ -15,9 +15,11 @@ export const GET = withApiHandler(async (request: NextRequest): Promise<NextResp
 
   await dbConnect();
 
-  const foundUser = await User.findById(user._id)
-    .select('-password')
-    .populate('profile'); //populate the linked profile
+    const [foundUser] = await Promise.all([
+    User.findById(user._id)
+      .select('-password')
+      .populate({ path: 'profile', model: 'profiles' })
+  ]);
 
   if (!foundUser) {
     throw new ApiError('User not found', 404);
@@ -28,7 +30,5 @@ export const GET = withApiHandler(async (request: NextRequest): Promise<NextResp
     role: user.role,
   };
 
-  const response = successResponse(userWithRole, 'User details fetched successfully', 200);
-
-  return response;
+  return successResponse(userWithRole, 'User details fetched successfully', 200);
 });

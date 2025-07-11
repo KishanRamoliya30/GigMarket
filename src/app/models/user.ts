@@ -89,7 +89,7 @@ const userSchema = new mongoose.Schema({
   verificationToken: String,
   profile: {
     type: Schema.Types.ObjectId,
-    ref: "Profile",
+    ref: "profiles",
   },
 });
 
