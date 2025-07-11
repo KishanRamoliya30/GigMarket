@@ -100,6 +100,19 @@ export async function GET(req: NextRequest) {
   const minReviews = searchParams.get("minReviews");
   const page = parseInt(searchParams.get("page") || "1");
   const limit = parseInt(searchParams.get("limit") || "10");
+  const sort = searchParams.get("sort") || "";
+
+  const sortMap: Record<string, Record<string, 1 | -1>> = {
+    "Pricing: High to Low": { price: -1 },
+    "Pricing: Low to High": { price: 1 },
+    "Rating: High to Low": { rating: -1 },
+    "Rating: Low to High": { rating: 1 },
+    "No of Reviews: High to Low": { reviews: -1 },
+    "No of Reviews: Low to High": { reviews: 1 },
+  };
+
+  const sortOption = sortMap[sort] || { createdAt: -1 };
+
   const query: FilterQuery<GigDocument> = {};
 
   if (tierParams.length > 0) {
@@ -137,6 +150,7 @@ export async function GET(req: NextRequest) {
 
   const [gigsRaw, total] = await Promise.all([
     Gig.find(query)
+      .sort(sortOption)
       .skip(skip)
       .limit(limit)
       .populate({ path: "createdBy", model: "users", select: "email" }),
