@@ -9,7 +9,6 @@ import {
   Menu,
   MenuItem
 } from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
 import { styled } from "@mui/material/styles";
 import { apiRequest } from "@/app/lib/apiCall";
 import { useRouter } from "next/navigation";

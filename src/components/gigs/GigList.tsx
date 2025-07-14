@@ -18,38 +18,22 @@ import {
   Checkbox,
   Radio,
   RadioGroup,
+  Skeleton,
 } from "@mui/material";
 import CustomTextField from "@/components/customUi/CustomTextField";
 import { styled } from "@mui/system";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ExpandMoreOutlined, Check as CheckIcon } from "@mui/icons-material";
 import { useUser } from "@/context/UserContext";
 import { apiRequest } from "@/app/lib/apiCall";
 import { GigDocument } from "@/app/models/gig";
 import { ServiceTier } from "../../../utils/constants";
 const tiers = [ServiceTier.BASIC, ServiceTier.EXPERT, ServiceTier.ADVANCED];
-export const allGigs = new Array(50).fill(null).map((_, i) => ({
-  id: (i + 1).toString(),
-  title: `Gig Title ${i + 1}`,
-  description: `Sample description for gig number ${i + 1}`,
-  tier: tiers[i % 3] || "Tier 1",
-  price: `₹${(i + 1) * 500}`,
-  rating: 4 + (i % 2) * 0.5,
-  reviews: (i + 1) * 2,
-  provider: {
-    name: `Provider ${i + 1}`,
-    avatar: "/avatar1.png",
-    skills: ["Adobe Illustrator", "Figma", "Creative Design"],
-    certifications: ["Certified Graphic Designer"],
-  },
-  user: {
-    name: `User ${i + 1}`,
-  },
-  keywords: ["logo", "branding", "startup", "vector"],
-}));
 
 export default function GigListing() {
+  const searchParams = useSearchParams();
+  const search = searchParams.get("search") || "";
   const router = useRouter();
   const { user } = useUser();
   const isProvider = user?.role == "Provider";
@@ -63,8 +47,9 @@ export default function GigListing() {
   const [customMin, setCustomMin] = useState("");
   const [customMax, setCustomMax] = useState("");
   const [sortAnchorEl, setSortAnchorEl] = useState<null | HTMLElement>(null);
-  const [sortBy, setSortBy] = useState("Rating: High to Low");
+  const [sortBy, setSortBy] = useState("Recently Added");
   const [allGig, setAllGig] = useState<GigDocument[]>();
+  const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({
     total: 0,
     page: 1,
@@ -73,7 +58,6 @@ export default function GigListing() {
   });
   const [selectedTiers, setSelectedTiers] = useState<string[]>([]);
   const [selectedRating, setSelectedRating] = useState("");
-  const startIndex = (page - 1) * gigsPerPage;
 
   const sortOptions = [
     "Pricing: High to Low",
@@ -82,6 +66,7 @@ export default function GigListing() {
     "Rating: Low to High",
     "No of Reviews: High to Low",
     "No of Reviews: Low to High",
+    "Recently Added",
   ];
 
   const handleSortClick = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -110,6 +95,7 @@ export default function GigListing() {
     setOpenMenu("");
   };
   const gigList = async () => {
+    setLoading(true);
     let priceParams: any = { minPrice: undefined, maxPrice: undefined };
     if (selectedBudget === "Under ₹2,252") {
       priceParams.maxPrice = 2252;
@@ -139,18 +125,21 @@ export default function GigListing() {
     else if (selectedRating === "4⭐ and above") minRating = 4;
     else if (selectedRating === "3⭐ and above") minRating = 3;
     else if (selectedRating === "2⭐ and above") minRating = 2;
-    const res = await apiRequest(`/gigs`, {
+    const res = await apiRequest(`gigs`, {
       method: "GET",
       params: {
         limit: gigsPerPage,
         page: page,
+        search: search,
         tier: selectedTiers,
         minPrice: priceParams.minPrice,
         maxPrice: priceParams.maxPrice,
         minReviews: minReviews,
         minRating: minRating,
+        sort: sortBy,
       },
     });
+    setLoading(false);
     if (res.ok) {
       setAllGig(res.data.data);
       setPagination(res.data.pagination);
@@ -160,6 +149,7 @@ export default function GigListing() {
   useEffect(() => {
     gigList();
   }, [
+    search,
     page,
     selectedTiers,
     selectedBudget,
@@ -167,6 +157,7 @@ export default function GigListing() {
     customMax,
     selectedReviews,
     selectedRating,
+    sortBy,
   ]);
   return (
     <StyledWrapper>
@@ -525,11 +516,13 @@ export default function GigListing() {
               fontWeight: 500,
               fontSize: "0.9rem",
               color: "#333",
+              backgroundColor: "#E8F5E9",
+              borderRadius: "8px",
+              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
               ":hover": {
-                backgroundColor: "#E8F5E9",
-                borderRadius: "8px",
-                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-              },
+                backgroundColor: "#fff",
+                color: "#388E3C",
+              }
             }}
           >
             {sortBy}
@@ -583,40 +576,73 @@ export default function GigListing() {
         </Box>
       </Box>
 
-      {/* <Box textAlign="center" mt={4}>
-        <Typography variant="h6" color="text.secondary">
-          No gigs found
-        </Typography>
-      </Box> */}
       <Grid container spacing={3} mt={2}>
-        {allGig?.map((gig) => (
-          <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={gig.id}>
-            <Card className="gigCard">
-              <CardContent>
-                <Typography variant="h6" fontWeight={600} gutterBottom>
-                  {gig.title}
-                </Typography>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  className="descClamp"
-                >
-                  {gig.description}
-                </Typography>
-                <Box mb={1}>
-                  <Chip label={gig.tier} size="small" className="chipBlack" />
-                </Box>
-                <Typography variant="subtitle1" fontWeight={600}>
-                  $ {gig.price}
-                </Typography>
-              </CardContent>
+        {loading
+          ? Array.from(new Array(8)).map((_, idx) => (
+              <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={idx}>
+                <Card className="gigCard">
+                  <CardContent>
+                    <Skeleton variant="text" height={32} width="80%" />
+                    <Skeleton variant="text" height={20} width="100%" />
+                    <Skeleton variant="text" height={20} width="90%" />
+                    <Box mt={1} mb={2}>
+                      <Skeleton variant="rectangular" height={24} width={60} />
+                    </Box>
+                    <Skeleton variant="text" height={28} width="40%" />
+                  </CardContent>
+                  <CardActions
+                    sx={{ px: 2, pb: 2, justifyContent: "space-between" }}
+                  >
+                    <Box display="flex" alignItems="center" gap={1}>
+                      <Skeleton variant="circular" width={40} height={40} />
+                      <Box>
+                        <Skeleton variant="text" height={20} width={80} />
+                        <Skeleton variant="text" height={16} width={60} />
+                      </Box>
+                    </Box>
+                    <Skeleton variant="rectangular" width={64} height={36} />
+                  </CardActions>
+                </Card>
+              </Grid>
+            ))
+          : allGig?.map((gig) => (
+              <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={gig.id}>
+                <Card className="gigCard">
+                  <CardContent>
+                    <Typography
+                      variant="h6"
+                      fontWeight={600}
+                      gutterBottom
+                      className="descClamp"
+                    >
+                      {gig.title}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      className="descClamp"
+                      mb={"12px"}
+                    >
+                      {gig.description}
+                    </Typography>
+                    <Box mb={1}>
+                      <Chip
+                        label={gig.tier}
+                        size="small"
+                        className="chipBlack"
+                      />
+                    </Box>
+                    <Typography variant="subtitle1" fontWeight={600}>
+                      $ {gig.price}
+                    </Typography>
+                  </CardContent>
 
-              <CardActions
-                sx={{ px: 2, pb: 2, justifyContent: "space-between" }}
-              >
-                <Box display="flex" alignItems="center" gap={1}>
-                  {/* <Avatar src={gig.provider.avatar} alt={!isProvider?gig.provider.name:gig.user.name} /> */}
-                  {/* <Box>
+                  <CardActions
+                    sx={{ px: 2, pb: 2, justifyContent: "space-between" }}
+                  >
+                    <Box display="flex" alignItems="center" gap={1}>
+                      {/* <Avatar src={gig.provider.avatar} alt={!isProvider?gig.provider.name:gig.user.name} /> */}
+                      {/* <Box>
                     <Typography variant="body2">{!isProvider?gig.provider.name:gig.user.name}</Typography>
                     <Box display="flex" alignItems="center" gap={0.5}>
                       <Rating
@@ -628,19 +654,19 @@ export default function GigListing() {
                       <Typography variant="caption">({gig.reviews})</Typography>
                     </Box>
                   </Box> */}
-                </Box>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  className="viewBtn"
-                  onClick={() => router.push(`/gigs/${gig._id}`)}
-                >
-                  View
-                </Button>
-              </CardActions>
-            </Card>
-          </Grid>
-        ))}
+                    </Box>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      className="viewBtn"
+                      onClick={() => router.push(`/gigs/${gig._id}`)}
+                    >
+                      View
+                    </Button>
+                  </CardActions>
+                </Card>
+              </Grid>
+            ))}
       </Grid>
 
       <Box display="flex" justifyContent="center" mt={4} className="pagination">
@@ -707,7 +733,6 @@ const StyledWrapper = styled(Box)(({ theme }) => ({
     },
   },
   ".descClamp": {
-    marginBottom: "12px",
     display: "-webkit-box",
     WebkitLineClamp: "2",
     WebkitBoxOrient: "vertical",
