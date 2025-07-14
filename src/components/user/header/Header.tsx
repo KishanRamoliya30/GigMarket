@@ -396,6 +396,7 @@ export default function Header() {
       >
         {_id ? (
           <Box>
+            { (user.subscription?.planType ?? 0) > 1 &&
             <Button
               fullWidth
               variant="outlined"
@@ -415,8 +416,9 @@ export default function Header() {
                 },
               }}
             >
-              Switch to {role === "User" ? "Provider" : "User"}
+              Switch to {role === "User" ? "Provider" : "User"} 
             </Button>
+          }
             {user.profileCompleted && 
                         <MenuItem onClick={handleProfileSection}>My Profile</MenuItem>
             }
