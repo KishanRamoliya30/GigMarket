@@ -69,12 +69,12 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
   }
-  //  if (
-  //       userData.hasProfile &&
-  //       pathname === "/add-profile"
-  //     ) {
-  //       return NextResponse.redirect(new URL("/dashboard", request.url));
-  //  }
+   if (
+        userData.hasProfile &&
+        pathname === "/add-profile"
+      ) {
+        return NextResponse.redirect(new URL("/dashboard", request.url));
+   }
 
   if (pathname.startsWith("/api")) {
     if (!isPublicPath && userData._id != "") {
