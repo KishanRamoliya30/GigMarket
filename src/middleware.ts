@@ -14,7 +14,8 @@ const PUBLIC_PATHS = [
   "/verify-email",
   "/forgot-password",
   "/gigs",
-
+  
+  "/api/webhooks/stripe",
   "/api/forgot-password",
   "/api/reset-password",
   "/api/login",
