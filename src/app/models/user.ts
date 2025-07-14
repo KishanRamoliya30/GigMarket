@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose ,{Schema} from "mongoose";
 
 const userSchema = new mongoose.Schema({
   firstName: {
@@ -88,8 +88,8 @@ const userSchema = new mongoose.Schema({
   },
   verificationToken: String,
   profile: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Profile",
+    type: Schema.Types.ObjectId,
+    ref: "profiles",
   },
 });
 

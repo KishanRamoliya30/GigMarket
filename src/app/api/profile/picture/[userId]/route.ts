@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/app/lib/dbConnect";
 import Profile from "@/app/models/profile";
+import cloudinary from "@/lib/cloudinary";
 
 export async function PUT(
   req: NextRequest,
@@ -14,16 +15,30 @@ export async function PUT(
   }
 
   try {
-    const body = await req.json();
-    const { profilePicture } = body;
+    const formData = await req.formData();
+    const file = formData.get("profilePicture");
 
-    if (!profilePicture) {
-      return NextResponse.json({ error: "No profile picture provided" }, { status: 400 });
+    if (!file || !(file instanceof Blob)) {
+      return NextResponse.json(
+        { error: "No profile picture file provided" },
+        { status: 400 }
+      );
     }
 
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const base64Image = `data:${file.type};base64,${buffer.toString("base64")}`;
+
+    const uploadResult = await cloudinary.uploader.upload(base64Image, {
+      folder: "profile_pictures",
+      public_id: `${userId}_${Date.now()}`,
+      resource_type: "image",
+    });
+
+    const fileUrl = uploadResult.secure_url;
     const updatedProfile = await Profile.findOneAndUpdate(
       { userId },
-      { profilePicture },
+      { profilePicture: fileUrl },
       { new: true }
     );
 

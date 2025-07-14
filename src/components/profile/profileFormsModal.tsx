@@ -132,28 +132,44 @@ const ProfileFormCard: React.FC<ProfileFormCardProps> = ({
     validationSchema,
     onSubmit: async (values, { setSubmitting }) => {
       try {
-        const payload = {
-          ...values,
-          userId: userId || "",
-          pastEducation: pastEducation,
-          certifications: certifications.map((cert: { file: File }) => ({
-            file: {
-              name: cert.file?.name || "",
-            },
-          })),
-        };
+        const formData = new FormData();
+        formData.append("userId", userId);
+        formData.append("fullName", values.fullName);
+        formData.append("professionalSummary", values.professionalSummary);
+        formData.append("interests", JSON.stringify(values.interests));
+        formData.append(
+          "extracurricularActivities",
+          values.extracurricularActivities
+        );
+        formData.append("skills", JSON.stringify(values.skills));
+        formData.append("currentSchool", values.currentSchool);
+        formData.append("degreeType", values.degreeType);
+        formData.append("major", values.major);
+        formData.append("minor", values.minor);
+        formData.append("graduationYear", values.graduationYear);
+        formData.append("pastEducation", JSON.stringify(pastEducation));
+
+        // Profile picture
+        if (fileInputRef.current?.files?.[0]) {
+          formData.append("profilePicture", fileInputRef.current.files[0]);
+        }
+
+        // Certifications
+        certifications.forEach((cert, i) => {
+          if (cert.file) {
+            formData.append(`certifications[${i}].file`, cert.file);
+          }
+        });
 
         const res = await apiRequest("profile", {
-          method: isEdit ? "PUT" : "POST",
-          data: payload,
+          method: "PUT",
+          data: formData,
+          headers: { "Content-Type": "multipart/form-data" },
         });
 
         if (res.ok && res.data) {
-          if (isEdit) {
-            toast.success("Profile updated successfully");
-          } else {
-            toast.success("Profile created successfully");
-          }
+          toast.success("Profile updated successfully");
+
           const refreshed = await apiRequest(`profile?userId=${userId}`, {
             method: "GET",
           });
@@ -161,16 +177,11 @@ const ProfileFormCard: React.FC<ProfileFormCardProps> = ({
             onUpdate?.(refreshed.data.profile);
           }
           setOpen(false);
-          setOpen(false);
         } else {
-          toast.error(res.error);
+          toast.error(res.error || "Something went wrong.");
         }
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          toast.error(err.message || "Submission failed");
-        } else {
-          toast.error("Submission failed");
-        }
+      } catch (err: any) {
+        toast.error(err.message || "Submission failed");
       } finally {
         setSubmitting(false);
       }
@@ -442,7 +453,7 @@ const ProfileFormCard: React.FC<ProfileFormCardProps> = ({
                               // color="error"
                               onClick={() => handleCertRemove(index)}
                             >
-                               <CloseIcon />
+                              <CloseIcon />
                             </IconButton>
                           </Stack>
                         </Box>
@@ -609,20 +620,26 @@ const ProfileFormCard: React.FC<ProfileFormCardProps> = ({
                           handleEducationChange(index, "degree", e.target.value)
                         }
                       />
-                      <CustomTextField
-                        fullWidth
-                        label="Year"
-                        value={edu.year}
-                        onChange={(e) =>
-                          handleEducationChange(index, "year", e.target.value)
-                        }
-                      />
+                     <CustomTextField
+                       select
+                       fullWidth
+                       label="Year"
+                       InputProps={{ sx: { height: "44px" } }}
+                       value={edu.year}
+                       onChange={(e) => handleEducationChange(index, "year", e.target.value)}
+                       >
+                      {graduationYears.map((year) => (
+                         <MenuItem key={year} value={year}>
+                              {year}
+                         </MenuItem>
+                       ))}
+                       </CustomTextField>
                       <IconButton
                         aria-label="remove"
                         // color="error"
                         onClick={() => handleRemoveEducation(index)}
                       >
-                         <CloseIcon />
+                        <CloseIcon />
                       </IconButton>
                     </Stack>
                   </Box>

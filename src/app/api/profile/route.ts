@@ -5,28 +5,48 @@ import User from "@/app/models/user";
 import mongoose from "mongoose";
 import { generateToken } from "@/app/utils/jwt";
 import { expiryTime } from "../../../../utils/constants";
+import cloudinary from "@/lib/cloudinary";
+
+async function uploadToCloudinary(file: File, folder = "profiles") {
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const base64 = buffer.toString("base64");
+  const dataURI = `data:${file.type};base64,${base64}`;
+
+  const uploaded = await cloudinary.uploader.upload(dataURI, {
+    folder,
+  });
+
+  return {
+    url: uploaded.secure_url,
+    publicId: uploaded.public_id,
+  };
+}
 
 export async function POST(request: Request) {
   try {
     await dbConnect();
 
-    const body = await request.json();
-    const {
-      userId,
-      fullName,
-      profilePicture,
-      professionalSummary,
-      interests,
-      extracurricularActivities,
-      certifications,
-      skills,
-      currentSchool,
-      degreeType,
-      major,
-      minor,
-      graduationYear,
-      pastEducation,
-    } = body;
+    const formData = await request.formData();
+
+    const userId = formData.get("userId") as string;
+    const fullName = formData.get("fullName") as string;
+    const professionalSummary = formData.get("professionalSummary") as string;
+    const interests = JSON.parse((formData.get("interests") as string) || "[]");
+    const extracurricularActivities = formData.get(
+      "extracurricularActivities"
+    ) as string;
+    const certifications = JSON.parse(
+      (formData.get("certifications") as string) || "[]"
+    );
+    const skills = JSON.parse((formData.get("skills") as string) || "[]");
+    const currentSchool = formData.get("currentSchool") as string;
+    const degreeType = formData.get("degreeType") as string;
+    const major = formData.get("major") as string;
+    const minor = formData.get("minor") as string;
+    const graduationYear = formData.get("graduationYear") as string;
+    const pastEducation = JSON.parse(
+      (formData.get("pastEducation") as string) || "[]"
+    );
 
     if (!userId) {
       return NextResponse.json(
@@ -36,7 +56,6 @@ export async function POST(request: Request) {
     }
 
     const existingProfile = await Profile.findOne({ userId });
-
     if (existingProfile) {
       return NextResponse.json(
         { error: "Profile already exists for this user." },
@@ -44,21 +63,44 @@ export async function POST(request: Request) {
       );
     }
 
-    const formattedCertifications = certifications.map(
-      (cert: { file: { name: string; url: string } }) => ({
-        fileName: cert?.file?.name || "Unnamed.pdf",
-        url: cert?.file?.url || "",
+    // Upload profile picture
+    let profilePictureUrl = "";
+    const profilePictureFile = formData.get("profilePicture") as File;
+    if (profilePictureFile && profilePictureFile.size > 0) {
+      const uploadResult = await uploadToCloudinary(
+        profilePictureFile,
+        "profiles"
+      );
+      profilePictureUrl = uploadResult.url;
+    }
+
+    // Upload certifications
+    const uploadedCertifications = await Promise.all(
+      certifications.map(async (cert: any, index: number) => {
+        const file = formData.get(`certifications[${index}].file`) as File;
+        if (file && file.size > 0) {
+          const upload = await uploadToCloudinary(file, "certifications");
+          return {
+            fileName: file.name,
+            url: upload.url,
+          };
+        } else {
+          return {
+            fileName: cert?.file?.name || "Unnamed.pdf",
+            url: cert?.file?.url || "",
+          };
+        }
       })
     );
 
     const profile = new Profile({
       userId,
       fullName,
-      profilePicture,
+      profilePicture: profilePictureUrl,
       professionalSummary,
       interests,
       extracurricularActivities,
-      certifications: formattedCertifications,
+      certifications: uploadedCertifications,
       skills,
       currentSchool,
       degreeType,
@@ -70,14 +112,13 @@ export async function POST(request: Request) {
 
     const savedProfile = await profile.save();
 
-    // ✅ Mark profileCompleted = true in the User model
     await User.findByIdAndUpdate(userId, {
       profileCompleted: true,
+      profile: savedProfile,
     });
-    // ✅ Fetch updated user to get the latest subscription/profile info
+
     const user = await User.findById(userId);
 
-    // ✅ Generate new token
     const token = generateToken({
       userId: user._id,
       email: user.email,
@@ -91,6 +132,7 @@ export async function POST(request: Request) {
       message: "Profile created successfully.",
       profile: savedProfile,
     });
+
     response.cookies.set({
       name: "token",
       value: token,
@@ -155,54 +197,63 @@ export async function PUT(request: Request) {
   try {
     await dbConnect();
 
-    const body = await request.json();
-    const {
-      userId,
-      fullName,
-      profilePicture,
-      professionalSummary,
-      interests,
-      extracurricularActivities,
-      certifications,
-      skills,
-      currentSchool,
-      degreeType,
-      major,
-      minor,
-      graduationYear,
-      pastEducation,
-    } = body;
+    const formData = await request.formData();
+
+    const userId = formData.get("userId") as string;
+    const fullName = formData.get("fullName") as string;
+    const professionalSummary = formData.get("professionalSummary") as string;
+    const interests = JSON.parse((formData.get("interests") as string) || "[]");
+    const extracurricularActivities = formData.get("extracurricularActivities") as string;
+    const skills = JSON.parse((formData.get("skills") as string) || "[]");
+    const currentSchool = formData.get("currentSchool") as string;
+    const degreeType = formData.get("degreeType") as string;
+    const major = formData.get("major") as string;
+    const minor = formData.get("minor") as string;
+    const graduationYear = formData.get("graduationYear") as string;
+    const pastEducation = JSON.parse((formData.get("pastEducation") as string) || "[]");
 
     if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
-      return NextResponse.json(
-        { error: "Invalid or missing userId." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid or missing userId." }, { status: 400 });
     }
 
-    const existingProfile = await Profile.findOne({
-      userId: new mongoose.Types.ObjectId(userId),
-    });
+    const existingProfile = await Profile.findOne({ userId: new mongoose.Types.ObjectId(userId) });
 
     if (!existingProfile) {
-      return NextResponse.json(
-        { error: "Profile not found." },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Profile not found." }, { status: 404 });
     }
 
-    const formattedCertifications = certifications?.map(
-      (cert: { file: { name: string } }) => ({
-        fileName: cert?.file?.name || "Unnamed.pdf",
-      })
-    );
+    // Handle profile picture
+    let profilePictureUrl = existingProfile.profilePicture;
+    const newProfilePicture = formData.get("profilePicture") as File;
+    if (newProfilePicture && newProfilePicture.size > 0) {
+      const uploaded = await uploadToCloudinary(newProfilePicture, "profiles");
+      profilePictureUrl = uploaded.url;
+    }
 
+    // Handle certifications
+    const updatedCertifications: { fileName: string; url: string }[] = [];
+    let index = 0;
+    while (true) {
+      const file = formData.get(`certifications[${index}].file`) as File;
+      if (!file) break;
+
+      if (file.size > 0) {
+        const upload = await uploadToCloudinary(file, "certifications");
+        updatedCertifications.push({
+          fileName: file.name,
+          url: upload.url,
+        });
+      }
+      index++;
+    }
+
+    // Update the profile fields
     existingProfile.fullName = fullName;
-    existingProfile.profilePicture = profilePicture;
+    existingProfile.profilePicture = profilePictureUrl;
     existingProfile.professionalSummary = professionalSummary;
     existingProfile.interests = interests;
     existingProfile.extracurricularActivities = extracurricularActivities;
-    existingProfile.certifications = formattedCertifications || [];
+    existingProfile.certifications = updatedCertifications;
     existingProfile.skills = skills;
     existingProfile.currentSchool = currentSchool;
     existingProfile.degreeType = degreeType;
