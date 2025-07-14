@@ -255,7 +255,7 @@ export default function GigDetailPage() {
                 alt={!isProvider?gig.provider.name:gig.user.name}
                 sx={{ width: 60, height: 60, cursor: "pointer" }}
                 onClick={() =>
-                  router.push("/profile/" + !isProvider?gig.provider.name:gig.user.name.toLowerCase())
+                  router.push("/add-profile/" + !isProvider?gig.provider.name:gig.user.name.toLowerCase())
                 }
               />
               <Box>

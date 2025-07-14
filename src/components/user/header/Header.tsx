@@ -23,9 +23,9 @@ import { useState } from "react";
 import Link from "next/link";
 import FiverrLogo from "@/components/logo";
 import { apiRequest } from "@/app/lib/apiCall";
-import { useRouter,usePathname, useSearchParams } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useUser } from "@/context/UserContext";
-import ClearIcon from '@mui/icons-material/Clear';
+import ClearIcon from "@mui/icons-material/Clear";
 const HeaderWrapper = styled(Box)(({ theme }) => ({
   display: "flex",
   alignItems: "center",
@@ -36,9 +36,8 @@ const HeaderWrapper = styled(Box)(({ theme }) => ({
   flexWrap: "wrap",
   gap: "12px",
   position: "fixed",
-  width:" 100%",
+  width: " 100%",
   zIndex: 1111,
-
 
   "& .logoGroup": {
     display: "flex",
@@ -124,9 +123,11 @@ export default function Header() {
   const searchParams = useSearchParams();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [searchTerm, setSearchTerm] = useState<string>(searchParams.get('search') || '');
-  const { user,setRole,resetUser } = useUser();
-  console.log("####5", user, user?.role)
+  const [searchTerm, setSearchTerm] = useState<string>(
+    searchParams.get("search") || ""
+  );
+  const { user, setRole, resetUser } = useUser();
+  console.log("####5", user, user?.role);
   const role = user?.role;
   const _id = user?._id;
 
@@ -146,7 +147,7 @@ export default function Header() {
     const response = await apiRequest("logout", { method: "POST" });
 
     if (response.ok) {
-      resetUser()
+      resetUser();
       router.push("/");
     } else {
       console.error("Logout failed:", response.error);
@@ -157,11 +158,11 @@ export default function Header() {
 
   const handleRoleSwitch = async () => {
     try {
-      const newRole = role == "User"?"Provider":"User";
+      const newRole = role == "User" ? "Provider" : "User";
       const response = await apiRequest("switch-user", { method: "POST" });
-  
+
       if (response.ok && response.data?.message) {
-        setRole(newRole)
+        setRole(newRole);
         window.location.reload();
       } else {
         console.error("Switch failed:", response.error);
@@ -170,33 +171,30 @@ export default function Header() {
       console.error("Switch error:", error);
     }
   };
-  
-  
-  
 
- const handleProfileSection = async () => {
-   router.push("/myProfile");
+  const handleProfileSection = async () => {
+    router.push("/myProfile");
     handleCloseMenu();
   };
 
-  const handleSubscriptions = async () =>{
+  const handleSubscriptions = async () => {
     router.push("/subscription");
     handleCloseMenu();
-  }
+  };
 
-  const searchGigs=(isClear:boolean=false)=> {
+  const searchGigs = (isClear: boolean = false) => {
     let searchParameter = encodeURIComponent(searchTerm.trim());
-    if(isClear) {
-      setSearchTerm("")
+    if (isClear) {
+      setSearchTerm("");
       searchParameter = "";
     }
-    if( pathname === "/gigs") {
+    if (pathname === "/gigs") {
       router.replace(`/gigs?search=${searchParameter}`);
       return;
     }
     router.push(`/gigs?search=${searchParameter}`);
-  }
-  
+  };
+
   return (
     <>
       <HeaderWrapper>
@@ -222,8 +220,8 @@ export default function Header() {
                   <Button
                     variant="outlined"
                     sx={{
-                       color: "rgb(29, 191, 115)",
-                    borderColor: "rgb(29, 191, 115)",
+                      color: "rgb(29, 191, 115)",
+                      borderColor: "rgb(29, 191, 115)",
                       textTransform: "none",
                       fontWeight: 600,
                       borderRadius: 1,
@@ -267,25 +265,37 @@ export default function Header() {
               searchTerm && (
                 <IconButton
                   size="small"
-                  onClick={()=>searchGigs(true)}
-                  sx={{ visibility: searchTerm ? 'visible' : 'hidden' }}
+                  onClick={() => searchGigs(true)}
+                  sx={{ visibility: searchTerm ? "visible" : "hidden" }}
                 >
                   <ClearIcon fontSize="small" />
                 </IconButton>
               )
             }
           />
-          <IconButton className="searchButton" onClick={()=>searchGigs()}>
+          <IconButton className="searchButton" onClick={() => searchGigs()}>
             <SearchIcon />
           </IconButton>
         </Box>
-     
+
         <Box className="rightIcons hideOnMobile">
           <NotificationsNoneIcon />
           <MailOutlineIcon />
           <FavoriteBorderIcon />
           {_id ? (
             <>
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: 500,
+                  "&:hover": {
+                    borderBottom: "2px solid",
+                  },
+                }}
+              >
+                <Link href="/gigs/create">Add Gig</Link>
+              </Typography>
+
               <Typography variant="body2" sx={{ fontWeight: 500 }}>
                 Orders
               </Typography>
@@ -396,40 +406,49 @@ export default function Header() {
       >
         {_id ? (
           <Box>
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={handleRoleSwitch}
-              sx={{
-                textTransform: "none",
-                fontWeight: 600,
-                borderRadius: "8px",
-                border:"1.5px solid black",
-                color: "#333",
-                mb: 1,
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  backgroundColor: "#f5f5f5",
-                  borderColor: "#bbb",
-                  boxShadow: "0 2px 6px rgba(0, 0, 0, 0.08)",
-                },
-              }}
-            >
-              Switch to {role === "User" ? "Provider" : "User"}
-            </Button>
-            {user.profileCompleted && 
-                        <MenuItem onClick={handleProfileSection}>My Profile</MenuItem>
-            }
-            {user.subscriptionCompleted && 
-            <MenuItem onClick={handleSubscriptions}>Subscriptions</MenuItem>
-            }
+            {(user.subscription?.planType ?? 0) > 1 && (
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={handleRoleSwitch}
+                sx={{
+                  textTransform: "none",
+                  fontWeight: 600,
+                  borderRadius: "8px",
+                  border: "1.5px solid black",
+                  color: "#333",
+                  mb: 1,
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    backgroundColor: "#f5f5f5",
+                    borderColor: "#bbb",
+                    boxShadow: "0 2px 6px rgba(0, 0, 0, 0.08)",
+                  },
+                }}
+              >
+                Switch to {role === "User" ? "Provider" : "User"}
+              </Button>
+            )}
+            {user.profileCompleted && (
+              <MenuItem onClick={handleProfileSection}>My Profile</MenuItem>
+            )}
+            {user.subscriptionCompleted && (
+              <MenuItem onClick={handleSubscriptions}>Subscriptions</MenuItem>
+            )}
             <MenuItem onClick={handleLogout}>Logout</MenuItem>
           </Box>
         ) : (
           <Box>
             <MenuItem onClick={() => router.push("/login")}>Sign in</MenuItem>
-            <MenuItem sx={{ color: "rgb(29, 191, 115)",
-                    borderColor: "rgb(29, 191, 115)"}} onClick={() => router.push("/signup")}>Join</MenuItem>
+            <MenuItem
+              sx={{
+                color: "rgb(29, 191, 115)",
+                borderColor: "rgb(29, 191, 115)",
+              }}
+              onClick={() => router.push("/signup")}
+            >
+              Join
+            </MenuItem>
           </Box>
         )}
       </Menu>

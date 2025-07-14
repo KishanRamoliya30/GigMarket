@@ -1,6 +1,10 @@
 import axios, { AxiosRequestConfig, AxiosError, AxiosResponse } from 'axios';
 
+export interface FieldError { field: string; message: string };
+
 export interface ApiResponse<T> {
+  success: boolean;
+  errors?: FieldError[];
   message?: string;
   data?: T;
   error?: string;
@@ -28,6 +32,7 @@ export async function apiRequest<T>(
     return {
       data: response.data,
       ok: true,
+      success: true,
       status: response.status,
     };
   } catch (error) {
@@ -39,6 +44,7 @@ export async function apiRequest<T>(
         axiosError.message ||
         'Network error. Please try again.',
       ok: false,
+      success: false,
       status: axiosError.response?.status || 0,
     };
   }

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { ServiceTier } from "../../utils/constants";
 
-export const gigSchema = z.object({
+export const createGigSchema = z.object({
   title: z
     .string({
       required_error: "Title is required",

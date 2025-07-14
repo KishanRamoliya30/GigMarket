@@ -14,7 +14,8 @@ const PUBLIC_PATHS = [
   "/verify-email",
   "/forgot-password",
   "/gigs",
-
+  
+  "/api/webhooks/stripe",
   "/api/forgot-password",
   "/api/reset-password",
   "/api/login",
@@ -22,7 +23,7 @@ const PUBLIC_PATHS = [
   "/api/verify-email",
   "/api/verify-otp",
   "/api/terms",
-  "/api/gigs",
+  "/api/gigs/list",
 
   "/admin/login",
   "/admin/forgot-password",
@@ -44,7 +45,6 @@ export async function middleware(request: NextRequest) {
     hasSubscription: false,
     hasProfile: false
   };
-
 
   if (token) {
     const { payload } = await jwtVerify(token, getSecret());

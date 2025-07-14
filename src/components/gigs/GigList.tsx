@@ -3,14 +3,12 @@
 import {
   Box,
   Typography,
-
   Chip,
   Grid,
   Card,
   CardContent,
   CardActions,
-  Button,
- 
+  Button, 
   Pagination,
   Menu,
   MenuItem,
@@ -124,7 +122,7 @@ export default function GigListing() {
     else if (selectedRating === "4⭐ and above") minRating = 4;
     else if (selectedRating === "3⭐ and above") minRating = 3;
     else if (selectedRating === "2⭐ and above") minRating = 2;
-    const res = await apiRequest(`gigs`, {
+    const res = await apiRequest(`gigs/list`, {
       method: "GET",
       params: {
         limit: gigsPerPage,
@@ -683,6 +681,7 @@ export default function GigListing() {
 
 const StyledWrapper = styled(Box)(({ theme }) => ({
   padding: theme.spacing(2),
+  paddingTop: "100px !important",
   [theme.breakpoints.up("md")]: { padding: theme.spacing(4) },
   ".chip": {
     backgroundColor: "#E0E0E0",
