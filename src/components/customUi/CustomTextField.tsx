@@ -13,8 +13,8 @@ type CustomTextFieldProps = TextFieldProps & {
   name?: string;
   errorText?: string;
   isPassword?: boolean;
-isAstrick?: boolean; 
-isWithoutMargin?: boolean;
+  isAstrick?: boolean;
+  isWithoutMargin?: boolean;
 };
 
 export default function CustomTextField({
@@ -25,9 +25,10 @@ export default function CustomTextField({
   errorText = "",
   type = "text",
   isPassword = false,
-  isAstrick = false, 
+  isAstrick = false,
   isWithoutMargin = false,
   sx,
+  required = false,
   ...rest
 }: CustomTextFieldProps) {
   const [showPassword, setShowPassword] = useState(false);
@@ -36,13 +37,12 @@ export default function CustomTextField({
     setShowPassword((prev) => !prev);
   };
 
-
   return (
-    <div style={{ marginBottom: isWithoutMargin?"0px":"16px" }}>
+    <div style={{ marginBottom: isWithoutMargin ? "0px" : "16px" }}>
       {label && (
         <Typography
           sx={{
-            fontWeight: 500,
+            fontWeight: 700,
             fontSize: "14px",
             color: "text.secondary",
             mb: "6px",
@@ -51,7 +51,7 @@ export default function CustomTextField({
           }}
         >
           {label}
-          {isAstrick && (
+          {(isAstrick || required) && (
             <Typography component="span" color="error" ml={0.5}>
               *
             </Typography>
@@ -67,7 +67,7 @@ export default function CustomTextField({
         onChange={onChange}
         variant="outlined"
         autoComplete="off"
-        // required
+        required={required}
         InputProps={{
           endAdornment: isPassword && (
             <InputAdornment position="end">
@@ -85,6 +85,7 @@ export default function CustomTextField({
           "& .MuiOutlinedInput-root": {
             borderRadius: "8px",
             fontSize: "14px",
+            // height: "44px",
             "& input": {
               padding: "12px 14px",
             },
@@ -99,6 +100,18 @@ export default function CustomTextField({
               borderColor: "#2e7d32",
               borderWidth: "1px",
             },
+          },
+          "& .MuiInputBase-root": {
+            height: "44px",
+          },
+          "& .MuiInputBase-multiline": {
+            height: "auto",
+          },
+          "& .MuiAutocomplete-inputRoot": {
+            paddingTop: "3px !important",
+            paddingBottom: "3px !important",
+            minHeight: "44px",
+            height: "auto",
           },
           ...sx,
         }}

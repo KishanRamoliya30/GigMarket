@@ -20,6 +20,7 @@ export interface GigDocument extends Document {
   releventSkills: string[];
   certification: Certification;
   createdByRole: 'User' | 'Provider';
+  status: "Open" | "Requested" | "In-Progress" | "Completed" | "Rejected"; 
   createdBy: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
@@ -54,6 +55,11 @@ const GigSchema = new Schema<GigDocument>(
     createdByRole: {
       type: String,
       enum: ['User', 'Provider'],
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ["Open", "Requested", "In-Progress", "Completed", "Rejected"],
       required: true,
     },
     createdBy: { type: Schema.Types.ObjectId, ref: 'Users', required: true },
