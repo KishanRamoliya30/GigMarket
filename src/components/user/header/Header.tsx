@@ -23,9 +23,9 @@ import { useState } from "react";
 import Link from "next/link";
 import FiverrLogo from "@/components/logo";
 import { apiRequest } from "@/app/lib/apiCall";
-import { useRouter } from "next/navigation";
+import { useRouter,usePathname, useSearchParams } from "next/navigation";
 import { useUser } from "@/context/UserContext";
-
+import ClearIcon from '@mui/icons-material/Clear';
 const HeaderWrapper = styled(Box)(({ theme }) => ({
   display: "flex",
   alignItems: "center",
@@ -35,6 +35,10 @@ const HeaderWrapper = styled(Box)(({ theme }) => ({
   backgroundColor: "#fff",
   flexWrap: "wrap",
   gap: "12px",
+  position: "fixed",
+  width:" 100%",
+  zIndex: 1111,
+
 
   "& .logoGroup": {
     display: "flex",
@@ -66,6 +70,9 @@ const HeaderWrapper = styled(Box)(({ theme }) => ({
     padding: "10px 14px",
     "& svg": {
       color: "#fff",
+    },
+    "&:hover": {
+      backgroundColor: "#444",
     },
   },
 
@@ -113,8 +120,11 @@ const HeaderWrapper = styled(Box)(({ theme }) => ({
 
 export default function Header() {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [searchTerm, setSearchTerm] = useState<string>(searchParams.get('search') || '');
   const { user,setRole,resetUser } = useUser();
   console.log("####5", user, user?.role)
   const role = user?.role;
@@ -173,6 +183,20 @@ export default function Header() {
     router.push("/subscription");
     handleCloseMenu();
   }
+
+  const searchGigs=(isClear:boolean=false)=> {
+    let searchParameter = encodeURIComponent(searchTerm.trim());
+    if(isClear) {
+      setSearchTerm("")
+      searchParameter = "";
+    }
+    if( pathname === "/gigs") {
+      router.replace(`/gigs?search=${searchParameter}`);
+      return;
+    }
+    router.push(`/gigs?search=${searchParameter}`);
+  }
+  
   return (
     <>
       <HeaderWrapper>
@@ -231,8 +255,27 @@ export default function Header() {
           <InputBase
             className="searchInput"
             placeholder="What service are you looking for today?"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value.trimStart())}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                searchGigs();
+              }
+            }}
+            endAdornment={
+              searchTerm && (
+                <IconButton
+                  size="small"
+                  onClick={()=>searchGigs(true)}
+                  sx={{ visibility: searchTerm ? 'visible' : 'hidden' }}
+                >
+                  <ClearIcon fontSize="small" />
+                </IconButton>
+              )
+            }
           />
-          <IconButton className="searchButton">
+          <IconButton className="searchButton" onClick={()=>searchGigs()}>
             <SearchIcon />
           </IconButton>
         </Box>

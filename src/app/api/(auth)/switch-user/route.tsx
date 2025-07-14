@@ -1,20 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/app/lib/dbConnect";
 import { jwtVerify } from "jose";
-import { generateToken, verifyToken } from "@/app/utils/jwt";
+import { generateToken } from "@/app/utils/jwt";
 import User from "@/app/models/user";
 
-interface LoginResponseSuccess {
-  message: string;
-  success: boolean;
-  user: {
-    id: string;
-    email: string;
-  };
-  needToAcceptTerms: boolean;
-  hasSubscription?: boolean;
-  terms: string;
-}
+
 
 interface LoginResponseError {
   error: string;

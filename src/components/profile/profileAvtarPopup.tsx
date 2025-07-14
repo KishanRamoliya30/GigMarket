@@ -32,7 +32,6 @@ const ProfileImageEditor: React.FC<ProfileImageEditorProps> = ({
   const [imagePreview, setImagePreview] = useState<string>(
     avtar || defaultAvatar
   );
-  const [newImageData, setNewImageData] = useState<string | null>(null);
 
   useEffect(() => {
     if (avtar) setImagePreview(avtar);
@@ -53,41 +52,45 @@ const ProfileImageEditor: React.FC<ProfileImageEditorProps> = ({
     }
   };
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64 = reader.result as string;
-        setImagePreview(base64);
-        setNewImageData(base64);
-      };
-      reader.readAsDataURL(file);
+const [newImageFile, setNewImageFile] = useState<File | null>(null);
+
+const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const file = event.target.files?.[0];
+  if (file) {
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/svg+xml"];
+    if (!allowedTypes.includes(file.type)) {
+      alert("Only JPG, JPEG, SVG, and PNG images are allowed.");
+      return;
     }
-  };
+    setImagePreview(URL.createObjectURL(file));
+    setNewImageFile(file);
+  }
+};
 
-  const handleUpdate = async () => {
-    if (!newImageData) return setOpen(false);
+const handleUpdate = async () => {
+  if (!newImageFile) return setOpen(false);
 
-    try {
-      const res = await apiRequest(`profile/picture/${userId}`, {
-        method: "PUT",
-        data: {
-          profilePicture: newImageData,
-        },
-      });
+  const formData = new FormData();
+  formData.append("profilePicture", newImageFile);
 
-      if (res.data.success) {
-        await fetchProfile();
-      } else {
-        console.error("Update failed:", res.error);
-      }
-    } catch (err) {
-      console.error("API Error:", err);
+  try {
+    const res = await apiRequest(`profile/picture/${userId}`, {
+      method: "PUT",
+      data: formData,
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    if (res.data.success) {
+      await fetchProfile();
+    } else {
+      console.error("Update failed:", res.error);
     }
+  } catch (err) {
+    console.error("API Error:", err);
+  }
 
-    setOpen(false);
-  };
+  setOpen(false);
+};
 
   const handleDelete = async () => {
     try {
@@ -146,7 +149,7 @@ const ProfileImageEditor: React.FC<ProfileImageEditorProps> = ({
 
         <DialogContent sx={{ textAlign: "center", p: 4 }}>
           <Avatar
-            src={imagePreview}
+            src={imagePreview || "/default-avatar.png"}
             sx={{ width: 160, height: 160, mx: "auto", mb: 2 }}
           />
 
@@ -180,7 +183,7 @@ const ProfileImageEditor: React.FC<ProfileImageEditorProps> = ({
 
           <input
             type="file"
-            accept="image/*"
+            accept=".png, .jpg, .jpeg, .svg, image/png, image/jpeg, image/svg+xml"
             hidden
             ref={fileInputRef}
             onChange={handleImageUpload}
