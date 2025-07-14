@@ -406,27 +406,29 @@ export default function Header() {
       >
         {_id ? (
           <Box>
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={handleRoleSwitch}
-              sx={{
-                textTransform: "none",
-                fontWeight: 600,
-                borderRadius: "8px",
-                border: "1.5px solid black",
-                color: "#333",
-                mb: 1,
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  backgroundColor: "#f5f5f5",
-                  borderColor: "#bbb",
-                  boxShadow: "0 2px 6px rgba(0, 0, 0, 0.08)",
-                },
-              }}
-            >
-              Switch to {role === "User" ? "Provider" : "User"}
-            </Button>
+            {(user.subscription?.planType ?? 0) > 1 && (
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={handleRoleSwitch}
+                sx={{
+                  textTransform: "none",
+                  fontWeight: 600,
+                  borderRadius: "8px",
+                  border: "1.5px solid black",
+                  color: "#333",
+                  mb: 1,
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    backgroundColor: "#f5f5f5",
+                    borderColor: "#bbb",
+                    boxShadow: "0 2px 6px rgba(0, 0, 0, 0.08)",
+                  },
+                }}
+              >
+                Switch to {role === "User" ? "Provider" : "User"}
+              </Button>
+            )}
             {user.profileCompleted && (
               <MenuItem onClick={handleProfileSection}>My Profile</MenuItem>
             )}
