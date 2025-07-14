@@ -43,8 +43,6 @@ export async function middleware(request: NextRequest) {
     hasProfile: false
   };
 
-  console.log("test data123",userData)
-
   if (token) {
     const { payload } = await jwtVerify(token, getSecret());
     userData = {

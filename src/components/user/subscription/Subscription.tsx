@@ -246,7 +246,7 @@ const Subscription = () => {
                         <Button
                           variant="outlined"
                           fullWidth
-                          disabled={user.subscription.cancelAtPeriodEnd}
+                          disabled={user.subscription?.cancelAtPeriodEnd}
                           onClick={handleCancelSubscription}
                           sx={{
                             mt: 1,

@@ -1,16 +1,16 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/app/lib/dbConnect";
 import Gig, { GigDocument } from "@/app/models/gig";
 import { ApiError } from "@/app/lib/commonError";
-import { successResponse } from "@/app/lib/commonHandlers";
-import { gigSchema } from "@/utils/beValidationSchema";
+import { successResponse, withApiHandler } from "@/app/lib/commonHandlers";
+import { createGigSchema } from "@/utils/beValidationSchema";
 import { ServiceTier } from "../../../../../utils/constants";
 import { FilterQuery } from "mongoose";
 import Profile from "@/app/models/profile";
 import { uploadToCloudinary } from "@/lib/cloudinaryFileUpload";
 import User from "@/app/models/user";
 
-export async function POST(req: NextRequest) {
+export const POST = withApiHandler(async (req: NextRequest): Promise<NextResponse> => {
   await dbConnect();
 
   const userHeader = req.headers.get("x-user");
@@ -50,8 +50,8 @@ export async function POST(req: NextRequest) {
   const tier = formData.get("tier")?.toString();
   const price = Number(formData.get("price"));
   const time = Number(formData.get("time"));
-  const keywords = formData.getAll("keywords").map(k => k.toString());
-  const releventSkills = formData.getAll("releventSkills").map(s => s.toString());
+  const keywords = JSON.parse((formData.get("keywords") as string) || "[]");
+  const releventSkills = JSON.parse((formData.get("releventSkills") as string) || "[]");
 
   if (!title || !description || !tier || isNaN(price) || isNaN(time)) {
     throw new ApiError("Missing or invalid required fields", 400);
@@ -81,12 +81,10 @@ export async function POST(req: NextRequest) {
     createdBy: userDetails._id,
   };
 
-  const parsed = gigSchema.safeParse(data);
-  if (!parsed.success) throw new ApiError("Validation failed", 400);
-
+  createGigSchema.parse(data);
   const gig = await Gig.create(data);
   return successResponse(gig, "Gig created successfully", 201);
-}
+});
 
 export async function GET(req: NextRequest) {
   await dbConnect();
