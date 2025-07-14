@@ -108,8 +108,10 @@ export default function CustomTextField({
             height: "auto",
           },
           "& .MuiAutocomplete-inputRoot": {
-            paddingTop: "0px !important",
-            paddingBottom: "0px !important",
+            paddingTop: "3px !important",
+            paddingBottom: "3px !important",
+            minHeight: "44px",
+            height: "auto",
           },
           ...sx,
         }}

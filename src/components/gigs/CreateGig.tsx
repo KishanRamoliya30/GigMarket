@@ -13,12 +13,13 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { ServiceTier } from "../../../utils/constants";
 import CustomTextField from "../customUi/CustomTextField";
-import { ChangeEvent } from "react";
+import { ChangeEvent, useState } from "react";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import CancelIcon from "@mui/icons-material/Cancel";
 import { apiRequest } from "@/app/lib/apiCall";
 import { toast } from "react-toastify";
 import CustomButton from "../customUi/CustomButton";
+import AddIcon from "@mui/icons-material/Add";
 
 interface FormValues {
   title: string;
@@ -43,17 +44,20 @@ const initialValues: FormValues = {
 };
 
 const validationSchema = Yup.object({
-  title: Yup.string().required("Required"),
-  description: Yup.string().required("Required"),
-  tier: Yup.string().required("Required"),
-  price: Yup.number().required("Required").min(0),
-  time: Yup.number().required("Required").min(1),
+  title: Yup.string().required("This field is required"),
+  description: Yup.string().required("This field is required"),
+  tier: Yup.string().required("This field is required"),
+  price: Yup.number().required("This field is required").min(0),
+  time: Yup.number().required("This field is required").min(1),
   keywords: Yup.array().min(1, "At least one keyword is required"),
   releventSkills: Yup.array().min(1, "At least one skill is required"),
-  certification: Yup.mixed().required("Certification is required"),
+  certification: Yup.mixed().required("This field is required"),
 });
 
 export default function CreateGigPage() {
+  const [skillInput, setSkillInput] = useState("");
+  const [keywordInput, setKeywordInput] = useState("");
+
   const formik = useFormik<FormValues>({
     initialValues,
     validationSchema,
@@ -79,6 +83,8 @@ export default function CreateGigPage() {
           },
         });
 
+        console.log("#####7", res);
+
         if (res.success) {
           toast.success("Gig created successfully");
           resetForm();
@@ -89,7 +95,7 @@ export default function CreateGigPage() {
           });
           setErrors(fieldErrors);
         } else {
-          toast.error("Validation error");
+          toast.error(res.message ?? "Validation error");
         }
       } catch (error) {
         console.error("Error: ", error);
@@ -110,7 +116,7 @@ export default function CreateGigPage() {
   } = formik;
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
+    <Container maxWidth="md" sx={{ py: 4, pt: "100px" }}>
       <Typography variant="h3" fontWeight={600} mb={2}>
         Create a new Gig
       </Typography>
@@ -127,7 +133,7 @@ export default function CreateGigPage() {
               value={values.title}
               onChange={handleChange}
               errorText={touched.title && errors.title ? errors.title : ""}
-              required
+              isAstrick
             />
           </Grid>
 
@@ -139,7 +145,7 @@ export default function CreateGigPage() {
               value={values.tier}
               onChange={handleChange}
               errorText={touched.tier && errors.tier ? errors.tier : ""}
-              required
+              isAstrick
             >
               {Object.values(ServiceTier).map((tier) => (
                 <MenuItem key={tier} value={tier}>
@@ -162,7 +168,7 @@ export default function CreateGigPage() {
                   ? errors.description
                   : ""
               }
-              required
+              isAstrick
             />
           </Grid>
 
@@ -174,7 +180,7 @@ export default function CreateGigPage() {
               value={values.price}
               onChange={handleChange}
               errorText={touched.price && errors.price ? errors.price : ""}
-              required
+              isAstrick
             />
           </Grid>
 
@@ -186,7 +192,7 @@ export default function CreateGigPage() {
               value={values.time}
               onChange={handleChange}
               errorText={touched.time && errors.time ? errors.time : ""}
-              required
+              isAstrick
             />
           </Grid>
 
@@ -195,6 +201,8 @@ export default function CreateGigPage() {
               multiple
               freeSolo
               options={[]}
+              inputValue={keywordInput}
+              onInputChange={(_, val) => setKeywordInput(val)}
               value={values.keywords}
               onChange={(_, val) => setFieldValue("keywords", val)}
               renderInput={(params) => (
@@ -208,6 +216,33 @@ export default function CreateGigPage() {
                       ? (errors.keywords as string)
                       : ""
                   }
+                  InputProps={{
+                    ...params.InputProps,
+                    endAdornment: (
+                      <>
+                        <IconButton
+                          onClick={() => {
+                            const trimmed = keywordInput.trim();
+                            if (
+                              trimmed &&
+                              !values.keywords.includes(trimmed)
+                            ) {
+                              setFieldValue("keywords", [
+                                ...values.keywords,
+                                trimmed,
+                              ]);
+                              setKeywordInput("");
+                            }
+                          }}
+                          size="small"
+                          edge="end"
+                        >
+                          <AddIcon />
+                        </IconButton>
+                        {params.InputProps.endAdornment}
+                      </>
+                    ),
+                  }}
                 />
               )}
             />
@@ -218,6 +253,8 @@ export default function CreateGigPage() {
               multiple
               freeSolo
               options={[]}
+              inputValue={skillInput}
+              onInputChange={(_, val) => setSkillInput(val)}
               value={values.releventSkills}
               onChange={(_, val) => setFieldValue("releventSkills", val)}
               renderInput={(params) => (
@@ -231,6 +268,33 @@ export default function CreateGigPage() {
                       ? (errors.releventSkills as string)
                       : ""
                   }
+                  InputProps={{
+                    ...params.InputProps,
+                    endAdornment: (
+                      <>
+                        <IconButton
+                          onClick={() => {
+                            const trimmed = skillInput.trim();
+                            if (
+                              trimmed &&
+                              !values.releventSkills.includes(trimmed)
+                            ) {
+                              setFieldValue("releventSkills", [
+                                ...values.releventSkills,
+                                trimmed,
+                              ]);
+                              setSkillInput("");
+                            }
+                          }}
+                          size="small"
+                          edge="end"
+                        >
+                          <AddIcon />
+                        </IconButton>
+                        {params.InputProps.endAdornment}
+                      </>
+                    ),
+                  }}
                 />
               )}
             />

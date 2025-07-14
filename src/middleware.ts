@@ -22,7 +22,7 @@ const PUBLIC_PATHS = [
   "/api/verify-email",
   "/api/verify-otp",
   "/api/terms",
-  "/api/gigs",
+  "/api/gigs/list",
 
   "/admin/login",
   "/admin/forgot-password",
