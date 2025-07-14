@@ -15,8 +15,6 @@ import {
 import SchoolIcon from "@mui/icons-material/School";
 import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
 import StarIcon from "@mui/icons-material/Star";
-import Header from "@/components/user/header/Header";
-import Footer from "@/components/user/footer/Footer";
 import ProfileImageEditor from "@/components/profile/profileAvtarPopup";
 import { apiRequest } from "@/app/lib/apiCall";
 import { Profile } from "../../utils/interfaces";

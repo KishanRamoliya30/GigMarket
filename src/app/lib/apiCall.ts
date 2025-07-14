@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig, AxiosError, AxiosResponse } from 'axios';
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T> {
   message?: string;
   data?: T;
   error?: string;
@@ -8,7 +8,7 @@ export interface ApiResponse<T = any> {
   status: number;
 }
 
-export async function apiRequest<T = any>(
+export async function apiRequest<T>(
   url: string,
   options: AxiosRequestConfig = {}
 ): Promise<ApiResponse<T>> {

@@ -11,14 +11,10 @@ import {
   TableHead,
   TableRow,
   Paper,
-  IconButton,
   Chip,
-  Button,
   TablePagination
 } from '@mui/material';
 import VerifiedIcon from '@mui/icons-material/Verified';
-import CancelIcon from '@mui/icons-material/Cancel';
-import CustomDialog from '@/components/customUi/CustomDialog';
 import { apiRequest } from '@/app/lib/apiCall';
 
 interface IUser {
@@ -44,7 +40,7 @@ export default function UserManagement() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  const handleApprove = () => {
+  // const handleApprove = () => {
     // if (selectedProvider) {
     //   setProviders((prev) =>
     //     prev.map((p) =>
@@ -54,11 +50,11 @@ export default function UserManagement() {
     // }
     // setDialogOpen(false);
     // setSelectedProvider(null);
-  };
+  // };
 
-  const handleReject = (id: number) => {
+  // const handleReject = (id: number) => {
     // setProviders((prev) => prev.filter((p) => p.id !== id));
-  };
+  // };
   
   async function getAllUsers() {
     const resp = await apiRequest("admin/users",{
@@ -73,6 +69,7 @@ export default function UserManagement() {
   }
   useEffect(()=>{
     getAllUsers()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   },[page,rowsPerPage])
   return (
     <Box p={3}>

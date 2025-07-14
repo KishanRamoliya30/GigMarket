@@ -13,9 +13,10 @@ export async function GET() {
         content: terms.content,
         updatedAt: terms.updatedAt,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to load terms.";
       return NextResponse.json(
-        { error: error.message ?? "Failed to load terms." },
+        { error: errorMessage },
         { status: 500 }
       );
     }

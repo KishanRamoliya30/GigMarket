@@ -9,7 +9,6 @@ import { apiRequest } from "@/app/lib/apiCall";
 import { useEffect, useState } from "react";
 import { GigDocument } from "@/app/models/gig";
 import CustomTextField from "../customUi/CustomTextField";
-import { ServiceTier } from "../../../utils/constants";
 
 export default function GigDetailPage() {
   const router = useRouter();
@@ -47,6 +46,7 @@ export default function GigDetailPage() {
   };
   useEffect(() => {
     gigDetail();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const minutesAgo = Math.floor(
@@ -194,7 +194,7 @@ export default function GigDetailPage() {
             Keywords
           </Typography>
           <Box className="keywords">
-            {gigDetails.keywords.map((word: any) => (
+            {gigDetails.keywords.map((word: string) => (
               <Chip key={word} label={word} size="small" className="gigChip" />
             ))}
           </Box>

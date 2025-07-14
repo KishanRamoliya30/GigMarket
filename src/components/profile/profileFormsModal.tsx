@@ -74,9 +74,18 @@ const ProfileFormCard: React.FC<ProfileFormCardProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useUser();
   const userId = user?._id;
-  const [certifications, setCertifications] = useState<{ file: any }[]>(
+
+  interface CertificationFile {
+    name: string;
+  }
+
+  interface Certification {
+    file: File | CertificationFile;
+  }
+
+  const [certifications, setCertifications] = useState<Certification[]>(
     profileData?.certifications
-      ? profileData.certifications.map((cert) => ({
+      ? profileData.certifications.map((cert): Certification => ({
           file: { name: cert.fileName },
         }))
       : []
@@ -180,8 +189,12 @@ const ProfileFormCard: React.FC<ProfileFormCardProps> = ({
         } else {
           toast.error(res.error || "Something went wrong.");
         }
-      } catch (err: any) {
-        toast.error(err.message || "Submission failed");
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          toast.error(err.message || "Submission failed");
+        } else {
+          toast.error("Submission failed");
+        }
       } finally {
         setSubmitting(false);
       }

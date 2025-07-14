@@ -6,6 +6,7 @@ import { Box, Typography, Paper } from "@mui/material";
 import { apiRequest } from "@/app/lib/apiCall";
 import CustomButton from "@/components/customUi/CustomButton";
 import { toast } from 'react-toastify';
+import type { Editor as TinyMCEEditor } from "tinymce";
 const Editor = dynamic(
   () => import("@tinymce/tinymce-react").then((mod) => mod.Editor),
   {
@@ -14,7 +15,7 @@ const Editor = dynamic(
 );
 
 export default function Terms() {
-  const editorRef = useRef<any>(null);
+   const editorRef = useRef<TinyMCEEditor | null>(null);
   const [loading, setLoading] = useState(true);
   const [content, setContent] = useState("<p>Loading terms...</p>");
 

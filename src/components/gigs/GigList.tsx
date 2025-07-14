@@ -3,14 +3,14 @@
 import {
   Box,
   Typography,
-  Avatar,
+
   Chip,
   Grid,
   Card,
   CardContent,
   CardActions,
   Button,
-  Rating,
+ 
   Pagination,
   Menu,
   MenuItem,
@@ -25,7 +25,6 @@ import { styled } from "@mui/system";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ExpandMoreOutlined, Check as CheckIcon } from "@mui/icons-material";
-import { useUser } from "@/context/UserContext";
 import { apiRequest } from "@/app/lib/apiCall";
 import { GigDocument } from "@/app/models/gig";
 import { ServiceTier } from "../../../utils/constants";
@@ -35,8 +34,8 @@ export default function GigListing() {
   const searchParams = useSearchParams();
   const search = searchParams.get("search") || "";
   const router = useRouter();
-  const { user } = useUser();
-  const isProvider = user?.role == "Provider";
+  // const { user } = useUser();
+  // const isProvider = user?.role == "Provider";
   const gigsPerPage = 5;
   const [page, setPage] = useState(1);
 
@@ -96,7 +95,7 @@ export default function GigListing() {
   };
   const gigList = async () => {
     setLoading(true);
-    let priceParams: any = { minPrice: undefined, maxPrice: undefined };
+    const priceParams: { minPrice?: number; maxPrice?: number } = { minPrice: undefined, maxPrice: undefined };
     if (selectedBudget === "Under ₹2,252") {
       priceParams.maxPrice = 2252;
     } else if (selectedBudget === "₹2,252–₹5,404") {
@@ -148,6 +147,7 @@ export default function GigListing() {
 
   useEffect(() => {
     gigList();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     search,
     page,

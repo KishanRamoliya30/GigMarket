@@ -58,7 +58,7 @@ const Profile = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useUser();
   const userId = user?._id;
-  const [certifications, setCertifications] = useState<{ file: any }[]>([]);
+  const [certifications, setCertifications] = useState<{ file: File }[]>([]);
 
   const handleCertUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -577,7 +577,7 @@ const Profile = () => {
                       fullWidth
                       label="Year"
                       value={edu.year}
-                       InputProps={{ sx: { height: "44px" } }}
+                      InputProps={{ sx: { height: "44px" } }}
                       onChange={(e) => handleEducationChange(index, "year", e.target.value)}
                     >
                       {graduationYears.map((year) => (
