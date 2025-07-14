@@ -6,7 +6,6 @@ import * as Yup from "yup";
 import { Box, Typography } from "@mui/material";
 import CustomTextField from "@/components/customUi/CustomTextField";
 import CustomButton from "@/components/customUi/CustomButton";
-import { LoginUser } from "@/app/utils/interfaces";
 import { useUser } from "@/context/UserContext";
 import { apiRequest } from "@/app/lib/apiCall";
 
@@ -27,7 +26,7 @@ export default function AdminLogin() {
     validationSchema,
     onSubmit: async (values, { setSubmitting, setFieldError }) => {
       try {
-        const res = await apiRequest("/admin/login", {
+        const res = await apiRequest("admin/login", {
           method: "POST",
           data: values,
         });

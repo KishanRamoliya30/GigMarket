@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Box, Typography } from "@mui/material";
+import { Box} from "@mui/material";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminHeader from "@/components/admin/AdminHeader";
 import { ReactNode } from "react";
