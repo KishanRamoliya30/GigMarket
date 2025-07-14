@@ -573,13 +573,19 @@ const Profile = () => {
                       }
                     />
                     <CustomTextField
+                      select
                       fullWidth
                       label="Year"
                       value={edu.year}
-                      onChange={(e) =>
-                        handleEducationChange(index, "year", e.target.value)
-                      }
-                    />
+                       InputProps={{ sx: { height: "44px" } }}
+                      onChange={(e) => handleEducationChange(index, "year", e.target.value)}
+                    >
+                      {graduationYears.map((year) => (
+                        <MenuItem key={year} value={year}>
+                          {year}
+                        </MenuItem>
+                      ))}
+                    </CustomTextField>
                     <IconButton
                       aria-label="remove"
                       // color="error"

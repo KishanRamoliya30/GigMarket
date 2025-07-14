@@ -620,14 +620,20 @@ const ProfileFormCard: React.FC<ProfileFormCardProps> = ({
                           handleEducationChange(index, "degree", e.target.value)
                         }
                       />
-                      <CustomTextField
-                        fullWidth
-                        label="Year"
-                        value={edu.year}
-                        onChange={(e) =>
-                          handleEducationChange(index, "year", e.target.value)
-                        }
-                      />
+                     <CustomTextField
+                       select
+                       fullWidth
+                       label="Year"
+                       InputProps={{ sx: { height: "44px" } }}
+                       value={edu.year}
+                       onChange={(e) => handleEducationChange(index, "year", e.target.value)}
+                       >
+                      {graduationYears.map((year) => (
+                         <MenuItem key={year} value={year}>
+                              {year}
+                         </MenuItem>
+                       ))}
+                       </CustomTextField>
                       <IconButton
                         aria-label="remove"
                         // color="error"
