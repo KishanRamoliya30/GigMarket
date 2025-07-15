@@ -1,3 +1,4 @@
+import { GigDocument } from "../models/gig";
 export interface Plan {
   _id: string;
   name: string;
@@ -57,9 +58,10 @@ export interface PastEducation {
   _id: string;
 }
 
-export interface Gig {
-  _id: string; 
-  title: string;
-  description: string;
-  price: number;
+export interface Gig extends Omit<GigDocument,'createdBy'> {
+  createdBy: {
+    _id: string;
+    fullName: string;
+    profilePicture: string;
+  }
 }
