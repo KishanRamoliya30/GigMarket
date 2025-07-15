@@ -17,6 +17,7 @@ import {
   Radio,
   RadioGroup,
   Skeleton,
+  Avatar,
 } from "@mui/material";
 import CustomTextField from "@/components/customUi/CustomTextField";
 import { styled } from "@mui/system";
@@ -24,7 +25,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ExpandMoreOutlined, Check as CheckIcon } from "@mui/icons-material";
 import { apiRequest } from "@/app/lib/apiCall";
-import { GigDocument } from "@/app/models/gig";
+import { Gig } from "@/app/utils/interfaces";
 import { ServiceTier } from "../../../utils/constants";
 const tiers = [ServiceTier.BASIC, ServiceTier.EXPERT, ServiceTier.ADVANCED];
 
@@ -45,7 +46,7 @@ export default function GigListing() {
   const [customMax, setCustomMax] = useState("");
   const [sortAnchorEl, setSortAnchorEl] = useState<null | HTMLElement>(null);
   const [sortBy, setSortBy] = useState("Recently Added");
-  const [allGig, setAllGig] = useState<GigDocument[]>();
+  const [allGig, setAllGig] = useState<Gig[]>();
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({
     total: 0,
@@ -639,9 +640,12 @@ export default function GigListing() {
                     sx={{ px: 2, pb: 2, justifyContent: "space-between" }}
                   >
                     <Box display="flex" alignItems="center" gap={1}>
-                      {/* <Avatar src={gig.provider.avatar} alt={!isProvider?gig.provider.name:gig.user.name} /> */}
+                      <Avatar src={gig.createdBy.profilePicture} 
+                        alt={gig.createdBy.fullName}
+                      />
+                      {/* <Typography variant="body2">{!isProvider?gig.provider.name:gig.user.name}</Typography> */}
+                      <Typography variant="body2">{gig.createdBy.fullName}</Typography>
                       {/* <Box>
-                    <Typography variant="body2">{!isProvider?gig.provider.name:gig.user.name}</Typography>
                     <Box display="flex" alignItems="center" gap={0.5}>
                       <Rating
                         value={gig.rating}
