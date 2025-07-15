@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import dbConnect from "@/app/lib/dbConnect";
 import mongoose from "mongoose";
 
@@ -24,7 +24,7 @@ export async function GET() {
 }
 
 
-export async function PATCH(req: NextResponse) {
+export async function PATCH(req: NextRequest) {
     try {
       await dbConnect();
       const body = await req.json();

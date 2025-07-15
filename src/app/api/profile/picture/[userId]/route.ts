@@ -5,10 +5,10 @@ import cloudinary from "@/lib/cloudinary";
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   await dbConnect();
-  const { userId } = params;
+  const userId = (await params).userId
 
   if (!userId) {
     return NextResponse.json({ error: "User ID is required" }, { status: 400 });
@@ -55,10 +55,10 @@ export async function PUT(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   await dbConnect();
-  const { userId } = params;
+  const userId = (await params).userId
 
   if (!userId) {
     return NextResponse.json({ error: "User ID is required" }, { status: 400 });

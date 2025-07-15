@@ -142,7 +142,7 @@ const ProfileFormCard: React.FC<ProfileFormCardProps> = ({
     onSubmit: async (values, { setSubmitting }) => {
       try {
         const formData = new FormData();
-        formData.append("userId", userId);
+        if (userId) formData.append("userId", userId);
         formData.append("fullName", values.fullName);
         formData.append("professionalSummary", values.professionalSummary);
         formData.append("interests", JSON.stringify(values.interests));
@@ -165,10 +165,11 @@ const ProfileFormCard: React.FC<ProfileFormCardProps> = ({
 
         // Certifications
         certifications.forEach((cert, i) => {
-          if (cert.file) {
+          if (cert.file instanceof File) {
             formData.append(`certifications[${i}].file`, cert.file);
           }
         });
+
 
         const res = await apiRequest("profile", {
           method: "PUT",

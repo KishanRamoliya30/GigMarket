@@ -6,7 +6,7 @@ export interface ApiResponse<T> {
   success: boolean;
   errors?: FieldError[];
   message?: string;
-  data?: T;
+  data?: any;
   error?: string;
   ok: boolean;
   status: number;
