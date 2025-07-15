@@ -7,9 +7,8 @@ import { styled } from "@mui/system";
 import { useUser } from "@/context/UserContext";
 import { apiRequest } from "@/app/lib/apiCall";
 import { useEffect, useState } from "react";
-import { GigDocument } from "@/app/models/gig";
+import { Gig } from "@/app/utils/interfaces";
 import CustomTextField from "../customUi/CustomTextField";
-import { ServiceTier } from "../../../utils/constants";
 
 export default function GigDetailPage() {
   const router = useRouter();
@@ -17,7 +16,7 @@ export default function GigDetailPage() {
   const { user } = useUser();
   const isProvider = user?.role == "Provider";
   const { gigId } = params;
-  const [gigDetails, setGigDetails] = useState<GigDocument>();
+  const [gigDetails, setGigDetails] = useState<Gig|null>(null);
   const [showPlaceBid, setShowPlaceBid] = useState(false);
   const [bidAmount, setBidAmount] = useState("");
   const [bidComment, setBidComment] = useState("");
@@ -48,7 +47,7 @@ export default function GigDetailPage() {
   useEffect(() => {
     gigDetail();
   }, []);
-
+console.log("test",isProvider)
   const minutesAgo = Math.floor(
     (new Date().getTime() - new Date(gigDetails?.createdAt ?? "").getTime()) /
       (1000 * 60)
@@ -194,7 +193,7 @@ export default function GigDetailPage() {
             Keywords
           </Typography>
           <Box className="keywords">
-            {gigDetails.keywords.map((word: any) => (
+            {gigDetails.keywords.map((word: string) => (
               <Chip key={word} label={word} size="small" className="gigChip" />
             ))}
           </Box>
@@ -251,16 +250,16 @@ export default function GigDetailPage() {
           <Paper elevation={3} className="providerCard">
             <Box className="providerHeader">
               <Avatar
-                src={gig.provider.avatar}
-                alt={!isProvider?gig.provider.name:gig.user.name}
+                src={gigDetails.createdBy.profilePicture}
+                alt={gigDetails.createdBy.fullName}
                 sx={{ width: 60, height: 60, cursor: "pointer" }}
                 onClick={() =>
-                  router.push("/profile/" + !isProvider?gig.provider.name:gig.user.name.toLowerCase())
+                  router.push("/profile/" + gigDetails.createdBy.fullName.toLowerCase())
                 }
               />
               <Box>
                 <Typography variant="h6" fontWeight={600}>
-                  {!isProvider?gig.provider.name:gig.user.name}
+                  {gigDetails.createdBy.fullName}
                 </Typography>
                 <Box display="flex" alignItems="center" gap={0.5}>
                   <Rating

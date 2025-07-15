@@ -121,7 +121,12 @@ export async function middleware(request: NextRequest) {
       }
     }
     // if logged in and try to access public page redirect to respective dashboard
-    else if (isPublicPath && userData._id != "") {
+  
+    else if (
+      isPublicPath &&
+      userData._id != "" &&
+      !["/gigs", "/api/gigs/list"].some((p) => pathname.startsWith(p))
+    ) {
       const redirectPath = userData.isAdmin ? "/admin" : "/dashboard";
       return NextResponse.redirect(new URL(redirectPath, request.url));
     }
