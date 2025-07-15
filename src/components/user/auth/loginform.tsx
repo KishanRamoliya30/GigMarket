@@ -66,7 +66,7 @@ const LoginForm = () => {
 
     // Step 2: After subscription, check profile
     if (!user.profileCompleted) {
-      router.push("/profile");
+      router.push("/add-profile");
       return;
     }
     router.push("/dashboard");

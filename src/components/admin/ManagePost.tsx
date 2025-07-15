@@ -35,7 +35,7 @@ const postsData: Post[] = [
   { id: 7, title: 'Portfolio Optimization', category: 'Design', flagged: false },
 ];
 
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
+const StyledTableRow = styled(TableRow)(() => ({
   '&:hover': {
     backgroundColor: '#f9f9f9',
   },

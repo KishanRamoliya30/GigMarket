@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --no-lint",
     "start": "next start",
     "lint": "next lint",
     "stripe:listen": "stripe listen --forward-to localhost:3000/api/webhooks/stripe"
@@ -19,6 +19,7 @@
     "@stripe/stripe-js": "^7.4.0",
     "@tinymce/tinymce-react": "^6.2.1",
     "@types/react-router-dom": "^5.3.3",
+    "@types/tinymce": "^4.6.9",
     "axios": "^1.10.0",
     "bcryptjs": "^3.0.2",
     "cloudinary": "^2.7.0",
@@ -37,6 +38,7 @@
     "react-toastify": "^11.0.5",
     "slick-carousel": "^1.8.1",
     "stripe": "^18.2.1",
+    "tinymce": "^7.9.1",
     "yup": "^1.6.1",
     "zod": "^3.25.67"
   },

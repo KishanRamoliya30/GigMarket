@@ -74,9 +74,18 @@ export async function POST(request: Request) {
       profilePictureUrl = uploadResult.url;
     }
 
+    // Define a type for certification
+    type Certification = {
+      file?: {
+        name?: string;
+        url?: string;
+      };
+      [key: string]: unknown;
+    };
+
     // Upload certifications
     const uploadedCertifications = await Promise.all(
-      certifications.map(async (cert: any, index: number) => {
+      certifications.map(async (cert: Certification, index: number) => {
         const file = formData.get(`certifications[${index}].file`) as File;
         if (file && file.size > 0) {
           const upload = await uploadToCloudinary(file, "certifications");

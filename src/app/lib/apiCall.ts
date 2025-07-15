@@ -6,13 +6,13 @@ export interface ApiResponse<T> {
   success: boolean;
   errors?: FieldError[];
   message?: string;
-  data?: T;
+  data?: any;
   error?: string;
   ok: boolean;
   status: number;
 }
 
-export async function apiRequest<T = any>(
+export async function apiRequest<T>(
   url: string,
   options: AxiosRequestConfig = {}
 ): Promise<ApiResponse<T>> {

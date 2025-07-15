@@ -75,7 +75,7 @@ export default function NotFound() {
       <Typography className="code">404</Typography>
       <Typography className="title">Page Not Found</Typography>
       <Typography className="subtitle">
-        The page you are looking for doesn't exist or has been moved.
+        The page you are looking for doesn&apos;t exist or has been moved.
       </Typography>
 
       <Button onClick={() => router.push("/")} className="backBtn">

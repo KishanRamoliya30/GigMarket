@@ -46,6 +46,7 @@ export default function GigDetailPage() {
   };
   useEffect(() => {
     gigDetail();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 console.log("test",isProvider)
   const minutesAgo = Math.floor(

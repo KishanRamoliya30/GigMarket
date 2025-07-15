@@ -70,7 +70,7 @@ export default function AdminSidebar() {
     </Wrapper>
   );
 }
-const Wrapper = styled(Box)(({ theme }) => ({
+const Wrapper = styled(Box)(() => ({
   width: 240,
   height: "100vh",
   borderRight: "1px solid #eee",

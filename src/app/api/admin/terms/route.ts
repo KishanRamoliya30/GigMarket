@@ -30,9 +30,9 @@ export async function POST(request: Request) {
       success: true,
       savedTerms,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
-      { error: error.message || "Something went wrong." },
+      { error: typeof error === "object" && error !== null && "message" in error ? (error as { message?: string }).message : "Something went wrong." },
       { status: 500 }
     );
   }
@@ -49,9 +49,9 @@ export async function GET() {
         content: terms.content,
         updatedAt: terms.updatedAt,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       return NextResponse.json(
-        { error: error.message || "Failed to load terms." },
+        { error: typeof error === "object" && error !== null && "message" in error ? (error as { message?: string }).message : "Failed to load terms." },
         { status: 500 }
       );
     }

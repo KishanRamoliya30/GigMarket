@@ -48,6 +48,7 @@ export default function AdminLogin() {
           setFieldError("password", res.error || "Access denied");
         }
       } catch (error) {
+        console.error("Admin login error:", error);
         setFieldError("password", "Server error. Try again.");
       } finally {
         setSubmitting(false);

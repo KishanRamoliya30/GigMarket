@@ -74,9 +74,18 @@ const ProfileFormCard: React.FC<ProfileFormCardProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useUser();
   const userId = user?._id;
-  const [certifications, setCertifications] = useState<{ file: any }[]>(
+
+  interface CertificationFile {
+    name: string;
+  }
+
+  interface Certification {
+    file: File | CertificationFile;
+  }
+
+  const [certifications, setCertifications] = useState<Certification[]>(
     profileData?.certifications
-      ? profileData.certifications.map((cert) => ({
+      ? profileData.certifications.map((cert): Certification => ({
           file: { name: cert.fileName },
         }))
       : []
@@ -133,7 +142,7 @@ const ProfileFormCard: React.FC<ProfileFormCardProps> = ({
     onSubmit: async (values, { setSubmitting }) => {
       try {
         const formData = new FormData();
-        formData.append("userId", userId);
+        if (userId) formData.append("userId", userId);
         formData.append("fullName", values.fullName);
         formData.append("professionalSummary", values.professionalSummary);
         formData.append("interests", JSON.stringify(values.interests));
@@ -156,10 +165,11 @@ const ProfileFormCard: React.FC<ProfileFormCardProps> = ({
 
         // Certifications
         certifications.forEach((cert, i) => {
-          if (cert.file) {
+          if (cert.file instanceof File) {
             formData.append(`certifications[${i}].file`, cert.file);
           }
         });
+
 
         const res = await apiRequest("profile", {
           method: "PUT",
@@ -180,8 +190,12 @@ const ProfileFormCard: React.FC<ProfileFormCardProps> = ({
         } else {
           toast.error(res.error || "Something went wrong.");
         }
-      } catch (err: any) {
-        toast.error(err.message || "Submission failed");
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          toast.error(err.message || "Submission failed");
+        } else {
+          toast.error("Submission failed");
+        }
       } finally {
         setSubmitting(false);
       }
