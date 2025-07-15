@@ -4,7 +4,8 @@ import { LoginUser } from "./app/utils/interfaces";
 const getSecret = () => new TextEncoder().encode(process.env.JWT_SECRET);
 
 const PUBLIC_PATHS = [
-  "/",
+   "/", 
+  "/dashboard",
   "/login",
   "/signup",
   "/terms",
@@ -15,7 +16,7 @@ const PUBLIC_PATHS = [
   "/verify-email",
   "/forgot-password",
   "/gigs",
-  
+
   "/api/webhooks/stripe",
   "/api/forgot-password",
   "/api/reset-password",
@@ -33,6 +34,8 @@ const PUBLIC_PATHS = [
 
   "/api/admin/login",
 ];
+
+const COMMON_PATHS = ["/dashboard", "/gigs" , "/api/gigs"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -60,8 +63,13 @@ export async function middleware(request: NextRequest) {
   }
   const email = request.cookies.get("email")?.value;
   const isVerified = request.cookies.get("isVerified")?.value === "true";
-  const isPublicPath = PUBLIC_PATHS.some((route) => pathname.startsWith(route));
-
+  let isPublicPath = PUBLIC_PATHS.some((route) => pathname.startsWith(route));
+  //allow gigs/[id] path
+  
+  if (pathname.startsWith("/api/gigs")) {
+    const segments = pathname.split("/").filter(Boolean);
+    isPublicPath = segments.length === 3; 
+  }
   if (pathname.startsWith("/verify-email") && !isVerified) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
@@ -76,8 +84,8 @@ export async function middleware(request: NextRequest) {
         userData.hasProfile &&
         pathname === "/add-profile"
       ) {
-        return NextResponse.redirect(new URL("/dashboard", request.url));
-   }
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
 
   if (pathname.startsWith("/api")) {
     if (!isPublicPath && userData._id != "") {
@@ -97,7 +105,7 @@ export async function middleware(request: NextRequest) {
     if (!isPublicPath && userData._id != "") {
       //REDIRECTS BASED ON SUBSCRIPTION / PROFILE FLOW
 
-     
+
       //admin can only access pages with path admin
       if (userData.isAdmin && !pathname.includes("/admin")) {
         return NextResponse.redirect(new URL("/admin", request.url));
@@ -105,11 +113,13 @@ export async function middleware(request: NextRequest) {
 
       //normal user can't access admin paths
       else if (!userData.isAdmin && pathname.includes("/admin")) {
+        console.log("test1");
         return NextResponse.redirect(new URL("/dashboard", request.url));
       }
 
       //pages with path in user can only be accessed by user role
       else if (pathname.startsWith("/user") && userData.role != "User") {
+        console.log("test2");
         return NextResponse.redirect(new URL("/dashboard", request.url));
       }
 
@@ -118,18 +128,18 @@ export async function middleware(request: NextRequest) {
         pathname.startsWith("/provider") &&
         userData.role != "Provider"
       ) {
+        console.log("test3");
+
         return NextResponse.redirect(new URL("/dashboard", request.url));
       }
     }
     // if logged in and try to access public page redirect to respective dashboard
-  
-    else if (
-      isPublicPath &&
-      userData._id != "" &&
-      !["/gigs", "/api/gigs/list"].some((p) => pathname.startsWith(p))
-    ) {
-      const redirectPath = userData.isAdmin ? "/admin" : "/dashboard";
-      return NextResponse.redirect(new URL(redirectPath, request.url));
+    else if (isPublicPath && userData._id != "") {
+      if (!COMMON_PATHS.some((path) => pathname.startsWith(path))) {
+        const redirectPath = userData.isAdmin ? "/admin" : "/dashboard";
+        console.log("test4");
+        return NextResponse.redirect(new URL(redirectPath, request.url));
+      }
     }
     // if not public path redirect to login page
     else if (!isPublicPath && userData._id == "") {
@@ -145,7 +155,8 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/api/:path*", "/admin/:path*", "/:path",
+    "/api/:path*",
+    "/admin/:path*",
     "/((?!_next/static|_next/image|favicon.ico|images|uploads|.*\\.[a-zA-Z0-9]+$).*)",
   ],
 };
