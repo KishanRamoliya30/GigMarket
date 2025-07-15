@@ -4,6 +4,7 @@ import { LoginUser } from "./app/utils/interfaces";
 const getSecret = () => new TextEncoder().encode(process.env.JWT_SECRET);
 
 const PUBLIC_PATHS = [
+  "/",
   "/login",
   "/signup",
   "/terms",
@@ -138,5 +139,8 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/api/:path*", "/admin/:path*", "/:path"],
+  matcher: [
+    "/api/:path*", "/admin/:path*", "/:path",
+    "/((?!_next/static|_next/image|favicon.ico|images|uploads|.*\\.[a-zA-Z0-9]+$).*)",
+  ],
 };

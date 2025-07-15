@@ -31,13 +31,13 @@ type MongooseValidationError = {
     }
   >;
 };
-export type HandlerContext = {
-  params?: Record<string, string>;
-};
+// export type HandlerContext = {
+//   params?: Record<string, string>;
+// };
 
 export type ApiHandler<T = unknown> = (
   req: NextRequest,
-  context: HandlerContext
+  context: any
 ) => Promise<NextResponse<T>>;
 
 export function successResponse<T>(
@@ -105,7 +105,7 @@ export function errorResponse(
 export function withApiHandler<T>(handler: ApiHandler<T>) {
   return async (
     req: NextRequest,
-    context: HandlerContext = {}
+    context: any
   ): Promise<NextResponse<T>> => {
     try {
       return await handler(req, context);
