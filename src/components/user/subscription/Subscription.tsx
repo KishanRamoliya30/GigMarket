@@ -100,7 +100,7 @@ const Subscription = () => {
   return (
     <>
       <Loader loading={loading} />
-      <Box sx={{ bgcolor: "#fff", py: 8 }}>
+      <Box sx={{ bgcolor: "#fff", py: 8, pt: 12 }}>
         <Container maxWidth="lg">
           <Typography
             style={{ marginBottom: "16px" }}

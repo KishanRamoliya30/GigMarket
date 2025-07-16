@@ -7,6 +7,10 @@ import User from '@/app/models/user';
 import Subscription from '@/app/models/subscription';
 import Invoice from '@/app/models/invoice';
 import { setFreePlanToUser } from '@/app/lib/subscriptionHelpers';
+import { generateToken } from '@/app/utils/jwt';
+import { jwtVerify } from 'jose';
+
+const getSecret = () => new TextEncoder().encode(process.env.JWT_SECRET);
 
 export async function POST(req: NextRequest) {
   await dbConnect();
@@ -16,6 +20,7 @@ export async function POST(req: NextRequest) {
   const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
   let event;
+  let updatedUser;
   try {
     event = stripe.webhooks.constructEvent(rawBody, sig!, endpointSecret);
   } catch (err: unknown) {
@@ -100,6 +105,7 @@ export async function POST(req: NextRequest) {
 
       user.subscriptionCompleted = true;
       await user.save();
+      updatedUser = user;
       break;
     }
 
@@ -160,5 +166,30 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  return new NextResponse('Subscription has been done successfully', { status: 200 });
+  const response = new NextResponse('Subscription has been done successfully', { status: 200 });
+
+  const { payload } = await jwtVerify(
+    req.cookies.get("token")?.value ?? "",
+    getSecret()
+  );
+
+  const token = generateToken({
+    userId: updatedUser._id,
+    email: updatedUser.email,
+    role: payload.role,
+    subscriptionCompleted: updatedUser.subscriptionCompleted,
+    profileCompleted: updatedUser.profileCompleted
+  });
+
+  response.cookies.set({
+    name: "token",
+    value: token,
+    httpOnly: true,
+    secure: false,
+    sameSite: "strict",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 7,
+  });
+
+  return response;
 }
