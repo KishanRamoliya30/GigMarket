@@ -105,12 +105,15 @@ const handleProfileUpdate = (updatedProfile: Profile) => {
           p: 3,
           pt:12,
           backgroundColor: "#f7f9fc",
+          background: "linear-gradient(270deg, #0f2027, #203a43, #2c5364, #1a1f2b)",
+          backgroundSize: "800% 800%",
+          animation: "gradientShift 20s ease infinite", 
         }}
       >
         <Paper
           elevation={3}
           sx={{
-            maxWidth: 900,
+            maxWidth: 800,
             width: "100%",
             borderRadius: 4,
             p: 4,
@@ -167,7 +170,7 @@ const handleProfileUpdate = (updatedProfile: Profile) => {
           </Typography>
           <Stack direction="row" spacing={1} flexWrap="wrap" mb={3}>
             {interests.map((interest: string) => (
-              <Chip key={interest} label={interest} color="primary" />
+              <Chip key={interest} label={interest} sx={{background: "#263238",color:"#fff"}} />
             ))}
           </Stack>
 
@@ -215,7 +218,7 @@ const handleProfileUpdate = (updatedProfile: Profile) => {
                   <Box key={idx} display="flex" alignItems="center" mb={1}>
                     <SchoolIcon
                       fontSize="small"
-                      sx={{ mr: 1, color: "#1976d2" }}
+                      sx={{ mr: 1, color: "#263238" }}
                     />
                     <Typography color="text.secondary">
                       {edu.degree}, {edu.school} ({edu.year})
