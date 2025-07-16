@@ -130,6 +130,7 @@ export default function Header() {
   console.log("####5", user, user?.role);
   const role = user?.role;
   const _id = user?._id;
+  const isAllCompleted = user?.subscriptionCompleted && user.profileCompleted;
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -284,7 +285,7 @@ export default function Header() {
           <FavoriteBorderIcon />
           {_id ? (
             <>
-              <Typography
+              {isAllCompleted && <Typography
                 variant="body2"
                 sx={{
                   fontWeight: 500,
@@ -294,7 +295,7 @@ export default function Header() {
                 }}
               >
                 <Link href="/gigs/create">Add Gig</Link>
-              </Typography>
+              </Typography>}
 
               <Typography variant="body2" sx={{ fontWeight: 500 }}>
                 Orders

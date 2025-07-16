@@ -3,18 +3,8 @@ import { jwtVerify } from "jose";
 import { LoginUser } from "./app/utils/interfaces";
 const getSecret = () => new TextEncoder().encode(process.env.JWT_SECRET);
 
-const PUBLIC_PATHS = [
-   "/", 
-  "/dashboard",
-  "/login",
-  "/signup",
-  "/terms",
-  "/privacy",
-  "/forgot-password",
-  "/reset-password",
-  "/verify-otp",
+const START_WITH_PUBLIC_PATHS = [
   "/verify-email",
-  "/forgot-password",
   "/gigs",
 
   "/api/webhooks/stripe",
@@ -35,7 +25,20 @@ const PUBLIC_PATHS = [
   "/api/admin/login",
 ];
 
-const COMMON_PATHS = ["/dashboard", "/gigs" , "/api/gigs"];
+const FIX_PUBLIC_PATHS = [
+  "/",
+  "/dashboard",
+  "/login",
+  "/signup",
+  "/terms",
+  "/privacy",
+  "/forgot-password",
+  "/reset-password",
+  "/verify-otp",
+  "/forgot-password",
+];
+
+const COMMON_PATHS = ["/dashboard", "/gigs", "/api/gigs", "/"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -46,8 +49,8 @@ export async function middleware(request: NextRequest) {
     email: "",
     isAdmin: false,
     role: "",
-    hasSubscription: false,
-    hasProfile: false
+    subscriptionCompleted: false,
+    profileCompleted: false
   };
 
   if (token) {
@@ -57,18 +60,22 @@ export async function middleware(request: NextRequest) {
       email: payload.email as string,
       isAdmin: payload.role == "Admin",
       role: payload.role?.toString() ?? "",
-      hasSubscription: payload.subscriptionCompleted as boolean,
-      hasProfile: payload.profileCompleted as boolean
+      subscriptionCompleted: payload.subscriptionCompleted as boolean,
+      profileCompleted: payload.profileCompleted as boolean
     };
   }
   const email = request.cookies.get("email")?.value;
   const isVerified = request.cookies.get("isVerified")?.value === "true";
-  let isPublicPath = PUBLIC_PATHS.some((route) => pathname.startsWith(route));
+  let isPublicPath = FIX_PUBLIC_PATHS.includes(pathname) || (START_WITH_PUBLIC_PATHS.some((route) => pathname.startsWith(route)) && (pathname !== "/gigs/create"));
+
+  // if (pathname === "/") {
+  //   return NextResponse.redirect(new URL("/dashboard", request.url));
+  // }
+
   //allow gigs/[id] path
-  
   if (pathname.startsWith("/api/gigs")) {
     const segments = pathname.split("/").filter(Boolean);
-    isPublicPath = segments.length === 3; 
+    isPublicPath = segments.length === 3;
   }
   if (pathname.startsWith("/verify-email") && !isVerified) {
     return NextResponse.redirect(new URL("/login", request.url));
@@ -79,12 +86,6 @@ export async function middleware(request: NextRequest) {
     if (!email) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
-  }
-   if (
-        userData.hasProfile &&
-        pathname === "/add-profile"
-      ) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   if (pathname.startsWith("/api")) {
@@ -102,7 +103,15 @@ export async function middleware(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
   } else {
-    if (!isPublicPath && userData._id != "") {
+    if (!userData.isAdmin && !!userData._id) {
+      if (!userData.subscriptionCompleted && pathname !== "/subscription") {
+        return NextResponse.redirect(new URL("/subscription", request.url));
+      } else if (!userData.isAdmin && userData.subscriptionCompleted && !userData.profileCompleted && pathname !== "/add-profile") {
+        return NextResponse.redirect(new URL("/add-profile", request.url));
+      }
+    }
+
+    else if (!isPublicPath && userData._id != "") {
       //REDIRECTS BASED ON SUBSCRIPTION / PROFILE FLOW
 
 

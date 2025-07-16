@@ -24,6 +24,8 @@ export async function POST(request: NextRequest): Promise<Response> {
         userId: user._id,
         email: user.email,
         role: payload.role == "User" ? "Provider" : "User",
+        subscriptionCompleted: user.subscriptionCompleted,
+        profileCompleted: user.profileCompleted
       });
       const response = NextResponse.json({
         message: "Switch User successful.",

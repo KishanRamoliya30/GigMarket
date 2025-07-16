@@ -16,8 +16,8 @@ export interface LoginUser {
   email: string;
   isAdmin: boolean;
   role: string;
-  hasSubscription: boolean,
-  hasProfile: boolean
+  subscriptionCompleted: boolean,
+  profileCompleted: boolean
 }
 
 export interface ProfileResponse {
