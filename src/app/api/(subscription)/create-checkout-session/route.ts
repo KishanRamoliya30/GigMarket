@@ -50,6 +50,7 @@ export async function POST(request: NextRequest) {
   if (!user) {
     throw new ApiError('User not found', 404);
   }
+try{
 
   if (plan.price <= 0) {
     // Cancel existing Stripe subscription if any
@@ -122,4 +123,9 @@ export async function POST(request: NextRequest) {
     'Stripe session created',
     200
   );
+} catch (error) {
+  console.error('Error creating checkout session:', error);
+  throw new ApiError(JSON.stringify(error), 500);
+}
+
 }
