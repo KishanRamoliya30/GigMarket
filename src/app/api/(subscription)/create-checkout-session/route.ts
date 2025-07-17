@@ -5,6 +5,7 @@ import User from '@/app/models/user';
 import dbConnect from '@/app/lib/dbConnect';
 import { ApiError } from '@/app/lib/commonError';
 import Subscription from '@/app/models/subscription';
+import { jwtVerify } from 'jose';
 export const runtime = 'nodejs';
 
 type PlanType = {
@@ -22,9 +23,11 @@ type RequestBody = {
   email: string;
 };
 
+const getSecret = () => new TextEncoder().encode(process.env.JWT_SECRET);
+
 export async function POST(request: NextRequest) {
   await dbConnect();
-  try{
+  try {
     let body: RequestBody;
 
     try {
@@ -33,19 +36,19 @@ export async function POST(request: NextRequest) {
       throw new ApiError('Invalid JSON body', 400);
     }
 
-    const xUser = request.headers.get('x-user');
-    if (!xUser) {
-      throw new ApiError('Missing x-user header', 400);
-    }
+    const { payload } = await jwtVerify(
+      request.cookies.get("token")?.value ?? "",
+      getSecret()
+    );
+    console.log("#####80", payload)
 
-    let userDetails;
-    try {
-      userDetails = JSON.parse(xUser);
-    } catch {
-      throw new ApiError('Invalid JSON in x-user header', 400);
-    }
+    const user = await User.findOne({ email: payload.email });
+    const email = user.email;
 
-    const email = userDetails.email;
+    console.log("#####81", user)
+    if (!user) {
+      throw new ApiError('User not found', 404);
+    }
 
     const { plan, successUrl, cancelUrl } = body;
 
@@ -57,13 +60,8 @@ export async function POST(request: NextRequest) {
       throw new ApiError('Missing Stripe priceId for paid plan', 400);
     }
 
-    const user = await User.findOne({ email });
-    if (!user) {
-      throw new ApiError('User not found', 404);
-    }
-
     if (plan.price <= 0) {
-    // Cancel existing Stripe subscription if any
+      // Cancel existing Stripe subscription if any
       if (user.subscription?.subscriptionId) {
         const existingSub = await Subscription.findById(user.subscription.subscriptionId);
 
@@ -78,7 +76,7 @@ export async function POST(request: NextRequest) {
         }
       }
 
-    // Update user with free plan
+      // Update user with free plan
       user.subscription = {
         status: 'active',
         subscriptionId: null,
@@ -133,11 +131,11 @@ export async function POST(request: NextRequest) {
       'Stripe session created',
       200
     );
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-} catch (error:any) {
-  console.error('Error creating checkout session:', error);
-  // return successResponse(error, 'Failed to create checkout session', 500);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    console.error('Error creating checkout session:', error);
+    // return successResponse(error, 'Failed to create checkout session', 500);
     return successResponse(error, error.message, 500);
-}
+  }
 
 }
