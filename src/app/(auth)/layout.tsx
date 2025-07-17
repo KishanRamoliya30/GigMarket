@@ -4,17 +4,19 @@ import { Box, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import CheckIcon from "@mui/icons-material/Check";
 import GigMarketLogo from "@/components/logo";
+import { useRouter } from "next/navigation";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const router = useRouter()
   return (
     <Wrapper>
       <Box className="leftPart">
-        <Box className="logoContainer">
-          <GigMarketLogo  textColor="#fff"/>
+        <Box className="logoContainer" onClick={()=>router.push("/")}>
+          <GigMarketLogo  textColor="#fff" />
         </Box>
         <Box className="overlayContent">
           <Typography variant="h4" className="heading">
@@ -67,6 +69,7 @@ const Wrapper = styled(Box)(({ theme }) => ({
     justifyContent: "flex-start",
     alignItems: "center",
     height: "60px",
+    cursor:"pointer"
   },
 
   "& .logo": {

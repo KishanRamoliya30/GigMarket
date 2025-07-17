@@ -250,7 +250,7 @@ const ProfileFormCard: React.FC<ProfileFormCardProps> = ({
           width: "100%",
           maxWidth: "700px",
           bgcolor: "#fff",
-          borderRadius: "14px",
+          borderRadius: 4,
           boxShadow: "3px",
           padding: "0",
           margin: "0 auto",
