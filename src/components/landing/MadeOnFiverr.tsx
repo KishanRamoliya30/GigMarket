@@ -15,7 +15,7 @@ const MadeOnFiverr = () => {
   return (
     <section className="py-16 px-4 md:px-10 bg-white">
       <h2 className="text-3xl md:text-4xl font-semibold text-gray-800 mb-10">
-        Made on Fiverr
+        Made on GigMarket
       </h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

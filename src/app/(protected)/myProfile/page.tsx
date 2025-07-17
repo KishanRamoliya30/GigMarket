@@ -103,11 +103,7 @@ const handleProfileUpdate = (updatedProfile: Profile) => {
           display: "flex",
           justifyContent: "center",
           p: 3,
-          pt:12,
-          backgroundColor: "#f7f9fc",
-          background: "linear-gradient(270deg, #0f2027, #203a43, #2c5364, #1a1f2b)",
-          backgroundSize: "800% 800%",
-          animation: "gradientShift 20s ease infinite", 
+          zIndex:"-1"
         }}
       >
         <Paper

@@ -9,13 +9,14 @@ import {
 } from "@mui/icons-material";
 import AOS from "aos";
 import "aos/dist/aos.css";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 const FreelancerBenefits = () => {
   useEffect(() => {
     AOS.init({ duration: 800, once: true });
   }, []);
-
+  const router = useRouter();
   const features = [
     {
       icon: <AppsOutlined className="text-gray-700 text-4xl" />,
@@ -67,7 +68,10 @@ const FreelancerBenefits = () => {
         ))}
       </div>
 
-      <button className="mt-12 bg-gray-900 text-white px-6 py-3 rounded-md hover:bg-gray-800 transition">
+      <button
+        className="mt-12 bg-gray-900 text-white px-6 py-3 rounded-md hover:bg-gray-800 transition cursor-pointer"
+        onClick={() => router.push("/signup")}
+      >
         Join now
       </button>
     </section>
