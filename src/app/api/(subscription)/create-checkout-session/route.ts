@@ -23,7 +23,7 @@ type RequestBody = {
 
 export async function POST(request: NextRequest) {
   await dbConnect();
-
+  try{
   let body: RequestBody;
 
   try {
@@ -50,7 +50,6 @@ export async function POST(request: NextRequest) {
   if (!user) {
     throw new ApiError('User not found', 404);
   }
-try{
 
   if (plan.price <= 0) {
     // Cancel existing Stripe subscription if any
@@ -125,7 +124,7 @@ try{
   );
 } catch (error) {
   console.error('Error creating checkout session:', error);
-  throw new ApiError(JSON.stringify(error), 500);
+  return successResponse(error, 'Failed to create checkout session', 500);
 }
 
 }
