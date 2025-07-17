@@ -30,6 +30,7 @@ const SubscriptionSuccessPage = () => {
     if (response?.data?.success) {
       return;
     } else {
+      console.log("##MinuSuccess3##","No session found or invalid sessionId", response?.data); 
       handleNavigate();
     }
   };
@@ -53,7 +54,9 @@ const SubscriptionSuccessPage = () => {
   };
 
   useEffect(() => {
+    console.log("##MinuSuccess1##",sessionId);
     if (!sessionId) {
+    console.log("##MinuSuccess2##","No sessionId found"); 
       handleNavigate();
       return;
     }
