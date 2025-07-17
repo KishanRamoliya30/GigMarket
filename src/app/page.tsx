@@ -8,6 +8,9 @@ import PopularServices from "@/components/landing/PopulerServices";
 import Everything from "@/components/landing/Everything";
 import JoinFiverr from "@/components/landing/JoinFiveer";
 import FiverrBusiness from "@/components/landing/FiverrBusiness";
+import FreelancerBenefits from "@/components/landing/FreelancerBenefits";
+import MadeOnFiverr from "@/components/landing/MadeOnFiverr";
+import TrustedServices from "@/components/landing/TrustedService";
 
 export default function Home() {
   return (
@@ -18,6 +21,9 @@ export default function Home() {
       <PopularServices/>
       <Everything/>
       <FiverrBusiness/>
+      <TrustedServices/>
+      <FreelancerBenefits/>
+      <MadeOnFiverr/>
       <JoinFiverr/>
       <Footer />
     </>
