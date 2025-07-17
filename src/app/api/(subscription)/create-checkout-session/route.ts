@@ -122,9 +122,10 @@ export async function POST(request: NextRequest) {
     'Stripe session created',
     200
   );
-} catch (error) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+} catch (error:any) {
   console.error('Error creating checkout session:', error);
-  return successResponse(error, 'Failed--' + JSON.stringify(error), 500);
+  return successResponse(error, error.message, 500);
 }
 
 }
