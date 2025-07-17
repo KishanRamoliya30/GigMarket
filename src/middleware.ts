@@ -104,10 +104,13 @@ export async function middleware(request: NextRequest) {
     }
   } else {
     if (!userData.isAdmin && !!userData._id) {
-      if (!userData.subscriptionCompleted && pathname !== "/subscription") {
-        return NextResponse.redirect(new URL("/subscription", request.url));
-      } else if (!userData.isAdmin && userData.subscriptionCompleted && !userData.profileCompleted && pathname !== "/add-profile") {
-        return NextResponse.redirect(new URL("/add-profile", request.url));
+      if(!pathname.startsWith("/subscriptionSuccess"))
+      {
+        if (!userData.subscriptionCompleted && pathname !== "/subscription") {
+          return NextResponse.redirect(new URL("/subscription", request.url));
+        } else if (!userData.isAdmin && userData.subscriptionCompleted && !userData.profileCompleted && pathname !== "/add-profile") {
+          return NextResponse.redirect(new URL("/add-profile", request.url));
+        }
       }
     }
 
