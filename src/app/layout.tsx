@@ -16,6 +16,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  icons: {
+    icon: "/favicon.png"
+  },
   title: "GigMarket | Freelance Services Marketplace",
   description:
     "GigMarket is a modern freelance marketplace connecting clients with skilled professionals across design, development, writing, marketing, and more. Hire or get hired with ease.",
