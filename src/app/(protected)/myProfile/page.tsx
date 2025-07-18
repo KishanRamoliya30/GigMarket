@@ -115,6 +115,7 @@ const handleProfileUpdate = (updatedProfile: Profile) => {
             p: 4,
             background: "#fff",
             position: "relative",
+            zIndex:"-1"
           }}
         >
           <Stack direction="row" spacing={3} alignItems="center" mb={4}>
