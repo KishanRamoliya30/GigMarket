@@ -103,6 +103,7 @@ export async function middleware(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
   } else {
+    console.log("##MinuSuccess0##",userData,isPublicPath,pathname);
     if (!userData.isAdmin && !!userData._id) {
       const isSubscriptionPage = pathname === "/subscription";
       const isSubscriptionSuccessPage = pathname.startsWith("/subscriptionSuccess");

@@ -8,7 +8,6 @@ import Subscription from '@/app/models/subscription';
 import Invoice from '@/app/models/invoice';
 import { setFreePlanToUser } from '@/app/lib/subscriptionHelpers';
 
-
 export async function POST(req: NextRequest) {
   await dbConnect();
 
