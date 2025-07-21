@@ -21,6 +21,7 @@ export interface GigDocument extends Document {
   certification: Certification;
   createdByRole: 'User' | 'Provider';
   status: "Open" | "Requested" | "In-Progress" | "Completed" | "Rejected"; 
+  isPublic: boolean;
   createdBy: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
@@ -57,6 +58,7 @@ const GigSchema = new Schema<GigDocument>(
       enum: ['User', 'Provider'],
       required: true,
     },
+    isPublic: { type: Boolean, required: true, default: false },
     status: {
       type: String,
       enum: ["Open", "Requested", "In-Progress", "Completed", "Rejected"],

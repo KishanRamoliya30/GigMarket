@@ -76,7 +76,8 @@ export const POST = withApiHandler(async (req: NextRequest): Promise<NextRespons
     certification: uploadedFile,
     createdByRole: userDetails.role,
     createdBy: userDetails.userId,
-    status: "Open"
+    status: "Open",
+    isPublic: userDetails.role
   };
 
   createGigSchema.parse(data);
