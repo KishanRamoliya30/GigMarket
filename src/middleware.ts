@@ -72,6 +72,10 @@ export async function middleware(request: NextRequest) {
   //   return NextResponse.redirect(new URL("/dashboard", request.url));
   // }
 
+  const isSubscriptionPage = pathname === "/subscription";
+  const isSubscriptionSuccessPage = pathname.startsWith("/subscriptionSuccess");
+  console.log("##MinuSubscribe##",userData,isSubscriptionPage,isSubscriptionSuccessPage);
+  
   //allow gigs/[id] path
   if (pathname.startsWith("/api/gigs")) {
     const segments = pathname.split("/").filter(Boolean);
