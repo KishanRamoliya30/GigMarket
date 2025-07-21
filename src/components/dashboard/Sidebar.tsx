@@ -24,7 +24,7 @@ const menuItems = [
   { icon: <ListAlt />, label: "Orders", path: "/dashboard" },
   { icon: <WorkOutline />, label: "My Gigs", path: "/gigs" },
   { icon: <AttachMoney />, label: "Earnings", path: "/dashboard" },
-  { icon: <BarChart />, label: "Analytics", path: "/dashboard" },
+  { icon: <BarChart />, label: "Gig Management", path: "/gig-management" },
   { icon: <NotificationsNone />, label: "Notifications", path: "/dashboard" },
   { icon: <PersonOutline />, label: "Profile", path: "/myProfile" },
   { icon: <CreditCardIcon />, label: "Subscriptions", path: "/subscription" },

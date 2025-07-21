@@ -201,3 +201,69 @@ export const TierList: ServiceTier[] = Object.values(ServiceTier);
 export const capitalizeFirstLetter = (str: string) => {
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 };
+
+export type GigStatus = "open" | "requested" | "in-progress" | "completed" | "rejected";
+
+export interface GigStatusHistory {
+  id: string;
+  status: GigStatus;
+  timestamp: Date;
+  changedBy: {
+    id: string;
+    name: string;
+    role: "client" | "provider";
+  };
+  notes?: string;
+  previousStatus?: GigStatus;
+}
+
+export interface Gig {
+  id: string;
+  title: string;
+  description: string;
+  budget: number;
+  currentStatus: GigStatus;
+  client: {
+    id: string;
+    name: string;
+  };
+  provider?: {
+    id: string;
+    name: string;
+  };
+  createdAt: Date;
+  statusHistory: GigStatusHistory[];
+}
+
+export const GIG_STATUS_CONFIG = {
+  open: {
+    label: "Open",
+    color: "hsl(var(--primary))",
+    bgColor: "hsl(var(--primary) / 0.1)",
+    description: "Gig is available for proposals"
+  },
+  requested: {
+    label: "Requested", 
+    color: "hsl(210 100% 50%)",
+    bgColor: "hsl(210 100% 50% / 0.1)",
+    description: "Provider has submitted a proposal"
+  },
+  "in-progress": {
+    label: "In Progress",
+    color: "hsl(45 100% 50%)",
+    bgColor: "hsl(45 100% 50% / 0.1)",
+    description: "Work is currently being done"
+  },
+  completed: {
+    label: "Completed",
+    color: "hsl(120 60% 50%)",
+    bgColor: "hsl(120 60% 50% / 0.1)",
+    description: "Work has been finished"
+  },
+  rejected: {
+    label: "Rejected",
+    color: "hsl(var(--destructive))",
+    bgColor: "hsl(var(--destructive) / 0.1)",
+    description: "Proposal or work was rejected"
+  }
+} as const;
