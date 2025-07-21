@@ -430,7 +430,7 @@ export default function Header() {
                 Switch to {role === "User" ? "Provider" : "User"}
               </Button>
             )}
-            {user.profileCompleted && (
+            {(user.subscriptionCompleted || user.profileCompleted) && (
               <MenuItem onClick={handleProfileSection}>My Profile</MenuItem>
             )}
             {user.subscriptionCompleted && (
