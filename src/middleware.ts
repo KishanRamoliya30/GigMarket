@@ -89,7 +89,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (pathname.startsWith("/api")) {
-    if (!isPublicPath && userData._id != "") {
+    if (token && userData._id != "") {
       try {
         const response = NextResponse.next();
         response.headers.set("x-user", JSON.stringify(userData));
