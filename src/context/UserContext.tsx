@@ -33,7 +33,6 @@ export const UserProvider = ({
   currentUser: UserType | null;
 }) => {
   const [user, setUserState] = useState<UserType | null>(currentUser);;
-console.log("####5", user)
   const setUser = (newUser: UserType | null) => setUserState({ ...user, ...(newUser as UserType) });
 
 

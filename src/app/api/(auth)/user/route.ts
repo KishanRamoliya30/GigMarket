@@ -4,6 +4,9 @@ import { successResponse, withApiHandler } from '@/app/lib/commonHandlers';
 import User from '@/app/models/user';
 import dbConnect from '@/app/lib/dbConnect';
 import { LoginUser } from '@/app/utils/interfaces';
+import { jwtVerify } from 'jose';
+import { generateToken } from '@/app/utils/jwt';
+const getSecret = () => new TextEncoder().encode(process.env.JWT_SECRET);
 
 export const GET = withApiHandler(async (request: NextRequest): Promise<NextResponse> => {
   const userHeader = request.headers.get('x-user');
@@ -15,7 +18,7 @@ export const GET = withApiHandler(async (request: NextRequest): Promise<NextResp
 
   await dbConnect();
 
-    const [foundUser] = await Promise.all([
+  const [foundUser] = await Promise.all([
     User.findById(user._id)
       .select('-password')
       .populate({ path: 'profile', model: 'profiles' })
@@ -30,5 +33,31 @@ export const GET = withApiHandler(async (request: NextRequest): Promise<NextResp
     role: user.role,
   };
 
-  return successResponse(userWithRole, 'User details fetched successfully', 200);
+  const response = successResponse(userWithRole, 'User details fetched successfully', 200);
+
+  const { payload } = await jwtVerify(
+    request.cookies.get("token")?.value ?? "",
+    getSecret()
+  );
+
+  if ((payload.subscriptionCompleted !== user.subscriptionCompleted) || (payload.profileCompleted !== user.profileCompleted)) {
+    const token = generateToken({
+      userId: user._id,
+      email: user.email,
+      role: payload.role,
+      subscriptionCompleted: user.subscriptionCompleted,
+      profileCompleted: user.profileCompleted
+    });
+    response.cookies.set({
+      name: "token",
+      value: token,
+      httpOnly: true,
+      secure: false,
+      sameSite: "strict",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+    });
+  }
+
+  return response;
 });

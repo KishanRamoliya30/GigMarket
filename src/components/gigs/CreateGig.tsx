@@ -83,8 +83,6 @@ export default function CreateGigPage() {
           },
         });
 
-        console.log("#####7", res);
-
         if (res.success) {
           toast.success("Gig created successfully");
           resetForm();
