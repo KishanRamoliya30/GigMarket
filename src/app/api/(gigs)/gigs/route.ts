@@ -13,7 +13,6 @@ export const POST = withApiHandler(async (req: NextRequest): Promise<NextRespons
   await dbConnect();
   
   const userDetails = await verifyToken(req);
-  console.log("#####62", userDetails)
 
   if (!userDetails?.userId || !userDetails?.role) {
     throw new ApiError('Unauthorized request', 401);
