@@ -105,15 +105,26 @@ export async function middleware(request: NextRequest) {
   } else {
     console.log("##MinuSuccess0##",userData,isPublicPath,pathname);
     if (!userData.isAdmin && !!userData._id) {
-      console.log("##MinuSuccess##",!pathname.startsWith("/subscriptionSuccess"),pathname);
-      if(!pathname.startsWith("/subscriptionSuccess"))
-      {
-        if (!userData.subscriptionCompleted && pathname !== "/subscription") {
-          return NextResponse.redirect(new URL("/subscription", request.url));
-        } else if (!userData.isAdmin && userData.subscriptionCompleted && !userData.profileCompleted && pathname !== "/add-profile") {
-          return NextResponse.redirect(new URL("/add-profile", request.url));
-        }
+      const isSubscriptionPage = pathname === "/subscription";
+      const isSubscriptionSuccessPage = pathname.startsWith("/subscriptionSuccess");
+      const isProfilePage = pathname === "/add-profile";
+
+      if (
+        !userData.subscriptionCompleted &&
+        !isSubscriptionPage &&
+        !isSubscriptionSuccessPage
+      ) {
+        return NextResponse.redirect(new URL("/subscription", request.url));
+      } else if (
+        userData.subscriptionCompleted &&
+        !userData.profileCompleted &&
+        !isProfilePage &&
+        !isSubscriptionPage &&
+        !isSubscriptionSuccessPage
+      ) {
+        return NextResponse.redirect(new URL("/add-profile", request.url));
       }
+
     }
 
     else if (!isPublicPath && userData._id != "") {
@@ -171,6 +182,7 @@ export const config = {
   matcher: [
     "/api/:path*",
     "/admin/:path*",
-    "/((?!_next/static|_next/image|favicon.ico|images|uploads|.*\\.[a-zA-Z0-9]+$).*)",
+    // "/((?!_next/static|_next/image|favicon.ico|images|uploads|.*\\.[a-zA-Z0-9]+$).*)",
+    "/:path",
   ],
 };
