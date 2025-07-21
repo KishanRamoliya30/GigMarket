@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
 
   const { planId, stripeSubscriptionId } = await req.json();
 
-  const userId = await verifyToken(req);
+  const {userId} = await verifyToken(req);
   if(!userId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

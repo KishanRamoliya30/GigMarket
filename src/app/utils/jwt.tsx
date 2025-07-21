@@ -10,13 +10,13 @@ export function generateToken(payload: object) {
 export function verifyToken(req:NextRequest) {
   const token = req.cookies.get('token')?.value;
 
-  if (!token) return "";
+  if (!token) return {};
 
   let decoded: JwtPayload;
   try {
     decoded = jwt.verify(token, process.env.JWT_SECRET as string) as JwtPayload;
   } catch {
-    return ""
+    return {}
   }
-  return decoded.userId;
+  return decoded;
 }

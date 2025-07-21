@@ -4,15 +4,13 @@ import dbConnect from "@/app/lib/dbConnect";
 import { stripe } from "@/app/lib/strip";
 import Subscription from "@/app/models/subscription";
 import User from "@/app/models/user";
+import { verifyToken } from "@/app/utils/jwt";
 import { NextRequest } from "next/server";
 
 export async function POST(request: NextRequest) {
   await dbConnect();
-
-  const xUser = request.headers.get('x-user');
-  if (!xUser) throw new ApiError('Unauthorized', 401);
-
-  const userDetails = JSON.parse(xUser);
+  
+  const userDetails = await verifyToken(request);
   const user = await User.findOne({ email: userDetails.email });
   if (!user) throw new ApiError('User not found', 404);
 
