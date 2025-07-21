@@ -35,28 +35,31 @@ export const GET = withApiHandler(async (request: NextRequest): Promise<NextResp
 
   const response = successResponse(userWithRole, 'User details fetched successfully', 200);
 
-  const { payload } = await jwtVerify(
-    request.cookies.get("token")?.value ?? "",
-    getSecret()
-  );
+  if (request.cookies.get("token")?.value) {
+    console.log()
+    const { payload } = await jwtVerify(
+      request.cookies.get("token")?.value ?? "",
+      getSecret()
+    );
 
-  if ((payload.subscriptionCompleted !== user.subscriptionCompleted) || (payload.profileCompleted !== user.profileCompleted)) {
-    const token = generateToken({
-      userId: user._id,
-      email: user.email,
-      role: payload.role,
-      subscriptionCompleted: user.subscriptionCompleted,
-      profileCompleted: user.profileCompleted
-    });
-    response.cookies.set({
-      name: "token",
-      value: token,
-      httpOnly: true,
-      secure: false,
-      sameSite: "strict",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 7,
-    });
+    if ((payload.subscriptionCompleted !== user.subscriptionCompleted) || (payload.profileCompleted !== user.profileCompleted)) {
+      const token = generateToken({
+        userId: user._id,
+        email: user.email,
+        role: payload.role,
+        subscriptionCompleted: user.subscriptionCompleted,
+        profileCompleted: user.profileCompleted
+      });
+      response.cookies.set({
+        name: "token",
+        value: token,
+        httpOnly: true,
+        secure: false,
+        sameSite: "strict",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 7,
+      });
+    }
   }
 
   return response;
