@@ -89,12 +89,16 @@ export async function middleware(request: NextRequest) {
   }
 
   if (pathname.startsWith("/api")) {
-    if (token && userData._id != "") {
+    console.log("#####71", userData, token);
+    if (token && !!userData._id) {
+    console.log("#####72", userData, token);
       try {
         const response = NextResponse.next();
         response.headers.set("x-user", JSON.stringify(userData));
+        console.log("#####61", userData)
         return response;
       } catch {
+        console.log("#####73", userData, token);
         return NextResponse.next();
       }
     }

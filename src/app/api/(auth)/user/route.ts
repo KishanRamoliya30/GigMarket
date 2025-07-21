@@ -9,13 +9,15 @@ import { generateToken } from '@/app/utils/jwt';
 const getSecret = () => new TextEncoder().encode(process.env.JWT_SECRET);
 
 export const GET = withApiHandler(async (request: NextRequest): Promise<NextResponse> => {
+  await dbConnect();
+
   const userHeader = request.headers.get('x-user');
   const user: LoginUser | null = userHeader ? JSON.parse(userHeader) : null;
+  console.log("#####63", userHeader)
+
   if (!user?._id) {
     throw new ApiError('Unauthorized request', 401);
   }
-
-  await dbConnect();
 
   const [foundUser] = await Promise.all([
     User.findById(user._id)
