@@ -7,20 +7,19 @@ import { createGigSchema } from "@/utils/beValidationSchema";
 
 import { uploadToCloudinary } from "@/lib/cloudinaryFileUpload";
 import User from "@/app/models/user";
+import { verifyToken } from "@/app/utils/jwt";
 
 export const POST = withApiHandler(async (req: NextRequest): Promise<NextResponse> => {
   await dbConnect();
+  
+  const userDetails = await verifyToken(req);
+  console.log("#####62", userDetails)
 
-  const userHeader = req.headers.get("x-user");
-  console.log("#####62", userHeader)
-  if (!userHeader) throw new ApiError("Unauthorized request", 401);
-
-  const userDetails = JSON.parse(userHeader);
-  if (!userDetails?._id || !userDetails?.role) {
-    throw new ApiError("Invalid user data", 401);
+  if (!userDetails?.userId || !userDetails?.role) {
+    throw new ApiError('Unauthorized request', 401);
   }
 
-  const user = await User.findById(userDetails._id);
+  const user = await User.findById(userDetails.userId);
   if (!user) throw new ApiError("User not found", 404);
   const plan = user.subscription?.planName || "Free";
   const now = new Date();
@@ -77,7 +76,7 @@ export const POST = withApiHandler(async (req: NextRequest): Promise<NextRespons
     releventSkills,
     certification: uploadedFile,
     createdByRole: userDetails.role,
-    createdBy: userDetails._id,
+    createdBy: userDetails.userId,
     status: "Open"
   };
 

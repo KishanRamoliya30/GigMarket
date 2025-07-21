@@ -3,24 +3,19 @@ import { ApiError } from '@/app/lib/commonError';
 import { successResponse, withApiHandler } from '@/app/lib/commonHandlers';
 import User from '@/app/models/user';
 import dbConnect from '@/app/lib/dbConnect';
-import { LoginUser } from '@/app/utils/interfaces';
-import { jwtVerify } from 'jose';
-import { generateToken } from '@/app/utils/jwt';
-const getSecret = () => new TextEncoder().encode(process.env.JWT_SECRET);
+import { generateToken, verifyToken } from '@/app/utils/jwt';
 
 export const GET = withApiHandler(async (request: NextRequest): Promise<NextResponse> => {
   await dbConnect();
 
-  const userHeader = request.headers.get('x-user');
-  const user: LoginUser | null = userHeader ? JSON.parse(userHeader) : null;
-  console.log("#####63", userHeader)
+  const tokenUser = await verifyToken(request);
+  console.log("#####63", tokenUser)
 
-  if (!user?._id) {
+  if (!tokenUser?.userId) {
     throw new ApiError('Unauthorized request', 401);
   }
-
   const [foundUser] = await Promise.all([
-    User.findById(user._id)
+    User.findById(tokenUser.userId)
       .select('-password')
       .populate({ path: 'profile', model: 'profiles' })
   ]);
@@ -31,22 +26,18 @@ export const GET = withApiHandler(async (request: NextRequest): Promise<NextResp
 
   const userWithRole = {
     ...foundUser.toObject(),
-    role: user.role,
+    role: tokenUser.role,
   };
 
   const response = successResponse(userWithRole, 'User details fetched successfully', 200);
-  if (request.cookies.get("token")?.value) {
-    const { payload } = await jwtVerify(
-      request.cookies.get("token")?.value ?? "",
-      getSecret()
-    );
-    if ((payload.subscriptionCompleted !== user.subscriptionCompleted) || (payload.profileCompleted !== user.profileCompleted)) {
+  if (tokenUser) {
+    if ((tokenUser.subscriptionCompleted !== foundUser.subscriptionCompleted) || (tokenUser.profileCompleted !== foundUser.profileCompleted)) {
       const token = generateToken({
-        userId: user._id,
-        email: user.email,
-        role: payload.role,
-        subscriptionCompleted: user.subscriptionCompleted,
-        profileCompleted: user.profileCompleted
+        userId: foundUser._id,
+        email: foundUser.email,
+        role: tokenUser.role,
+        subscriptionCompleted: foundUser.subscriptionCompleted,
+        profileCompleted: foundUser.profileCompleted
       });
       response.cookies.set({
         name: "token",
