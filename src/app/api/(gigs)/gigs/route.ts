@@ -12,6 +12,7 @@ export const POST = withApiHandler(async (req: NextRequest): Promise<NextRespons
   await dbConnect();
 
   const userHeader = req.headers.get("x-user");
+  console.log("#####62", userHeader)
   if (!userHeader) throw new ApiError("Unauthorized request", 401);
 
   const userDetails = JSON.parse(userHeader);
