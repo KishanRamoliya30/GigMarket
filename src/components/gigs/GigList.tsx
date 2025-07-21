@@ -685,7 +685,7 @@ export default function GigListing() {
 
 const StyledWrapper = styled(Box)(({ theme }) => ({
   padding: theme.spacing(2),
-  paddingTop: "100px !important",
+  // paddingTop: "100px !important",
   [theme.breakpoints.up("md")]: { padding: theme.spacing(4) },
   ".chip": {
     backgroundColor: "#E0E0E0",
