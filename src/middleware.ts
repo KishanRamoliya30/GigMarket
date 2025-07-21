@@ -71,10 +71,6 @@ export async function middleware(request: NextRequest) {
   // if (pathname === "/") {
   //   return NextResponse.redirect(new URL("/dashboard", request.url));
   // }
-
-  const isSubscriptionPage = pathname === "/subscription";
-  const isSubscriptionSuccessPage = pathname.startsWith("/subscriptionSuccess");
-  console.log("##MinuSubscribe##",userData,isSubscriptionPage,isSubscriptionSuccessPage);
   
   //allow gigs/[id] path
   if (pathname.startsWith("/api/gigs")) {
@@ -93,16 +89,12 @@ export async function middleware(request: NextRequest) {
   }
 
   if (pathname.startsWith("/api")) {
-    console.log("#####71", userData, token);
     if (token && !!userData._id) {
-    console.log("#####72", userData, token);
       try {
         const response = NextResponse.next();
         response.headers.set("x-user", JSON.stringify(userData));
-        console.log("#####61", userData)
         return response;
       } catch {
-        console.log("#####73", userData, token);
         return NextResponse.next();
       }
     }
