@@ -7,7 +7,6 @@ import {
   Stack,
   Typography,
   Divider,
-  Paper,
   CircularProgress,
   IconButton,
   Tooltip
@@ -97,27 +96,7 @@ const handleProfileUpdate = (updatedProfile: Profile) => {
 };
   return (
     <>
-      <Box
-        sx={{
-          minHeight: "100vh",
-          display: "flex",
-          justifyContent: "center",
-          p: 3,
-          zIndex:"-1"
-        }}
-      >
-        <Paper
-          elevation={3}
-          sx={{
-            maxWidth: 800,
-            width: "100%",
-            borderRadius: 4,
-            p: 4,
-            background: "#fff",
-            position: "relative",
-            zIndex:"-1"
-          }}
-        >
+      <div className="p-5 md:p-10 min-h-screen">
           <Stack direction="row" spacing={3} alignItems="center" mb={4}>
             <ProfileImageEditor avtar={profilePicture} userId={userId ?? ""} />
             <Box>
@@ -130,8 +109,7 @@ const handleProfileUpdate = (updatedProfile: Profile) => {
             <IconButton
               sx={{
                 position: "absolute",
-                top: "71px",
-                right: "20px",
+                right: 60,
                 bgcolor: "#fffgy",
                 boxShadow: 1,
                 ":hover": { bgcolor: "#fff" },
@@ -251,8 +229,7 @@ const handleProfileUpdate = (updatedProfile: Profile) => {
               No certifications uploaded
             </Typography>
           )}
-        </Paper>
-      </Box>
+      </div>
     </>
   );
 };
