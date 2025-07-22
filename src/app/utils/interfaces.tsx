@@ -24,6 +24,11 @@ export interface ProfileResponse {
   success: boolean;
   profile: Profile;
 }
+export interface Education {
+  degree: string;
+  school: string;
+  year: string;
+}
 
 export interface Profile {
   _id: string;
