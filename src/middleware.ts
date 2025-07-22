@@ -103,7 +103,6 @@ export async function middleware(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
   } else {
-    console.log("##MinuSuccess0##",userData,isPublicPath,pathname);
     if (!userData.isAdmin && !!userData._id) {
       const isSubscriptionPage = pathname === "/subscription";
       const isSubscriptionSuccessPage = pathname.startsWith("/subscriptionSuccess");
@@ -138,13 +137,11 @@ export async function middleware(request: NextRequest) {
 
       //normal user can't access admin paths
       else if (!userData.isAdmin && pathname.includes("/admin")) {
-        console.log("test1");
         return NextResponse.redirect(new URL("/dashboard", request.url));
       }
 
       //pages with path in user can only be accessed by user role
       else if (pathname.startsWith("/user") && userData.role != "User") {
-        console.log("test2");
         return NextResponse.redirect(new URL("/dashboard", request.url));
       }
 
@@ -153,8 +150,6 @@ export async function middleware(request: NextRequest) {
         pathname.startsWith("/provider") &&
         userData.role != "Provider"
       ) {
-        console.log("test3");
-
         return NextResponse.redirect(new URL("/dashboard", request.url));
       }
     }
@@ -162,7 +157,6 @@ export async function middleware(request: NextRequest) {
     else if (isPublicPath && userData._id != "") {
       if (!COMMON_PATHS.some((path) => pathname.startsWith(path))) {
         const redirectPath = userData.isAdmin ? "/admin" : "/dashboard";
-        console.log("test4");
         return NextResponse.redirect(new URL(redirectPath, request.url));
       }
     }

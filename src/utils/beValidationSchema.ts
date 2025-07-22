@@ -56,6 +56,8 @@ export const createGigSchema = z.object({
     .optional(),
 });
 
+export const updateGigSchema = createGigSchema.partial();
+
 export const placeBidSchema = z.object({
   gigId: z
     .string({

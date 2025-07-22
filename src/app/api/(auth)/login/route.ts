@@ -98,7 +98,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       });
       
       response.cookies.set({
-        name: 'token',
+        name: "token",
         value: token,
         httpOnly: true,
         secure: false,

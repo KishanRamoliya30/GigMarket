@@ -4,6 +4,7 @@ import { successResponse, withApiHandler } from '@/app/lib/commonHandlers';
 import User from '@/app/models/user';
 import dbConnect from '@/app/lib/dbConnect';
 import { generateToken, verifyToken } from '@/app/utils/jwt';
+import { expiryTime } from '../../../../../utils/constants';
 
 export const GET = withApiHandler(async (request: NextRequest): Promise<NextResponse> => {
   await dbConnect();
@@ -34,7 +35,7 @@ export const GET = withApiHandler(async (request: NextRequest): Promise<NextResp
       const token = generateToken({
         userId: foundUser._id,
         email: foundUser.email,
-        role: tokenUser.role,
+        role: tokenUser.role ?? "User",
         subscriptionCompleted: foundUser.subscriptionCompleted,
         profileCompleted: foundUser.profileCompleted
       });
@@ -45,7 +46,7 @@ export const GET = withApiHandler(async (request: NextRequest): Promise<NextResp
         secure: false,
         sameSite: "strict",
         path: "/",
-        maxAge: 60 * 60 * 24 * 7,
+        maxAge: expiryTime,
       });
     }
   }

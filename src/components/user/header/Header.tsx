@@ -127,7 +127,6 @@ export default function Header() {
     searchParams.get("search") || ""
   );
   const { user, setRole, resetUser } = useUser();
-  console.log("####5", user, user?.role);
   const role = user?.role;
   const _id = user?._id;
   const isAllCompleted = user?.subscriptionCompleted && user.profileCompleted;
