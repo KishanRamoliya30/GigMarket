@@ -1,174 +1,141 @@
-"use client"
+"use client";
+
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/gigs/gig-management/Card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/gigs/gig-management/Tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/gigs/gig-management/dialog";
-import { useGigData } from "./hooks";
-import { Gig, GigStatus } from "../../../../utils/constants";
-import { BarChart3, Clock, CheckCircle, XCircle, AlertCircle } from "lucide-react";
-import { GigCard } from "./GigCard";
-import { GigStatusPipeline } from "./GigStatusPipeline";
-import { GigStatusHistory } from "./GigStatusHistory";
+import { Box, Typography } from "@mui/material";
+import {
+  AccessTime,
+  CheckCircle,
+  Close,
+  Info,
+  InsertChart,
+  CalendarMonth,
+  Person,
+  AttachMoney,
+} from "@mui/icons-material";
+import GigStatusDialog from "./GigHistoryDailog";
+import { gigData, tabs } from "../../../../utils/constants";
 
-export function GigDashboard() {
-  const { gigs, getGigsByStatus } = useGigData();
-  const [selectedGig, setSelectedGig] = useState<Gig | null>(null);
+const statusIcons = {
+  Open: <InsertChart className="text-blue-500 mb-1" fontSize="medium" />,
+  Requested: <AccessTime className="text-indigo-500 mb-1" fontSize="medium" />,
+  "In Progress": <Info className="text-yellow-500 mb-1" fontSize="medium" />,
+  Completed: <CheckCircle className="text-green-500 mb-1" fontSize="medium" />,
+  Rejected: <Close className="text-red-500 mb-1" fontSize="medium" />,
+};
 
-  const statusCounts = {
-    open: getGigsByStatus("open").length,
-    requested: getGigsByStatus("requested").length,
-    "in-progress": getGigsByStatus("in-progress").length,
-    completed: getGigsByStatus("completed").length,
-    rejected: getGigsByStatus("rejected").length
-  };
+export default function Dashboard() {
+  const [activeTab, setActiveTab] = useState("All");
+  const [open, setOpen] = useState(false);
 
-  const StatusCard = ({ 
-    status, 
-    icon: Icon, 
-    title 
-  }: { 
-    status: GigStatus; 
-    icon: React.ElementType; 
-    title: string;
-  }) => (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" />
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{statusCounts[status]}</div>
-        <p className="text-xs text-muted-foreground">
-          {statusCounts[status] === 1 ? "gig" : "gigs"}
-        </p>
-      </CardContent>
-    </Card>
-  );
 
-  const GigList = ({ status }: { status: GigStatus }) => {
-    const gigsForStatus = getGigsByStatus(status);
-    
-    if (gigsForStatus.length === 0) {
-      return (
-        <div className="text-center py-8 text-muted-foreground">
-          No gigs with {status} status
-        </div>
-      );
-    }
+  const getStatusCount = (status: string) =>
+    gigData.filter((gig) => gig.status === status).length;
 
-    return (
-      <div className="grid gap-4">
-        {gigsForStatus.map(gig => (
-          <GigCard 
-            key={gig.id} 
-            gig={gig} 
-            onClick={() => setSelectedGig(gig)}
-          />
-        ))}
-      </div>
-    );
-  };
+  const filteredGigs =
+    activeTab === "All"
+      ? gigData
+      : gigData.filter((gig) => gig.status === activeTab);
 
   return (
-    <div className="space-y-6">
-      {/* Overview Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-        <StatusCard status="open" icon={BarChart3} title="Open Gigs" />
-        <StatusCard status="requested" icon={Clock} title="Requested" />
-        <StatusCard status="in-progress" icon={AlertCircle} title="In Progress" />
-        <StatusCard status="completed" icon={CheckCircle} title="Completed" />
-        <StatusCard status="rejected" icon={XCircle} title="Rejected" />
+    <Box className=" min-h-screen">
+      {/* Header */}
+      <div className="mb-8">
+        <Typography variant="h4" className="font-bold text-gray-800 mb-1">
+          Gig Management
+        </Typography>
+        <Typography className="text-gray-600">
+          Manage your gigs and track their progress
+        </Typography>
       </div>
 
-      {/* Gigs by Status */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Gig Management</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="all" className="w-full">
-            <TabsList className="grid grid-cols-6 w-full">
-              <TabsTrigger value="all">All ({gigs.length})</TabsTrigger>
-              <TabsTrigger value="open">Open ({statusCounts.open})</TabsTrigger>
-              <TabsTrigger value="requested">Requested ({statusCounts.requested})</TabsTrigger>
-              <TabsTrigger value="in-progress">In Progress ({statusCounts["in-progress"]})</TabsTrigger>
-              <TabsTrigger value="completed">Completed ({statusCounts.completed})</TabsTrigger>
-              <TabsTrigger value="rejected">Rejected ({statusCounts.rejected})</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="all" className="mt-6">
-              <div className="grid gap-4">
-                {gigs.map(gig => (
-                  <GigCard 
-                    key={gig.id} 
-                    gig={gig} 
-                    onClick={() => setSelectedGig(gig)}
-                  />
-                ))}
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="open" className="mt-6">
-              <GigList status="open" />
-            </TabsContent>
-            
-            <TabsContent value="requested" className="mt-6">
-              <GigList status="requested" />
-            </TabsContent>
-            
-            <TabsContent value="in-progress" className="mt-6">
-              <GigList status="in-progress" />
-            </TabsContent>
-            
-            <TabsContent value="completed" className="mt-6">
-              <GigList status="completed" />
-            </TabsContent>
-            
-            <TabsContent value="rejected" className="mt-6">
-              <GigList status="rejected" />
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+      {/* Status Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
+        {tabs.slice(1).map((status) => (
+          <div
+            key={status}
+            className="bg-white p-5 rounded-xl shadow-sm flex flex-col items-center text-center border border-gray-200 hover:shadow-md transition"
+          >
+            {statusIcons[status as keyof typeof statusIcons]}
+            <p className="text-sm font-medium text-gray-500">{status}</p>
+            <p className="text-xl font-semibold text-gray-800">
+              {getStatusCount(status)} gig
+              {getStatusCount(status) !== 1 ? "s" : ""}
+            </p>
+          </div>
+        ))}
+      </div>
 
-      {/* Gig Detail Modal */}
-      <Dialog open={!!selectedGig} onOpenChange={(open) => !open && setSelectedGig(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          {selectedGig && (
-            <>
-              <DialogHeader>
-                <DialogTitle>{selectedGig.title}</DialogTitle>
-              </DialogHeader>
-              
-              <div className="grid gap-6 md:grid-cols-2">
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="font-semibold mb-2">Description</h3>
-                    <p className="text-muted-foreground">{selectedGig.description}</p>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <h4 className="font-medium">Budget</h4>
-                      <p className="text-lg font-semibold">${selectedGig.budget.toLocaleString()}</p>
-                    </div>
-                    <div>
-                      <h4 className="font-medium">Created</h4>
-                      <p>{selectedGig.createdAt.toLocaleDateString()}</p>
-                    </div>
-                  </div>
-                  
-                  <GigStatusPipeline gig={selectedGig} />
-                </div>
-                
-                <div>
-                  <GigStatusHistory history={selectedGig.statusHistory} />
-                </div>
+      {/* Tabs Container */}
+      <div className="bg-[#f6f9fc] rounded-lg flex gap-1 px-2 py-1 mb-6 overflow-x-auto">
+        {tabs.map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`px-4 py-2 text-sm font-semibold rounded-md transition-all duration-200
+        ${
+          activeTab === tab
+            ? "bg-white text-black shadow-sm"
+            : "text-gray-700 hover:bg-gray-100"
+        }`}
+          >
+            {tab} ({tab === "All" ? gigData.length : getStatusCount(tab)})
+          </button>
+        ))}
+      </div>
+
+      {/* Gig List */}
+      <div className="space-y-6">
+        {filteredGigs.map((gig, idx) => (
+          <div
+            key={idx}
+            onClick={() => setOpen(true)}
+            className="cursor-pointer bg-white border border-blue-100 rounded-xl px-6 py-5 shadow-sm hover:shadow-md transition"
+          >
+            <div className="flex justify-between items-start">
+              <h3 className="text-lg font-semibold text-gray-900">
+                {gig.title}
+              </h3>
+              <span
+                className={`px-3 py-1 text-xs font-semibold rounded-full flex items-center gap-1 ${
+                  gig.status === "In Progress"
+                    ? "bg-yellow-100 text-yellow-700"
+                    : gig.status === "Completed"
+                      ? "bg-green-100 text-green-700"
+                      : gig.status === "Rejected"
+                        ? "bg-red-100 text-red-700"
+                        : "bg-blue-100 text-blue-700"
+                }`}
+              >
+                <span className="w-2 h-2 rounded-full bg-current" />
+                {gig.status}
+              </span>
+            </div>
+
+            <p className="text-sm text-gray-600 my-2">{gig.description}</p>
+
+            <div className="grid grid-cols-2 gap-4 text-sm text-gray-700 pt-2">
+              <div className="flex items-center gap-1">
+                <AttachMoney fontSize="small" />
+                <span className="font-semibold">{gig.price}</span>
               </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
-    </div>
+              <div className="flex items-center gap-1 justify-end">
+                <CalendarMonth fontSize="small" /> {gig.date}
+              </div>
+              <div className="flex items-center gap-1">
+                <Person fontSize="small" />
+                <span className="text-gray-600">Client: {gig.client}</span>
+              </div>
+              <div className="flex items-center gap-1 justify-end">
+                <Person fontSize="small" />
+                <span className="text-gray-600">Provider: {gig.provider}</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Dialog for Status History */}
+      <GigStatusDialog open={open} onClose={() => setOpen(false)} />
+    </Box>
   );
 }
