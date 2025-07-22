@@ -9,7 +9,6 @@ export const GET = withApiHandler(async (request: NextRequest): Promise<NextResp
   await dbConnect();
 
   const tokenUser = await verifyToken(request);
-  console.log("#####63", tokenUser)
 
   if (!tokenUser?.userId) {
     throw new ApiError('Unauthorized request', 401);
