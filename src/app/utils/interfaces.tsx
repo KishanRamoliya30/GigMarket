@@ -64,4 +64,20 @@ export interface Gig extends Omit<GigDocument,'createdBy'> {
     fullName: string;
     profilePicture: string;
   }
+  bid: Bid | null;
+  bids: number;
+}
+
+export interface Bid {
+  _id: string;
+  bidAmount: number;
+  description: string;
+  gigId: string;
+  createdBy: {
+    _id: string;
+    fullName: string;
+    profilePicture: string;
+  };
+  createdAt: Date;
+  updatedAt: Date;
 }
