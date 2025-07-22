@@ -8,7 +8,7 @@ import {
   Card,
   CardContent,
   CardActions,
-  Button, 
+  Button,
   Pagination,
   Menu,
   MenuItem,
@@ -18,23 +18,28 @@ import {
   RadioGroup,
   Skeleton,
   Avatar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import CustomTextField from "@/components/customUi/CustomTextField";
 import { styled } from "@mui/system";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ExpandMoreOutlined, Check as CheckIcon } from "@mui/icons-material";
+import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import { apiRequest } from "@/app/lib/apiCall";
 import { Gig } from "@/app/utils/interfaces";
 import { ServiceTier } from "../../../utils/constants";
+import { useUser } from "@/context/UserContext";
 const tiers = [ServiceTier.BASIC, ServiceTier.EXPERT, ServiceTier.ADVANCED];
 
 export default function GigListing() {
   const searchParams = useSearchParams();
   const search = searchParams.get("search") || "";
   const router = useRouter();
-  // const { user } = useUser();
-  // const isProvider = user?.role == "Provider";
+  const { user } = useUser();
   const gigsPerPage = 5;
   const [page, setPage] = useState(1);
 
@@ -48,6 +53,7 @@ export default function GigListing() {
   const [sortBy, setSortBy] = useState("Recently Added");
   const [allGig, setAllGig] = useState<Gig[]>();
   const [loading, setLoading] = useState(true);
+  const [selectedDeleteGig, setSelectedDeleteGig] = useState<string>("");
   const [pagination, setPagination] = useState({
     total: 0,
     page: 1,
@@ -94,7 +100,10 @@ export default function GigListing() {
   };
   const gigList = async () => {
     setLoading(true);
-    const priceParams: { minPrice?: number; maxPrice?: number } = { minPrice: undefined, maxPrice: undefined };
+    const priceParams: { minPrice?: number; maxPrice?: number } = {
+      minPrice: undefined,
+      maxPrice: undefined,
+    };
     if (selectedBudget === "Under ₹2,252") {
       priceParams.maxPrice = 2252;
     } else if (selectedBudget === "₹2,252–₹5,404") {
@@ -158,6 +167,28 @@ export default function GigListing() {
     selectedRating,
     sortBy,
   ]);
+
+  const handleDeleteModalClick = (value: string) => {
+    setSelectedDeleteGig(value);
+  };
+
+  const handleConfirmDelete = async () => {
+    console.log("HELLO");
+    const res = await apiRequest(
+      `gigs/${selectedDeleteGig}`,
+      {
+        method: "DELETE",
+      },
+      true
+    );
+    if (res.ok) {
+      setSelectedDeleteGig("");
+      const filteredGigs =
+        allGig?.filter((gig) => gig._id !== selectedDeleteGig) || [];
+      setAllGig(filteredGigs);
+    }
+  };
+
   return (
     <StyledWrapper>
       <Typography variant="h4" fontWeight={600} mb={3}>
@@ -521,7 +552,7 @@ export default function GigListing() {
               ":hover": {
                 backgroundColor: "#fff",
                 color: "#388E3C",
-              }
+              },
             }}
           >
             {sortBy}
@@ -604,18 +635,39 @@ export default function GigListing() {
                 </Card>
               </Grid>
             ))
-          : allGig?.map((gig) => (
-              <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={gig.id}>
+          : allGig?.map((gig, ind) => (
+              <Grid
+                size={{ xs: 12, sm: 6, md: 4, lg: 3 }}
+                key={`${ind}-${gig.id}`}
+              >
                 <Card className="gigCard">
                   <CardContent>
-                    <Typography
-                      variant="h6"
-                      fontWeight={600}
-                      gutterBottom
-                      className="descClamp"
+                    <Box
+                      display="flex"
+                      justifyContent="space-between"
+                      alignItems="flex-start"
                     >
-                      {gig.title}
-                    </Typography>
+                      <Typography
+                        variant="h6"
+                        fontWeight={600}
+                        gutterBottom
+                        className="descClamp"
+                      >
+                        {gig.title}
+                      </Typography>
+                      {gig.createdBy._id.toString() === user?._id && (
+                        <DeleteOutlineOutlinedIcon
+                          sx={{
+                            color: "#666",
+                            cursor: "pointer",
+                            "&:hover": {
+                              color: "#d32f2f",
+                            },
+                          }}
+                          onClick={() => handleDeleteModalClick(gig?._id)}
+                        />
+                      )}
+                    </Box>
                     <Typography
                       variant="body2"
                       color="text.secondary"
@@ -640,11 +692,14 @@ export default function GigListing() {
                     sx={{ px: 2, pb: 2, justifyContent: "space-between" }}
                   >
                     <Box display="flex" alignItems="center" gap={1}>
-                      <Avatar src={gig.createdBy.profilePicture} 
+                      <Avatar
+                        src={gig.createdBy.profilePicture}
                         alt={gig.createdBy.fullName}
                       />
                       {/* <Typography variant="body2">{!isProvider?gig.provider.name:gig.user.name}</Typography> */}
-                      <Typography variant="body2">{gig.createdBy.fullName}</Typography>
+                      <Typography variant="body2">
+                        {gig.createdBy.fullName}
+                      </Typography>
                       {/* <Box>
                     <Box display="flex" alignItems="center" gap={0.5}>
                       <Rating
@@ -669,6 +724,80 @@ export default function GigListing() {
                 </Card>
               </Grid>
             ))}
+        <Dialog
+          open={!!selectedDeleteGig}
+          onClose={() => handleDeleteModalClick("")}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+          fullWidth
+          maxWidth="xs"
+          PaperProps={{
+            sx: {
+              borderRadius: "16px",
+              boxShadow: "0 8px 32px rgba(0,0,0,0.08)",
+              border: "1px solid rgba(0,0,0,0.08)",
+            },
+          }}
+        >
+          <DialogTitle
+            id="alert-dialog-title"
+            sx={{
+              fontSize: "1.5rem",
+              fontWeight: 600,
+              color: "#1a1a1a",
+              p: 1,
+              pt: 3,
+              textAlign: "center",
+            }}
+          >
+            Confirm Deletion
+          </DialogTitle>
+          <DialogContent sx={{ py: 4, px: 1 }}>
+            <Typography
+              align="center"
+              sx={{
+                fontSize: "1rem",
+                color: "#666",
+                maxWidth: "80%",
+                mx: "auto",
+              }}
+            >
+              Are you sure you want to delete this gig? This action cannot be
+              undone.
+            </Typography>
+          </DialogContent>
+          <DialogActions sx={{ p: 3, gap: 2, paddingTop: 0 }}>
+            <Button
+              onClick={() => handleDeleteModalClick("")}
+              sx={{
+                color: "#666",
+                backgroundColor: "#f5f5f5",
+                borderRadius: "8px",
+                px: 3,
+                "&:hover": {
+                  backgroundColor: "#eeeeee",
+                },
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              sx={{
+                backgroundColor: "#d32f2f",
+                color: "white",
+                borderRadius: "8px",
+                px: 3,
+                "&:hover": {
+                  backgroundColor: "#b71c1c",
+                },
+              }}
+              onClick={() => handleConfirmDelete()}
+            >
+              Delete
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Grid>
 
       <Box display="flex" justifyContent="center" mt={4} className="pagination">

@@ -16,8 +16,8 @@ export interface LoginUser {
   email: string;
   isAdmin: boolean;
   role: string;
-  subscriptionCompleted: boolean,
-  profileCompleted: boolean
+  subscriptionCompleted: boolean;
+  profileCompleted: boolean;
 }
 
 export interface ProfileResponse {
@@ -58,12 +58,13 @@ export interface PastEducation {
   _id: string;
 }
 
-export interface Gig extends Omit<GigDocument,'createdBy'> {
+export interface Gig extends Omit<GigDocument, "createdBy"> {
+  _id: string;
   createdBy: {
     _id: string;
     fullName: string;
     profilePicture: string;
-  }
+  };
   bid: Bid | null;
   bids: number;
 }
