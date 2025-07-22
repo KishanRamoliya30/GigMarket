@@ -55,3 +55,23 @@ export const createGigSchema = z.object({
     .min(1, { message: "User ID must not be empty" })
     .optional(),
 });
+
+export const placeBidSchema = z.object({
+  gigId: z
+    .string({
+      required_error: "Gig ID is required",
+    })
+    .min(1, { message: "Gig ID must not be empty" }),
+
+  bidAmount: z
+    .number({
+      required_error: "Bid amount is required",
+      invalid_type_error: "Bid amount must be a number",
+    })
+    .positive({ message: "Bid amount must be a positive number" }),
+
+  description: z
+    .string({
+      required_error: "Description is required",
+    }),
+});

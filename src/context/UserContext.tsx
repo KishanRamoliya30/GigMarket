@@ -10,6 +10,8 @@ import {
 
 interface UserContextType {
   user: UserType | null;
+  redirectUrl: string;
+  setRedirectUrl: (url: string) => void;
   setUser: (user: UserType | null) => void;
   setRole: (role: string) => void;
   resetUser: () => void;
@@ -32,7 +34,8 @@ export const UserProvider = ({
   children: ReactNode;
   currentUser: UserType | null;
 }) => {
-  const [user, setUserState] = useState<UserType | null>(currentUser);;
+  const [user, setUserState] = useState<UserType | null>(currentUser);
+  const [redirectUrl, setRedirectUrl] = useState<string>("");
   const setUser = (newUser: UserType | null) => setUserState({ ...user, ...(newUser as UserType) });
 
 
@@ -43,7 +46,7 @@ export const UserProvider = ({
   const resetUser = () => setUserState(null);
 
   return (
-    <UserContext.Provider value={{ user, setUser, setRole, resetUser }}>
+    <UserContext.Provider value={{ user, setUser, setRole, resetUser, redirectUrl, setRedirectUrl }}>
       {children}
     </UserContext.Provider>
   );

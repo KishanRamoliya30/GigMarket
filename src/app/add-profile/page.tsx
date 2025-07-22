@@ -56,7 +56,7 @@ const Profile = () => {
   >([]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { user } = useUser();
+  const { user, redirectUrl, setRedirectUrl } = useUser();
   const userId = user?._id;
   const [certifications, setCertifications] = useState<{ file: File }[]>([]);
 
@@ -156,7 +156,12 @@ const Profile = () => {
 
         if (res.ok && res.data) {
           toast.success("Profile created successfully");
-          route.push("/dashboard");
+          let redirectPath = "/dashboard";
+          if (redirectUrl) {
+            redirectPath = redirectUrl;
+            setRedirectUrl("");
+          } 
+          route.push(redirectPath);
         } else {
           toast.error(res.error || "Something went wrong");
         }
