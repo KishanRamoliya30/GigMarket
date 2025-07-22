@@ -14,9 +14,14 @@ const SubscriptionSuccessPage = () => {
   const [loading, setLoading] = useState(true);
   const [profileCompleted, setsetProfileCompleted] = useState(true);
 
-  const {setUser} = useUser();
+  const {setUser,redirectUrl,setRedirectUrl} = useUser();
   const handleNavigate = () => {
-    const pathName = profileCompleted ? "/dashboard" : "/add-profile";
+    let redirectPath = "/dashboard";
+    if (redirectUrl) {
+      redirectPath = redirectUrl;
+      setRedirectUrl("");
+    } 
+    const pathName = profileCompleted ? redirectPath : "/add-profile";
     router.push(pathName);
   };
 
@@ -30,7 +35,6 @@ const SubscriptionSuccessPage = () => {
     if (response?.data?.success) {
       return;
     } else {
-      console.log("##MinuSuccess3##","No session found or invalid sessionId", response?.data); 
       handleNavigate();
     }
   };
@@ -54,9 +58,7 @@ const SubscriptionSuccessPage = () => {
   };
 
   useEffect(() => {
-    console.log("##MinuSuccess1##",sessionId);
-    if (!sessionId) {
-    console.log("##MinuSuccess2##","No sessionId found"); 
+    if (!sessionId) { 
       handleNavigate();
       return;
     }
