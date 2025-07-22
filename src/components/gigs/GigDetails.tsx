@@ -7,20 +7,23 @@ import { styled } from "@mui/system";
 import { useUser } from "@/context/UserContext";
 import { apiRequest } from "@/app/lib/apiCall";
 import { useEffect, useState } from "react";
-import { Gig } from "@/app/utils/interfaces";
+import { Gig,Bid } from "@/app/utils/interfaces";
+import { usePathname } from 'next/navigation'
 import CustomTextField from "../customUi/CustomTextField";
 
 export default function GigDetailPage() {
   const router = useRouter();
   const params = useParams();
-  const { user } = useUser();
-  const isProvider = user?.role == "Provider";
+  const pathname = usePathname();
+  const { user,setRedirectUrl } = useUser();
   const { gigId } = params;
   const [gigDetails, setGigDetails] = useState<Gig|null>(null);
   const [showPlaceBid, setShowPlaceBid] = useState(false);
   const [bidAmount, setBidAmount] = useState("");
   const [bidComment, setBidComment] = useState("");
   const [loading,setLoading] = useState(true);
+  const [submitting,setSubmitting] = useState(false);
+  const [error,setError] = useState({bidAmount: "", bidComment: ""});
 
   const gig = {
     id: gigId,
@@ -48,7 +51,21 @@ export default function GigDetailPage() {
     gigDetail();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-console.log("test",isProvider)
+
+  useEffect(() => {
+    setError((prev) => ({
+      ...prev,
+      bidAmount: "",
+    }));
+  },[bidAmount]);
+  
+  useEffect(() => {
+    setError((prev) => ({
+      ...prev,
+      bidComment: "",
+    }));
+  },[bidComment]);
+
   const minutesAgo = Math.floor(
     (new Date().getTime() - new Date(gigDetails?.createdAt ?? "").getTime()) /
       (1000 * 60)
@@ -144,6 +161,126 @@ console.log("test",isProvider)
       </Grid> 
     )
   }
+
+  function showPlacedBid () {
+    return (
+      <Box className="bidBox">
+        
+        <Box display="flex" gap={2} mb={2} justifyContent={"space-between"} alignItems={"center"}>
+          <Typography variant="h6" fontWeight={600}>
+            Your Bid
+          </Typography>
+          <Typography variant="h6" fontWeight={600}>
+            $ {gigDetails?.bid?.bidAmount} / hour
+          </Typography>
+        </Box>
+        <Typography variant="body2" color="text.secondary" mb={2}>
+          {gigDetails?.bid?.description}
+        </Typography>
+      </Box>
+    );
+  }
+
+  function getBidBox () {
+    return gigDetails?.bid? showPlacedBid() : (
+      !showPlaceBid ? (
+        <Button
+          variant="contained"
+          className="bookBtn"
+          onClick={placebid}
+        >
+          Place Bid
+        </Button>
+      ) : (
+        <Box className="bidBox">
+          <Typography variant="h6" fontWeight={600} mb={2}>
+            Place Your Bid
+          </Typography>
+
+          <Box display="flex" gap={2} mb={2}>
+            <CustomTextField
+              placeholder="Enter your bid amount"
+              type="number"
+              slotProps={{ input: { startAdornment: "$" } }}
+              fullWidth={false}
+              isWithoutMargin
+              value={bidAmount}
+              onChange={(e) => setBidAmount(e.target.value)}
+              disabled={submitting}
+              error={error.bidAmount !== ""}
+              helperText={error.bidAmount}
+            />
+            <Typography variant="h6" fontWeight={600}>
+              / hour
+            </Typography>
+          </Box>
+          <CustomTextField
+            fullWidth
+            multiline
+            minRows={4}
+            placeholder="Why are you the best fit for this gig?"
+            className="bidComment"
+            value={bidComment}
+            onChange={(e) => setBidComment(e.target.value)}
+            disabled={submitting}
+            error={error.bidComment !== ""}
+            helperText={error.bidComment}
+          />
+
+          <Button
+            variant="contained"
+            className="submitBtn"
+            onClick={handleBidSubmit}
+          >
+            Submit Bid
+          </Button>
+        </Box>
+      )
+    )
+  }
+  function placebid () {
+    if ((user?._id ?? "") === "") {
+      setRedirectUrl(pathname);
+      router.push("/login");
+      return;
+    }
+    setShowPlaceBid(true);
+  };
+
+  function handleBidSubmit () {
+    let hasError = false;
+    if (!bidAmount) {
+      hasError = true;
+      setError({ ...error, bidAmount: "Bid amount is required" });
+    }
+    if (!bidComment) {
+      hasError = true;
+      setError({ ...error, bidComment: "Bid comment is required" });
+    }
+    if (isNaN(Number(bidAmount)) || Number(bidAmount) <= 0) {
+      setError({ ...error, bidAmount: "Invalid Amount" });
+    }
+    if(hasError) return;
+    const data = {
+      gigId: gigId,
+      bidAmount: Number(bidAmount),
+      description: bidComment,
+    };
+    setSubmitting(true);
+    apiRequest(`gigs/${gigId}/placeBid`, {
+      method: "POST",
+      data: data,
+    }).then((res) => {
+      setSubmitting(false);
+      if (res.ok) {
+        const bid = res.data.data as Bid;
+        if(gigDetails)
+        setGigDetails({...gigDetails, bid: bid });
+      } else {
+        alert(res.data.message);
+      }
+    });
+  }
   return (
     <StyledWrapper>
       <Button
@@ -170,7 +307,7 @@ console.log("test",isProvider)
           <Box className="gigHeader">
             <Chip label={gigDetails.tier} className="gigChip" />
             <Typography variant="subtitle1" fontWeight={600}>
-              Posted {timeToShow} • 2 bids
+              Posted {timeToShow} • {gigDetails.bids} bids
             </Typography>
             {/* <Box display="flex" alignItems="center" gap={0.5}>
               <Rating
@@ -198,53 +335,7 @@ console.log("test",isProvider)
               <Chip key={word} label={word} size="small" className="gigChip" />
             ))}
           </Box>
-          {!showPlaceBid ? (
-            <Button
-              variant="contained"
-              className="bookBtn"
-              onClick={() => setShowPlaceBid(true)}
-            >
-              Place Bid
-            </Button>
-          ) : (
-            <Box className="bidBox">
-              <Typography variant="h6" fontWeight={600} mb={2}>
-                Place Your Bid
-              </Typography>
-
-              <Box display="flex" gap={2} mb={2} alignItems={"center"}>
-                <CustomTextField
-                  placeholder="Enter your bid amount"
-                  type="number"
-                  slotProps={{ input: { startAdornment: "$" } }}
-                  fullWidth={false}
-                  isWithoutMargin
-                  value={bidAmount}
-                  onChange={(e) => setBidAmount(e.target.value)}
-                />
-                <Typography variant="h6" fontWeight={600}>
-                  / hour
-                </Typography>
-              </Box>
-              <CustomTextField
-                fullWidth
-                multiline
-                minRows={4}
-                placeholder="Why are you the best fit for this gig?"
-                className="bidComment"
-                value={bidComment}
-                onChange={(e) => setBidComment(e.target.value)}
-              />
-
-              <Button
-                variant="contained"
-                className="submitBtn"
-                // onClick={handleBidSubmit}
-              >
-                Submit Bid
-              </Button>
-            </Box>
-          )}
+          {getBidBox()}
         </Grid>
 
         <Grid size={{ xs: 12, md: 4 }}>

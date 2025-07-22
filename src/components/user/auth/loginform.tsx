@@ -25,7 +25,7 @@ const LoginForm = () => {
   const [showTerms, setShowTerms] = useState(false);
   const [terms, setTerms] = useState("");
   const [userId, setUserId] = useState("");
-  const { setUser } = useUser();
+  const { setUser,redirectUrl, setRedirectUrl } = useUser();
   const formik = useFormik({
     initialValues: {
       email: "",
@@ -56,7 +56,6 @@ const LoginForm = () => {
   });
 
   const redirectAfterLogin = (hasSubscription:boolean,user:UserType) => {
-    console.log("Redirecting after login with user:", user);
     setUser(user);
      // Step 1: Send to subscription first
     if (!hasSubscription) {
@@ -69,6 +68,12 @@ const LoginForm = () => {
       router.push("/add-profile");
       return;
     }
+
+    if (redirectUrl) {
+      router.push(redirectUrl);
+      setRedirectUrl("");
+      return;
+    }    
     router.push("/dashboard");
   };
 
