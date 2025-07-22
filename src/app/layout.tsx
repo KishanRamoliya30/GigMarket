@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   icons: {
-    icon: "/favicon.png"
+    icon: "/favicon.svg",
   },
   title: "GigMarket | Freelance Services Marketplace",
   description:
