@@ -39,7 +39,7 @@ const TrustedServices = () => {
   return (
     <section className="py-16 px-4 md:px-10 bg-white">
       <h2 className="text-2xl md:text-3xl font-semibold text-gray-800 mb-10">
-        Vontélle’s trusted services
+        Trusted services
       </h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">

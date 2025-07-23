@@ -20,6 +20,7 @@ const FooterWrapper = styled(Box)(({ theme }) => ({
   backgroundColor: "#f7f7f7",
   padding: "40px 24px 20px",
   color: "#444",
+   borderTop: "1px solid #ddd",
 
   "& .footerGrid": {
     display: "grid",
