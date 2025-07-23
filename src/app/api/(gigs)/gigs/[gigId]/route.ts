@@ -133,11 +133,8 @@ export const PATCH = withApiHandler(
     const rating = formData.get("rating") ? Number(formData.get("rating")) : undefined;
     const reviews = formData.get("reviews") ? Number(formData.get("reviews")) : undefined;
 
-    const keywordsRaw = formData.getAll("keywords");
-    const keywords = keywordsRaw.length ? keywordsRaw : undefined;
-
-    const skillsRaw = formData.getAll("releventSkills");
-    const releventSkills = skillsRaw.length ? skillsRaw : undefined;
+    const keywords = JSON.parse((formData.get("keywords") as string) || "[]");
+    const releventSkills = JSON.parse((formData.get("releventSkills") as string) || "[]");
 
     let uploadedFile = gig.certification;
     if (file) {
@@ -158,8 +155,8 @@ export const PATCH = withApiHandler(
       ...(time !== undefined && { time }),
       ...(rating !== undefined && { rating }),
       ...(reviews !== undefined && { reviews }),
-      ...(keywords && { keywords }),
-      ...(releventSkills && { releventSkills }),
+      ...(keywords.length > 0 && { keywords }),
+      ...(releventSkills.length > 0 && { releventSkills }),
       ...(uploadedFile && { certification: uploadedFile }),
     };
 

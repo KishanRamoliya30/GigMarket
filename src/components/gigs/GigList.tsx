@@ -29,6 +29,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ExpandMoreOutlined, Check as CheckIcon } from "@mui/icons-material";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
+import EditIcon from "@mui/icons-material/EditNote";
 import { apiRequest } from "@/app/lib/apiCall";
 import { Gig } from "@/app/utils/interfaces";
 import { ServiceTier } from "../../../utils/constants";
@@ -173,7 +174,6 @@ export default function GigListing() {
   };
 
   const handleConfirmDelete = async () => {
-    console.log("HELLO");
     const res = await apiRequest(
       `gigs/${selectedDeleteGig}`,
       {
@@ -656,16 +656,28 @@ export default function GigListing() {
                         {gig.title}
                       </Typography>
                       {gig.createdBy._id.toString() === user?._id && (
-                        <DeleteOutlineOutlinedIcon
-                          sx={{
-                            color: "#666",
-                            cursor: "pointer",
-                            "&:hover": {
-                              color: "#d32f2f",
-                            },
-                          }}
-                          onClick={() => handleDeleteModalClick(gig?._id)}
-                        />
+                        <Box>
+                          <EditIcon
+                            sx={{
+                              color: "#666",
+                              cursor: "pointer",
+                              "&:hover": {
+                                color: "#1DBF73",
+                              },
+                            }}
+                            onClick={() => router.push(`/gigs/edit/${gig._id}`)}
+                          />
+                          <DeleteOutlineOutlinedIcon
+                            sx={{
+                              color: "#666",
+                              cursor: "pointer",
+                              "&:hover": {
+                                color: "#d32f2f",
+                              },
+                            }}
+                            onClick={() => handleDeleteModalClick(gig?._id)}
+                          />
+                        </Box>
                       )}
                     </Box>
                     <Typography
