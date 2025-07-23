@@ -249,18 +249,26 @@ export default function GigDetailPage() {
 
   function handleBidSubmit () {
     let hasError = false;
+    const bidError = {
+      bidAmount: "",
+      bidComment: "",
+    }
     if (!bidAmount) {
       hasError = true;
-      setError({ ...error, bidAmount: "Bid amount is required" });
+      bidError.bidAmount= "Bid amount is required";
+    }
+    else if (isNaN(Number(bidAmount)) || Number(bidAmount) <= 0) {
+      bidError.bidAmount=  "Invalid Amount";
     }
     if (!bidComment) {
       hasError = true;
-      setError({ ...error, bidComment: "Bid comment is required" });
+      bidError.bidComment= "Bid Comment is required"
     }
-    if (isNaN(Number(bidAmount)) || Number(bidAmount) <= 0) {
-      setError({ ...error, bidAmount: "Invalid Amount" });
+    
+    if(hasError) {
+      setError(bidError);
+      return;
     }
-    if(hasError) return;
     const data = {
       gigId: gigId,
       bidAmount: Number(bidAmount),
@@ -277,7 +285,7 @@ export default function GigDetailPage() {
         if(gigDetails)
         setGigDetails({...gigDetails, bid: bid });
       } else {
-        alert(res.data.message);
+        setError({...error,bidComment:res.message ?? "Error placing bid"});
       }
     });
   }
