@@ -65,10 +65,10 @@ export default function TopProvidersSection() {
   return (
     <section className=" py-12 md:px-16 relative bg-green-50 dark:bg-transparent">
       <div className="flex flex-col justify-between mb-4">
-        <h2 className="text-2xl sm:text-3xl lg:text-4xl mb-2 text-[#404145] font-bold">
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl mb-2 text-[#404145] font-bold text-center">
           Top Providers
         </h2>
-        <p className="text-gray-600 max-w-2xl">
+        <p className="text-gray-600 max-w-2xl mx-auto text-center">
           Most viewed and all-time top-rated providers
         </p>
       </div>

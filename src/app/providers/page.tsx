@@ -26,11 +26,11 @@ const TopProviders = () => {
         <h2 className="flex items-center gap-3 text-2xl sm:text-3xl lg:text-4xl mb-6 text-[#404145] font-bold">
           <button
             onClick={() => router.back()}
-            className="coursor-pointer flex items-center justify-center w-10 h-10 bg-emerald-600 text-white rounded-full shadow-md transition"
+            className="cursor-pointer flex items-center justify-center w-10 h-10 bg-emerald-600 text-white rounded-full shadow-md transition"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          Top Providers
+          All Providers
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
