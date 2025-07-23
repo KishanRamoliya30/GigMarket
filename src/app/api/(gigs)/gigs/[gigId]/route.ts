@@ -4,8 +4,11 @@ import Gig from "@/app/models/gig";
 import Bid from "@/app/models/bid";
 import Profile from "@/app/models/profile";
 import { ApiError } from "@/app/lib/commonError";
-import { successResponse } from "@/app/lib/commonHandlers";
+import { successResponse, withApiHandler } from "@/app/lib/commonHandlers";
 import { verifyToken } from "@/app/utils/jwt";
+import User from "@/app/models/user";
+import { uploadToCloudinary } from "@/lib/cloudinaryFileUpload";
+import { updateGigSchema } from "@/utils/beValidationSchema";
 
 export async function GET(
   req: NextRequest,
@@ -69,7 +72,6 @@ export async function DELETE(
   if (!gigId) {
     throw new ApiError("Gig ID is required", 400);
   }
-  console.log("###52", user);
 
   const gig = await Gig.findById(gigId).populate({
     path: "createdBy",
@@ -93,3 +95,81 @@ export async function DELETE(
 
   return successResponse(null, "Gig deleted successfully");
 }
+
+export const PATCH = withApiHandler(
+  async (
+    req: NextRequest,
+    { params }: { params: Promise<{ gigId: string }> }
+  ): Promise<NextResponse> => {
+    await dbConnect();
+
+    const userDetails = await verifyToken(req);
+    if (!userDetails?.userId || !userDetails?.role) {
+      throw new ApiError("Unauthorized request", 401);
+    }
+
+    const user = await User.findById(userDetails.userId);
+    if (!user) throw new ApiError("User not found", 404);
+
+    const gigId = (await params).gigId;
+    if (!gigId) throw new ApiError("Gig ID is required", 400);
+
+    const gig = await Gig.findById(gigId);
+    if (!gig) throw new ApiError("Gig not found", 404);
+
+    if (userDetails.role !== "Admin" && gig.createdBy.toString() !== userDetails.userId) {
+      throw new ApiError("You are not authorized to update this gig", 403);
+    }
+
+    const formData = await req.formData();
+
+    const file = formData.get("certification") as File | null;
+    const title = formData.get("title")?.toString();
+    const description = formData.get("description")?.toString();
+    const tier = formData.get("tier")?.toString();
+    const price = formData.get("price") ? Number(formData.get("price")) : undefined;
+    const time = formData.get("time") ? Number(formData.get("time")) : undefined;
+
+    const rating = formData.get("rating") ? Number(formData.get("rating")) : undefined;
+    const reviews = formData.get("reviews") ? Number(formData.get("reviews")) : undefined;
+
+    const keywordsRaw = formData.getAll("keywords");
+    const keywords = keywordsRaw.length ? keywordsRaw : undefined;
+
+    const skillsRaw = formData.getAll("releventSkills");
+    const releventSkills = skillsRaw.length ? skillsRaw : undefined;
+
+    let uploadedFile = gig.certification;
+    if (file) {
+      const url = await uploadToCloudinary(file, { folder: "gig_certifications" });
+      uploadedFile = {
+        url,
+        name: file.name,
+        type: file.type,
+        size: file.size,
+      };
+    }
+
+    const updatedData = {
+      ...(title && { title }),
+      ...(description && { description }),
+      ...(tier && { tier }),
+      ...(price !== undefined && { price }),
+      ...(time !== undefined && { time }),
+      ...(rating !== undefined && { rating }),
+      ...(reviews !== undefined && { reviews }),
+      ...(keywords && { keywords }),
+      ...(releventSkills && { releventSkills }),
+      ...(uploadedFile && { certification: uploadedFile }),
+    };
+
+    updateGigSchema.parse(updatedData);
+
+    const updatedGig = await Gig.findByIdAndUpdate(gigId, updatedData, {
+      new: true,
+      runValidators: true,
+    });
+
+    return successResponse(updatedGig, "Gig updated successfully", 200);
+  }
+);

@@ -61,7 +61,6 @@ const Subscription = () => {
       if (isFree) {
         toast.success(res.data.message);
         router.push("/add-profile");
-        console.log("test data123",res.data.message)
       } else {
         const { id } = await res.data.data;
         const stripe = await stripePromise;

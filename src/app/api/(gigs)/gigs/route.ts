@@ -77,7 +77,7 @@ export const POST = withApiHandler(async (req: NextRequest): Promise<NextRespons
     createdByRole: userDetails.role,
     createdBy: userDetails.userId,
     status: "Open",
-    isPublic: userDetails.role
+    isPublic: userDetails.role === "Provider"
   };
 
   createGigSchema.parse(data);

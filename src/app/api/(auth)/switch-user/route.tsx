@@ -3,6 +3,7 @@ import dbConnect from "@/app/lib/dbConnect";
 import { jwtVerify } from "jose";
 import { generateToken } from "@/app/utils/jwt";
 import User from "@/app/models/user";
+import { expiryTime } from "../../../../../utils/constants";
 
 
 
@@ -39,7 +40,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         secure: false,
         sameSite: "strict",
         path: "/",
-        maxAge: 60 * 60 * 24 * 7,
+        maxAge: expiryTime,
       });
 
       return response;

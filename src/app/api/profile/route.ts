@@ -131,7 +131,7 @@ export async function POST(request: Request) {
     const token = generateToken({
       userId: user._id,
       email: user.email,
-      role: user.role,
+      role: user.role ?? "User",
       subscriptionCompleted: user.subscriptionCompleted,
       profileCompleted: user.profileCompleted,
     });
