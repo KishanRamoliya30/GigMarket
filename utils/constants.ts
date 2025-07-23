@@ -201,3 +201,72 @@ export const TierList: ServiceTier[] = Object.values(ServiceTier);
 export const capitalizeFirstLetter = (str: string) => {
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 };
+  export const tabs = [
+    "All",
+    "Open",
+    "Requested",
+    "In Progress",
+    "Completed",
+    "Rejected",
+  ];
+export const gigData = [
+  {
+    title: "React Developer for E-commerce Website",
+    description:
+      "Need an experienced React developer to build a modern e-commerce platform with payment integration and user authentication.",
+    price: "$5,000",
+    client: "John Smith",
+    provider: "Sarah Wilson",
+    date: "1/15/2024",
+    status: "In Progress",
+    progress: 75,
+    history: [
+      {
+        status: "In Progress",
+        from: "Requested",
+        by: "John Smith",
+        role: "client",
+        timestamp: "Jan 17, 2024, 09:15 AM",
+        note: "Proposal accepted. Looking forward to working together!",
+      },
+      {
+        status: "Requested",
+        from: "Open",
+        by: "Sarah Wilson",
+        role: "provider",
+        timestamp: "Jan 16, 2024, 02:30 PM",
+        note: "Submitted proposal with detailed timeline and portfolio",
+      },
+      {
+        status: "Open",
+        from: "",
+        by: "John Smith",
+        role: "client",
+        timestamp: "Jan 15, 2024, 10:00 AM",
+        note: "Initial gig posting",
+      },
+    ],
+  },
+  {
+    title: "Logo Design for Tech Startup",
+    description: "Design a modern logo for a new AI-based tech company.",
+    price: "$700",
+    client: "Emily Clark",
+    provider: "David Ray",
+    date: "2/20/2024",
+    status: "Completed",
+    progress: 100,
+    history: [],
+  },
+  {
+    title: "Landing Page Redesign",
+    description: "Revamp an outdated landing page with modern design trends.",
+    price: "$1,200",
+    client: "Mike Taylor",
+    provider: "Sarah Wilson",
+    date: "3/5/2024",
+    status: "Rejected",
+    progress: 0,
+    history: [],
+  },
+];
