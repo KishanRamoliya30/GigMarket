@@ -4,6 +4,7 @@ import Image from "next/image";
 import { FavoriteBorderOutlined, MoreHoriz } from "@mui/icons-material";
 import { useState } from "react";
 import { portfolioItems } from "../../../utils/constants";
+import { ArrowRight } from "lucide-react";
 
 const MadeOnFiverr = () => {
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
@@ -67,6 +68,11 @@ const MadeOnFiverr = () => {
           </div>
         ))}
       </div>
+         <button
+        className="cursor-pointer text-sm font-semibold mt-6 ml-auto mr-auto hover:underline flex items-center gap-1"
+      >
+        Browse All <ArrowRight className="w-4 h-4" />
+      </button>
     </section>
   );
 };

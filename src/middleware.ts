@@ -36,6 +36,7 @@ const FIX_PUBLIC_PATHS = [
   "/reset-password",
   "/verify-otp",
   "/forgot-password",
+  "/providers"
 ];
 
 const COMMON_PATHS = ["/dashboard", "/gigs", "/api/gigs", "/"];
