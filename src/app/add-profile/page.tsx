@@ -224,7 +224,7 @@ const Profile = () => {
           <Box
             sx={{
               margin: "127px 0",
-              minHeight: "100vh",
+              // minHeight: "100vh",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",

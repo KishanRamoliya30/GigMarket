@@ -56,9 +56,9 @@ const Sidebar = () => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-[64px] left-0 h-[calc(100vh-64px)] w-64 bg-white shadow-lg z-[1100] transform transition-transform duration-300 ease-in-out
-        ${open ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 lg:static`}
-      >
+  className={`fixed top-[64px] left-0 w-64 bg-white  z-[1100] transition-transform duration-300 ease-in-out
+  ${open ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 lg:static  flex flex-col`}
+>
         <ul className="p-4 space-y-2 overflow-y-auto max-h-[calc(100vh-128px)]">
           {menuItems.map(({ icon, label, path }) => (
             <li

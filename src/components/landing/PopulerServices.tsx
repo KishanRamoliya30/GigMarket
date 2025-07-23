@@ -11,7 +11,7 @@ function PopularServices() {
   return (
     <section className="px-4 sm:px-10 lg:px-20 py-16">
       <h2 className="text-2xl sm:text-3xl lg:text-4xl mb-8 text-[#404145] font-bold">
-        Popular Services
+        Popular Gigs
       </h2>
       
       <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10">

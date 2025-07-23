@@ -2,26 +2,20 @@
 
 import React, { useEffect, useState } from "react";
 import {
-  Box,
-  Stack,
-  Typography,
-  CircularProgress,
-  IconButton,
-  Paper,
-} from "@mui/material";
-import SchoolOutlinedIcon from "@mui/icons-material/SchoolOutlined";
-import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
-import EmojiEventsOutlinedIcon from "@mui/icons-material/EmojiEventsOutlined";
-import VerifiedIcon from "@mui/icons-material/Verified";
-import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
-import StarIcon from "@mui/icons-material/Star";
-import EditIcon from "@mui/icons-material/Edit";
+  SchoolOutlined,
+  WorkspacePremium,
+  EmojiEventsOutlined,
+  Verified,
+  FiberManualRecord,
+  Star,
+  Edit,
+  PlaceOutlined,
+} from "@mui/icons-material";
 import ProfileImageEditor from "@/components/profile/profileAvtarPopup";
 import ProfileFormCard from "@/components/profile/profileFormsModal";
 import { apiRequest } from "@/app/lib/apiCall";
 import { useUser } from "@/context/UserContext";
-import { Profile, Education, Certification } from "../../utils/interfaces";
-import PlaceOutlinedIcon from '@mui/icons-material/PlaceOutlined';
+import { Profile} from "../../utils/interfaces";
 import { capitalizeFirstLetter } from "../../../../utils/constants";
 
 interface SectionCardProps {
@@ -31,13 +25,13 @@ interface SectionCardProps {
 }
 
 const SectionCard: React.FC<SectionCardProps> = ({ title, icon, children }) => (
-  <Paper elevation={1} sx={{ p: 3, mb: 3, borderRadius: 2 }}>
-    <Stack direction="row" alignItems="center" spacing={1} mb={1}>
+  <div className="bg-white p-6 mb-6 rounded-xl shadow-sm">
+    <div className="flex items-center gap-2 mb-4">
       {icon}
-      <Typography variant="h6">{title}</Typography>
-    </Stack>
+      <h2 className="text-lg font-semibold">{title}</h2>
+    </div>
     {children}
-  </Paper>
+  </div>
 );
 
 const ProfileViewCard: React.FC = () => {
@@ -76,27 +70,17 @@ const ProfileViewCard: React.FC = () => {
 
   if (loading) {
     return (
-      <Box
-        minHeight="100vh"
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-      >
-        <CircularProgress />
-      </Box>
+      <div className="min-h-screen flex justify-center items-center">
+        <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin" />
+      </div>
     );
   }
 
   if (!profileData) {
     return (
-      <Box
-        minHeight="100vh"
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-      >
-        <Typography color="error">Profile not found</Typography>
-      </Box>
+      <div className="min-h-screen flex justify-center items-center text-red-500">
+        Profile not found
+      </div>
     );
   }
 
@@ -117,59 +101,30 @@ const ProfileViewCard: React.FC = () => {
   } = profileData;
 
   return (
-    <Box sx={{ p: 4, background: "#fafaf5", minHeight: "100vh" }}>
-      {/* Header */}
-      <Paper
-        elevation={1}
-        sx={{
-          p: 3,
-          borderRadius: 2,
-          position: "relative",
-          mb: 4,
-          backgroundColor: "#fff",
-        }}
-      >
-        {/* Edit Button Top Right */}
-        <Box sx={{ position: "absolute", top: 16, right: 16 }}>
-          <IconButton
-            onClick={onEdit}
-            sx={{
-              // bgcolor: "#1dbf73",
-              borderRadius: 1,
-              border: "1px solid gray",
-              px: 2,
-              height: 36,
-              "&:hover": {
-                // bgcolor: "#1dbf73",
-              },
-            }}
-          >
-            <EditIcon sx={{ mr: 1, fontSize: 18 }} />
-            <Typography variant="body2" fontWeight={600}>
-              Edit Profile
-            </Typography>
-          </IconButton>
-        </Box>
+   <div className="relative bg-[#fafaf5] min-h-screen p-6">
+      {/* Profile Header */}
+      <div className="bg-white p-6 rounded-xl shadow-sm mb-6">
+        <button
+          onClick={onEdit}
+          className="absolute cursor-pointer top-12 right-10 flex items-center text-sm border border-gray-300 px-3 py-1.5 rounded hover:shadow"
+        >
+          <Edit fontSize="small" className="mr-1" />
+          <span className="font-semibold">Edit Profile</span>
+        </button>
 
-        {/* Profile Header Content */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          {/* Avatar */}
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+          <ProfileImageEditor avtar={profilePicture} userId={userId ?? ""} />
           <div>
-            <ProfileImageEditor avtar={profilePicture} userId={userId ?? ""} />
-          </div>
-
-          {/* Name and Info */}
-          <div className="flex-1">
             <h2 className="text-2xl font-bold">{fullName}</h2>
-
-            <div className="flex items-center gap-1 mt-1 text-gray-600 text-sm">
-              <PlaceOutlinedIcon className="!text-base text-gray-500" />
+            <div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
+              <PlaceOutlined className="text-base text-gray-500" />
               <span>{currentSchool}</span>
             </div>
           </div>
         </div>
-      </Paper>
+      </div>
 
+      {/* Form Modal */}
       {open && (
         <ProfileFormCard
           isEdit={isEdit}
@@ -182,29 +137,24 @@ const ProfileViewCard: React.FC = () => {
 
       {/* Summary */}
       <SectionCard title="Professional Summary">
-        <Typography color="text.secondary">{professionalSummary}</Typography>
+        <p className="text-gray-700">{professionalSummary}</p>
       </SectionCard>
 
       {/* Skills & Interests */}
-      <div className="mb-6 bg-white rounded-xl p-6 shadow-sm">
+      <div className="bg-white p-6 rounded-xl shadow-sm mb-6">
         <h2 className="text-xl font-semibold mb-4">Skills & Interests</h2>
-
         <div className="flex flex-col md:flex-row gap-6">
-          {/* Skills Section */}
+          {/* Skills */}
           <div className="w-full md:w-1/2">
             <h3 className="text-lg font-medium mb-2">Skills</h3>
             {skills.length > 0 ? (
               <div className="flex flex-wrap gap-2">
-                {skills.map((skill: string) => (
+                {skills.map((skill) => (
                   <div
                     key={skill}
-                    className="flex items-center border border-gray-300 text-gray-700 text-sm px-3 py-1 rounded-md"
+                    className="flex items-center border border-gray-300 text-sm px-3 py-1 rounded text-gray-700"
                   >
-                    <StarIcon
-                      className="!text-yellow-500 mr-1"
-                      fontSize="small"
-                    />
-
+                    <Star className="text-yellow-500 mr-1" fontSize="small" />
                     {capitalizeFirstLetter(skill)}
                   </div>
                 ))}
@@ -214,15 +164,15 @@ const ProfileViewCard: React.FC = () => {
             )}
           </div>
 
-          {/* Interests Section */}
+          {/* Interests */}
           <div className="w-full md:w-1/2">
             <h3 className="text-lg font-medium mb-2">Interests</h3>
             {interests.length > 0 ? (
               <div className="flex flex-wrap gap-2">
-                {interests.map((interest: string) => (
+                {interests.map((interest) => (
                   <div
                     key={interest}
-                    className="bg-blue-100 text-blue-700 text-sm px-3 py-1 rounded-md font-medium"
+                    className="bg-blue-100 text-blue-700 px-3 py-1 rounded text-sm font-medium"
                   >
                     {capitalizeFirstLetter(interest)}
                   </div>
@@ -236,93 +186,59 @@ const ProfileViewCard: React.FC = () => {
       </div>
 
       {/* Education */}
-      <SectionCard
-        title="Education"
-        icon={<SchoolOutlinedIcon color="primary" />}
-      >
-        <Paper
-          sx={{ p: 2, backgroundColor: "#f0f6ff", borderRadius: 2, mb: 2 }}
-        >
-          <Typography fontWeight={600}>
+      <SectionCard title="Education" icon={<SchoolOutlined className="text-blue-500" />}>
+        <div className="bg-blue-50 p-4 rounded-lg mb-2">
+          <p className="font-semibold">
             {degreeType} in {major}
-            {minor && (
-              <Typography component="span" fontWeight={400}>
-                {" "}
-                (Minor: {minor})
-              </Typography>
-            )}
-          </Typography>
-          <Typography color="text.secondary">
+            {minor && <span className="font-normal"> (Minor: {minor})</span>}
+          </p>
+          <p className="text-gray-600">
             {currentSchool} • Class of {graduationYear}
-          </Typography>
-        </Paper>
+          </p>
+        </div>
 
         {pastEducation.length > 0 && (
-          <Box mt={1}>
-            <Typography fontWeight={500} mb={1}>
-              Previous Education
-            </Typography>
-            {pastEducation.map((edu: Education, idx: number) => (
-              <Stack
-                key={idx}
-                direction="row"
-                spacing={1}
-                alignItems="center"
-                mb={0.5}
-              >
-                <FiberManualRecordIcon sx={{ fontSize: 8, color: "gray" }} />
-                <Box>
-                  <Typography fontWeight={500}>{edu.degree}</Typography>
-                  <Typography color="text.secondary">
+          <div>
+            <p className="font-medium mb-2">Previous Education</p>
+            {pastEducation.map((edu, idx) => (
+              <div key={idx} className="flex items-start gap-2 mb-1">
+                <FiberManualRecord className="text-gray-400 !text-xs mt-1" />
+                <div>
+                  <p className="font-medium">{edu.degree}</p>
+                  <p className="text-gray-600">
                     {edu.school} • {edu.year}
-                  </Typography>
-                </Box>
-              </Stack>
+                  </p>
+                </div>
+              </div>
             ))}
-          </Box>
+          </div>
         )}
       </SectionCard>
 
       {/* Extracurricular */}
-      <SectionCard
-        title="Extracurricular Activities"
-        icon={<EmojiEventsOutlinedIcon color="primary" />}
-      >
-        <Typography color="text.secondary">
-          {extracurricularActivities}
-        </Typography>
+      <SectionCard title="Extracurricular Activities" icon={<EmojiEventsOutlined className="text-blue-500" />}>
+        <p className="text-gray-700">{extracurricularActivities}</p>
       </SectionCard>
 
       {/* Certifications */}
-      <SectionCard
-        title="Certifications"
-        icon={<VerifiedIcon color="primary" />}
-      >
+      <SectionCard title="Certifications" icon={<Verified className="text-blue-500" />}>
         {certifications.length > 0 ? (
-          <Stack spacing={1}>
-            {certifications.map((cert: Certification, idx: number) => (
-              <Paper
+          <div className="flex flex-col gap-2">
+            {certifications.map((cert, idx) => (
+              <div
                 key={idx}
-                sx={{
-                  p: 2,
-                  borderRadius: 1.5,
-                  backgroundColor: "#e8f5e9",
-                  display: "flex",
-                  alignItems: "center",
-                }}
+                className="flex items-center bg-green-50 p-3 rounded-lg text-sm"
               >
-                <WorkspacePremiumIcon sx={{ mr: 1, color: "green" }} />
-                <Typography>{cert.fileName || cert?.file?.fileName}</Typography>
-              </Paper>
+                <WorkspacePremium className="text-green-600 mr-2" />
+                <span>{cert.fileName || cert?.file?.fileName}</span>
+              </div>
             ))}
-          </Stack>
+          </div>
         ) : (
-          <Typography color="text.secondary">
-            No certifications uploaded
-          </Typography>
+          <p className="text-gray-500">No certifications uploaded</p>
         )}
       </SectionCard>
-    </Box>
+    </div>
   );
 };
 

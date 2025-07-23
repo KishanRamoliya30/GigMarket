@@ -13,18 +13,14 @@ const Layout = ({
       <Header />
 
       {/* Full page layout */}
-      <div className="pt-[64px] min-h-screen flex flex-col">
-        {/* Sidebar + Content */}
-        <div className="flex flex-1">
-          <div className="sticky top-[64px] h-[calc(100vh-64px)]">
-            <Sidebar />
-          </div>
-          <main className="flex-1 px-4 py-6">{children}</main>
+      <div className="relative pt-[64px] min-h-screen flex flex-row flex-wrap">
+        <div className="shadow-[4px_0_10px_rgba(0,0,0,0.1)] z-[1100]">
+          <Sidebar />
         </div>
-
-        {/* Footer always below */}
-        <Footer />
+        <main className="flex-1">{children}</main>
       </div>
+      {/* Footer always below */}
+      <Footer />
     </>
   );
 };
