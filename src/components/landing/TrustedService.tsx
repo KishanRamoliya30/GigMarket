@@ -37,8 +37,8 @@ const TrustedServices = () => {
   }, []);
   
   return (
-    <section className="py-16 px-4 md:px-10 bg-white">
-      <h2 className="text-2xl md:text-3xl font-semibold text-gray-800 mb-10">
+    <section className="py-12 md:px-16 px-4 md:px-10 bg-white">
+      <h2 className="text-2xl md:text-3xl font-semibold text-gray-800 mb-10 text-center">
         Trusted services
       </h2>
 

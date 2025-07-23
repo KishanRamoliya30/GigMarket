@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 function JoinFiverr() {
   const router = useRouter()
   return (
-    <div className="relative px-4 sm:px-10 md:px-20 my-10 sm:my-16">
+    <div className="relative py-12 md:px-16 sm:px-10 md:px-20 my-10 sm:my-16">
       {/* Background Image */}
       <div className="relative w-full h-80 sm:h-96 rounded-sm overflow-hidden">
         <Image
