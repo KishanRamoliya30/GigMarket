@@ -270,3 +270,109 @@ export const gigData = [
     history: [],
   },
 ];
+
+type Freelancer = {
+  name: string;
+  role: string;
+  rating: number;
+  image: string;
+};
+
+export const freelancers: Freelancer[] = [
+  {
+    name: "Tom Wilson",
+    role: "Marketing Manager",
+    rating: 4.5,
+    image: "/providers/p1.jpg",
+  },
+  {
+    name: "Robert Fox",
+    role: "Nursing Assistant",
+    rating: 4.5,
+    image: "/providers/p2.jpg",
+  },
+  {
+    name: "Ali Tufan",
+    role: "UI/UX Designer",
+    rating: 4.5,
+    image: "/providers/p3.jpg",
+  },
+  {
+    name: "Agent Pakulla",
+    role: "Nursing Assistant",
+    rating: 4.0,
+    image: "/providers/p4.jpg",
+  },
+  {
+    name: "Sarah Johnson",
+    role: "Content Writer",
+    rating: 4.8,
+    image: "/providers/p5.jpg",
+  },
+  {
+    name: "Michael Chen",
+    role: "Full Stack Developer",
+    rating: 4.7,
+    image: "/providers/p6.jpg",
+  },
+  {
+    name: "Emma Davis",
+    role: "Graphic Designer",
+    rating: 4.6,
+    image: "/providers/p4.jpg",
+  },
+  {
+    name: "Michael Chen",
+    role: "Full Stack Developer",
+    rating: 4.7,
+    image: "/providers/p6.jpg",
+  },
+  {
+    name: "Emma Davis",
+    role: "Graphic Designer",
+    rating: 4.6,
+    image: "/providers/p5.jpg",
+  },
+  {
+    name: "Emma Davis",
+    role: "Graphic Designer",
+    rating: 4.6,
+    image: "/providers/p4.jpg",
+  },
+  {
+    name: "Emma Davis",
+    role: "Graphic Designer",
+    rating: 4.6,
+    image: "/providers/p1.jpg",
+  },
+  {
+    name: "Emma Davis",
+    role: "Graphic Designer",
+    rating: 4.6,
+    image: "/providers/p2.jpg",
+  },
+  {
+    name: "Emma Davis",
+    role: "Graphic Designer",
+    rating: 4.6,
+    image: "/providers/p3.jpg",
+  },
+  {
+    name: "Emma Davis",
+    role: "Graphic Designer",
+    rating: 4.6,
+    image: "/providers/p4.jpg",
+  },
+  {
+    name: "Sarah Johnson",
+    role: "Content Writer",
+    rating: 4.8,
+    image: "/providers/p5.jpg",
+  },
+  {
+    name: "Michael Chen",
+    role: "Full Stack Developer",
+    rating: 4.7,
+    image: "/providers/p6.jpg",
+  },
+];

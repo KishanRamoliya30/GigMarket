@@ -37,7 +37,7 @@ export default function Dashboard() {
       : gigData.filter((gig) => gig.status === activeTab);
 
   return (
-    <Box className=" min-h-screen">
+    <Box className="min-h-screen p-6">
       {/* Header */}
       <div className="mb-8">
         <Typography variant="h4" className="font-bold text-gray-800 mb-1">

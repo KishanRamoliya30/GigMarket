@@ -11,6 +11,8 @@ import FiverrBusiness from "@/components/landing/FiverrBusiness";
 import FreelancerBenefits from "@/components/landing/FreelancerBenefits";
 import MadeOnFiverr from "@/components/landing/MadeOnFiverr";
 import TrustedServices from "@/components/landing/TrustedService";
+import TopProvidersSection from "@/components/landing/TopProviders";
+import ServiceTiers from "@/components/landing/ServiceTiers";
 
 export default function Home() {
   return (
@@ -19,11 +21,13 @@ export default function Home() {
       <HomeBanner/>
       <Companies/>
       <PopularServices/>
-      <Everything/>
+      <TopProvidersSection/>
+      <MadeOnFiverr/>      
+      <ServiceTiers/>
       <FiverrBusiness/>
-      <TrustedServices/>
+      <TrustedServices/>      
       <FreelancerBenefits/>
-      <MadeOnFiverr/>
+      <Everything/>
       <JoinFiverr/>
       <Footer />
     </>

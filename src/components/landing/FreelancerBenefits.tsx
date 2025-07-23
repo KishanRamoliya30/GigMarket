@@ -46,8 +46,8 @@ const FreelancerBenefits = () => {
   ];
 
   return (
-    <section className="text-center py-16 px-4 bg-white">
-      <h2 className="text-3xl md:text-4xl font-semibold text-gray-800 mb-12">
+    <section className="text-center  py-12 md:px-16 px-4 bg-white">
+      <h2 className="text-3xl md:text-4xl font-semibold text-gray-800 mb-12 mx-auto">
         Make it all happen with freelancers
       </h2>
 

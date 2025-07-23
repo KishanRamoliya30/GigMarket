@@ -67,6 +67,7 @@ const HeaderWrapper = styled(Box)(({ theme }) => ({
     backgroundColor: "#222325",
     borderRadius: 0,
     padding: "10px 14px",
+    height:"45px",
     "& svg": {
       color: "#fff",
     },
