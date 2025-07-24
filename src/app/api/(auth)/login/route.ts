@@ -40,7 +40,7 @@ export async function POST(request: NextRequest): Promise<Response> {
     }
 
 
-    const user = await User.findOne({ email })
+    const user = await User.findOne({ email }).populate({ path: 'profile', model: 'profiles' })
     if (!user || user.isAdmin) {
       return NextResponse.json<LoginResponseError>(
         { error: "Invalid credentials. Please try again." },

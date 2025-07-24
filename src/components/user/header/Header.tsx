@@ -12,7 +12,7 @@ import {
   MenuItem,
   Button,
 } from "@mui/material";
-import { styled } from "@mui/material/styles";
+import { styled, SxProps, Theme } from "@mui/material/styles";
 import SearchIcon from "@mui/icons-material/Search";
 import MailOutlineIcon from "@mui/icons-material/MailOutline";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
@@ -196,6 +196,36 @@ export default function Header() {
     router.push(`/publicGigs?search=${searchParameter}`);
   };
 
+  const renderUserAvatar = (avatarStyles?: SxProps<Theme>) => {
+    const profilePic = user?.profile?.profilePicture;
+    const fullName =
+      user?.profile?.fullName || `${user?.firstName} ${user?.lastName}`.trim();
+    const initial = user?.firstName?.charAt(0)?.toUpperCase() || "?";
+
+    return (
+      <Badge
+        variant="dot"
+        color="success"
+        overlap="circular"
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Avatar
+          sx={{
+            bgcolor: "#f66",
+            cursor: "pointer",
+            textTransform: "capitalize",
+            ...avatarStyles,
+          }}
+          onClick={handleAvatarClick}
+          src={profilePic}
+          alt={fullName}
+        >
+          {!profilePic && initial}
+        </Avatar>
+      </Badge>
+    );
+  };
+
   return (
     <>
       <HeaderWrapper>
@@ -233,19 +263,7 @@ export default function Header() {
                 </Link>
               </>
             ) : (
-              <Badge
-                variant="dot"
-                color="success"
-                overlap="circular"
-                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-              >
-                <Avatar
-                  sx={{ bgcolor: "#f66", cursor: "pointer" }}
-                  onClick={handleAvatarClick}
-                >
-                  M
-                </Avatar>
-              </Badge>
+              <>{renderUserAvatar()}</>
             )}
           </Box>
         </Box>
@@ -302,16 +320,7 @@ export default function Header() {
               <Typography variant="body2" sx={{ fontWeight: 500 }}>
                 Orders
               </Typography>
-              <Badge
-                variant="dot"
-                color="success"
-                overlap="circular"
-                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-              >
-                <Avatar sx={{ bgcolor: "#f66" }} onClick={handleAvatarClick}>
-                  M
-                </Avatar>
-              </Badge>
+              {renderUserAvatar()}
             </>
           ) : (
             <>
@@ -381,12 +390,7 @@ export default function Header() {
           </Box>
           {_id && (
             <Box display="flex" alignItems="center" gap={2}>
-              <Avatar
-                sx={{ bgcolor: "#f66", width: 32, height: 32 }}
-                onClick={handleAvatarClick}
-              >
-                M
-              </Avatar>
+              {renderUserAvatar({ width: 32, height: 32 })}
               <Typography>My Account</Typography>
             </Box>
           )}

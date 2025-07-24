@@ -41,7 +41,8 @@ export const POST = withApiHandler(async (req: NextRequest): Promise<NextRespons
 
   const formData = await req.formData();
 
-  const file = formData.get("certification") as File | null;
+  const certification = formData.get("certification") as File | null;
+  const gigImage = formData.get("gigImage") as File | null;
   const title = formData.get("title")?.toString();
   const description = formData.get("description")?.toString();
   const tier = formData.get("tier")?.toString();
@@ -54,14 +55,26 @@ export const POST = withApiHandler(async (req: NextRequest): Promise<NextRespons
     throw new ApiError("Missing or invalid required fields", 400);
   }
 
-  let uploadedFile = null;
-  if (file) {
-    const url = await uploadToCloudinary(file, { folder: "gig_certifications" });
-    uploadedFile = {
+  let certificationFile = null;
+  if (certification) {
+    const url = await uploadToCloudinary(certification, { folder: "gig_certifications" });
+    certificationFile = {
       url,
-      name: file.name,
-      type: file.type,
-      size: file.size,
+      name: certification.name,
+      type: certification.type,
+      size: certification.size,
+    };
+  }
+
+  
+  let gigImageFile = null;
+  if (gigImage) {
+    const url = await uploadToCloudinary(gigImage, { folder: "gig_images" });
+    gigImageFile = {
+      url,
+      name: gigImage.name,
+      type: gigImage.type,
+      size: gigImage.size,
     };
   }
 
@@ -73,7 +86,8 @@ export const POST = withApiHandler(async (req: NextRequest): Promise<NextRespons
     time,
     keywords,
     releventSkills,
-    certification: uploadedFile,
+    certification: certificationFile,
+    gigImage: gigImageFile,
     createdByRole: userDetails.role,
     createdBy: userDetails.userId,
     status: "Open",
