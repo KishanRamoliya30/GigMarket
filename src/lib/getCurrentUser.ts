@@ -11,7 +11,7 @@ export async function getUserFromSession(cookieStore: ReturnType<typeof cookies>
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string, role: string };
-    const user = await User.findById(decoded.userId).select('-password');
+    const user = await User.findById(decoded.userId).select('-password').populate({ path: 'profile', model: 'profiles' });
     const userWithRole = {...user._doc, role: decoded.role}
     return user ? userWithRole : null;
   } catch (err) {
