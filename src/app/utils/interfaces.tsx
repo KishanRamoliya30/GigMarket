@@ -47,8 +47,19 @@ export interface Profile {
   graduationYear: string;
   pastEducation: PastEducation[];
   createdAt: string;
+  ratings: [];
+  averageRating: number;
   updatedAt: string;
   __v: number;
+}
+
+export interface Pagination {
+  total: number;
+  totalPages: number;
+  nextPage: number | null;
+  prevPage: number | null;
+  limit: number;
+  page: number;
 }
 
 export interface Certification {

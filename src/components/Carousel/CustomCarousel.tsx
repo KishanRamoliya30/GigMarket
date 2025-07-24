@@ -19,7 +19,7 @@ function PrevArrow({ onClick }: { onClick?: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="absolute z-10 -left-3 top-1/2 transform -translate-y-1/2 bg-white text-gray-700 p-2 rounded-full shadow-md hover:bg-gray-50 hover:scale-110 hover:shadow-lg transition-all duration-300 ease-in-out hidden sm:block"
+      className="absolute z-10 -left-3 top-1/2 transform -translate-y-1/2 bg-emerald-600 text-white p-2 rounded-full shadow-md  hover:scale-110 hover:shadow-lg transition-all duration-300 ease-in-out hidden sm:block"
     >
       <ArrowLeft className="w-5 h-5" />
     </button>
@@ -30,7 +30,7 @@ function NextArrow({ onClick }: { onClick?: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="absolute z-10 -right-3 top-1/2 transform -translate-y-1/2 bg-white text-gray-700 p-2 rounded-full shadow-md hover:bg-gray-50 hover:scale-110 hover:shadow-lg transition-all duration-300 ease-in-out hidden sm:block"
+      className="absolute z-10 -right-3 top-1/2 transform -translate-y-1/2 bg-emerald-600 text-white p-2 rounded-full shadow-md  hover:scale-110 hover:shadow-lg transition-all duration-300 ease-in-out hidden sm:block"
     >
       <ArrowRight className="w-5 h-5" />
     </button>
@@ -82,9 +82,11 @@ const CustomCarousel = <T,>({
 
   return (
     <section className={`px-4 py-12 md:px-16 relative ${sectionClassName}`}>
-      <div className="flex flex-col justify-between items-center">
+      <div className="flex flex-col justify-between items-center mb-1">
         {heading && (
-          <h2 className="text-xl sm:text-2xl font-semibold mb-3">{heading}</h2>
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl mb-2 text-[#404145] font-bold text-center">
+            {heading}
+          </h2>
         )}
         {subheading && (
           <p className="text-gray-600 max-w-2xl mx-auto text-center mb-2">
@@ -126,7 +128,7 @@ const CustomCarousel = <T,>({
             </div>
           )}
           {total && (
-            <div className="absolute bottom-8 right-4 md:right-16 bg-gray-100 px-3 py-1 rounded-full">
+            <div className="absolute bottom-12 right-4 md:right-16 bg-gray-100 px-3 py-1 rounded-full">
               <span className="text-sm font-medium text-gray-700">
                 Total: {total}
               </span>

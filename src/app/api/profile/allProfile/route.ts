@@ -39,7 +39,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
   const [profiles, total] = await Promise.all([
     Profile.find(filter)
-      .sort({ rate: -1, creatdAt: -1 })
+      .sort({ averageRating: -1, creatdAt: -1 })
       .skip(skip)
       .limit(limit),
     Profile.countDocuments(filter),
@@ -63,6 +63,6 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         prevPage: page > 1 ? page - 1 : null,
       },
     },
-    "Profiles retrieved successfully"
+    ""
   );
 }

@@ -70,7 +70,7 @@ const ProfileSchema = new Schema<IProfile>(
         createdAt: { type: Date, default: Date.now },
       },
     ],
-    averageRating: { type: Number },
+    averageRating: { type: Number, default: 0 },
     pastEducation: [
       {
         school: String,

@@ -436,7 +436,13 @@ export default function GigDetailPage(props?: { self?: boolean }) {
     <StyledWrapper>
       <Button
         startIcon={<ArrowBack />}
-        onClick={() => router.push(isSelf ? "/myGigs" : "/publicGigs")}
+        onClick={() => {
+          if (isSelf) {
+            router.push("/mygigs");
+          } else {
+            router.back();
+          }
+        }}
         className="backBtn"
       >
         Back to Gigs
