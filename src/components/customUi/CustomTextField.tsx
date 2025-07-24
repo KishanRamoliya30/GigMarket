@@ -104,6 +104,9 @@ export default function CustomTextField({
           "& .MuiInputBase-root": {
             height: "44px",
           },
+          "& .Mui-error": {
+            color: "#d32f2f !important",
+          },
           "& .MuiInputBase-multiline": {
             height: "auto",
           },
