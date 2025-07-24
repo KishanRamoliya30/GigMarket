@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, Typography, Chip, Button, Grid, Paper, Divider, Rating, Avatar, Skeleton } from "@mui/material";
+import { Box, Typography, Chip, Button, Grid, Paper, Divider, Rating, Avatar, Skeleton, Pagination } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
 import { useRouter, useParams } from "next/navigation";
 import { styled } from "@mui/system";
@@ -11,13 +11,22 @@ import { Gig,Bid } from "@/app/utils/interfaces";
 import { usePathname } from 'next/navigation'
 import CustomTextField from "../customUi/CustomTextField";
 
-export default function GigDetailPage() {
+export default function GigDetailPage(props?:{self?: boolean}) {
+  const isSelf = props?.self ?? false; 
   const router = useRouter();
   const params = useParams();
   const pathname = usePathname();
   const { user,setRedirectUrl } = useUser();
   const { gigId } = params;
   const [gigDetails, setGigDetails] = useState<Gig|null>(null);
+  const [gigBids, setGigBids] = useState<Bid[]>([]);
+  const [pagination, setPagination] = useState({
+    total: 0,
+    page: 1,
+    limit: 3,
+    totalPages: 0,
+  });
+  const [page, setPage] = useState(1);
   const [showPlaceBid, setShowPlaceBid] = useState(false);
   const [bidAmount, setBidAmount] = useState("");
   const [bidComment, setBidComment] = useState("");
@@ -39,7 +48,8 @@ export default function GigDetailPage() {
     keywords: ["logo", "branding", "startup", "vector"],
   };
   const gigDetail = async () => {
-    const res = await apiRequest(`gigs/${gigId}`, {
+    const apiPath = isSelf?`mygigs/${gigId}`:`gigs/${gigId}`;
+    const res = await apiRequest(apiPath, {
       method: "GET",
     });
     if (res.ok) {
@@ -47,8 +57,20 @@ export default function GigDetailPage() {
       setGigDetails(res.data.data.gig);
     }
   };
+
+  const getGigBids = async () => {
+    const res = await apiRequest(`mygigs/${gigId}/bids`, {
+      method: "GET",
+    });
+    if (res.ok) {
+      // setLoading(false);
+      setPagination(res.data.pagination);
+      setGigBids([...res.data.data,...res.data.data]);
+    }
+  }
   useEffect(() => {
     gigDetail();
+    if(isSelf) getGigBids();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -123,7 +145,7 @@ export default function GigDetailPage() {
         </Box>
       </Grid>
 
-      <Grid size={{xs:12,md:4}}>
+      {!isSelf && <Grid size={{xs:12,md:4}}>
         <Paper elevation={3} className="providerCard" sx={{ p: 2 }}>
           <Box display="flex" alignItems="center" gap={2}>
             <Skeleton animation="wave"  variant="circular" width={60} height={60} />
@@ -157,7 +179,7 @@ export default function GigDetailPage() {
             </Box>
           </Box>
         </Paper>
-      </Grid>
+      </Grid>}
       </Grid> 
     )
   }
@@ -238,6 +260,7 @@ export default function GigDetailPage() {
       )
     )
   }
+
   function placebid () {
     if ((user?._id ?? "") === "") {
       setRedirectUrl(pathname);
@@ -275,6 +298,7 @@ export default function GigDetailPage() {
       description: bidComment,
     };
     setSubmitting(true);
+    
     apiRequest(`gigs/${gigId}/placeBid`, {
       method: "POST",
       data: data,
@@ -289,11 +313,62 @@ export default function GigDetailPage() {
       }
     });
   }
+
+  function getAllBids () {
+    return (
+      <>
+        {gigBids.length > 0 ? (
+          <>
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+            <Typography variant="h6" fontWeight={600}>
+              All Bids
+            </Typography>
+          </Box>         
+            
+            {gigBids.map((bid) => (
+              <Box key={bid._id} className="bidBox">
+                  <Box  mb={2}>
+                    <Box display="flex" justifyContent="space-between" alignItems="center">
+                      <Typography variant="subtitle1" fontWeight={600}>
+                        {bid.createdBy.fullName}
+                      </Typography>
+                      <Typography variant="subtitle1" fontWeight={600}>
+                        $ {bid.bidAmount} / hour
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" color="text.secondary" mb={1}>
+                      {bid.description}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Placed on {new Date(bid.createdAt).toLocaleDateString()}
+                    </Typography>
+                  </Box>
+              </Box>
+            ))}
+            <Box display="flex" justifyContent="center" mt={4} className="pagination">
+              <Pagination
+                count={pagination.totalPages}
+                page={page}
+                onChange={(_, value) => setPage(value)}
+                shape="circular"
+              />
+            </Box>
+          </>
+        ) : (
+          <Box className="bidBox">
+            <Typography variant="body2" color="text.secondary">
+              No bids placed yet.
+            </Typography>
+          </Box>
+        )}
+      </> 
+    )
+  }
   return (
     <StyledWrapper>
       <Button
         startIcon={<ArrowBack />}
-        onClick={() => router.push("/gigs")}
+        onClick={() => router.push(isSelf?"/myGigs":"/gigs")}
         className="backBtn"
       >
         Back to Gigs
@@ -343,10 +418,10 @@ export default function GigDetailPage() {
               <Chip key={word} label={word} size="small" className="gigChip" />
             ))}
           </Box>
-          {getBidBox()}
+          {isSelf?getAllBids():getBidBox()}
         </Grid>
 
-        <Grid size={{ xs: 12, md: 4 }}>
+        {!isSelf && <Grid size={{ xs: 12, md: 4 }}>
           <Paper elevation={3} className="providerCard">
             <Box className="providerHeader">
               <Avatar
@@ -416,7 +491,7 @@ export default function GigDetailPage() {
               Contact / Book Now
             </Button> */}
           </Paper>
-        </Grid>
+        </Grid>}
       </Grid>
 }
     </StyledWrapper>
