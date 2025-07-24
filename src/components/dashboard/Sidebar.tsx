@@ -22,7 +22,7 @@ const menuItems = [
   { icon: <Dashboard />, label: "Dashboard", path: "/dashboard" },
   { icon: <PersonOutline />, label: "Profile", path: "/myProfile" },
   { icon: <CreditCardIcon />, label: "Subscriptions", path: "/subscription" },
-  { icon: <WorkOutline />, label: "My Gigs", path: "/gigs" },
+  { icon: <WorkOutline />, label: "My Gigs", path: "/myGigs" },
   { icon: <BarChart />, label: "Gig Management", path: "/gig-management" },
   { icon: <ChatBubbleOutline />, label: "Messages", path: "/dashboard" },
   { icon: <ListAlt />, label: "Orders", path: "/dashboard" },
