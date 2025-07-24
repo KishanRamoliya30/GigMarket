@@ -26,8 +26,9 @@ import {
 import CustomTextField from "@/components/customUi/CustomTextField";
 import { styled } from "@mui/system";
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { ExpandMoreOutlined, Check as CheckIcon } from "@mui/icons-material";
+import { ArrowLeft } from "lucide-react";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import EditIcon from "@mui/icons-material/EditNote";
 import { apiRequest } from "@/app/lib/apiCall";
@@ -36,8 +37,9 @@ import { ServiceTier } from "../../../utils/constants";
 import { useUser } from "@/context/UserContext";
 const tiers = [ServiceTier.BASIC, ServiceTier.EXPERT, ServiceTier.ADVANCED];
 
-export default function GigListing(props?:{self?:boolean}) {
+export default function GigListing(props?: { self?: boolean }) {
   const searchParams = useSearchParams();
+  const params = useParams();
   const search = searchParams.get("search") || "";
   const router = useRouter();
   const { user } = useUser();
@@ -136,6 +138,8 @@ export default function GigListing(props?:{self?:boolean}) {
     else if (selectedRating === "3⭐ and above") minRating = 3;
     else if (selectedRating === "2⭐ and above") minRating = 2;
 
+    const providerId = params.providerId || "";
+
     const gigApiEndpoint = isSelf ? `mygigs` : `gigs/list`;
     const res = await apiRequest(gigApiEndpoint, {
       method: "GET",
@@ -149,6 +153,9 @@ export default function GigListing(props?:{self?:boolean}) {
         minReviews: minReviews,
         minRating: minRating,
         sort: sortBy,
+        ...(providerId
+          ? { userId: providerId, createdByRole: "Provider" }
+          : {}),
       },
     });
     setLoading(false);
@@ -195,8 +202,17 @@ export default function GigListing(props?:{self?:boolean}) {
 
   return (
     <StyledWrapper>
+      {!isSelf && (
+        <button
+          className="flex items-center p-2 rounded-md gap-2 text-[#003322] font-semibold cursor-pointer mb-3 hover:bg-[#E8F5E9] transition-colors duration-200"
+          onClick={() => router.back()}
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back
+        </button>
+      )}
       <Typography variant="h4" fontWeight={600} mb={3}>
-        {isSelf?'My Gigs':'Browse Gigs'}
+        {isSelf ? "My Gigs" : "Browse Gigs"}
       </Typography>
 
       {/* Filter bar */}
@@ -218,7 +234,7 @@ export default function GigListing(props?:{self?:boolean}) {
         >
           Tiers
         </Button>
-        
+
         <Button
           variant="outlined"
           endIcon={
@@ -230,33 +246,33 @@ export default function GigListing(props?:{self?:boolean}) {
         >
           Budget
         </Button>
-        {!isSelf && 
-        <>
-        
-        <Button
-          variant="outlined"
-          endIcon={
-            <Box component="span">
-              <ExpandMoreOutlined />
-            </Box>
-          }
-          onClick={(e) => handleOpenMenu(e, "rating")}
-        >
-          Rating
-        </Button>     
-      
-        <Button
-          variant="outlined"
-          endIcon={
-            <Box component="span">
-              <ExpandMoreOutlined />
-            </Box>
-          }
-          onClick={(e) => handleOpenMenu(e, "reviews")}
-        >
-          No. of Reviews
-        </Button>
-        </>}
+        {!isSelf && (
+          <>
+            <Button
+              variant="outlined"
+              endIcon={
+                <Box component="span">
+                  <ExpandMoreOutlined />
+                </Box>
+              }
+              onClick={(e) => handleOpenMenu(e, "rating")}
+            >
+              Rating
+            </Button>
+
+            <Button
+              variant="outlined"
+              endIcon={
+                <Box component="span">
+                  <ExpandMoreOutlined />
+                </Box>
+              }
+              onClick={(e) => handleOpenMenu(e, "reviews")}
+            >
+              No. of Reviews
+            </Button>
+          </>
+        )}
       </Box>
 
       {/* Selected filters */}
@@ -738,7 +754,9 @@ export default function GigListing(props?:{self?:boolean}) {
                       size="small"
                       variant="outlined"
                       className="viewBtn"
-                      onClick={() => router.push(`/${isSelf?'myGigs':'gigs'}/${gig._id}`)}
+                      onClick={() =>
+                        router.push(`/${isSelf ? "myGigs" : "gigs"}/${gig._id}`)
+                      }
                     >
                       View
                     </Button>

@@ -20,10 +20,14 @@ const START_WITH_PUBLIC_PATHS = [
   "/admin/forgot-password",
   "/admin/reset-password",
   "/admin/verify-otp",
+
   "/api/profile/userProfile",
   "/api/profile/allProfile",
-
   "/api/admin/login",
+
+  "/publicGigs",
+  "/publicGigs/provider/",
+  "/publicProfile/",
 ];
 
 const FIX_PUBLIC_PATHS = [

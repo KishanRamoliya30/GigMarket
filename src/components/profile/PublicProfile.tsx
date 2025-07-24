@@ -9,7 +9,8 @@ import { apiRequest } from "@/app/lib/apiCall";
 import { Profile } from "@/app/utils/interfaces";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { ArrowBack } from "@mui/icons-material";
+import { ArrowLeft } from "lucide-react";
+import ProfileNotFound from "../notFoundModals/ProfileNotFound";
 
 const PublicProfile = () => {
   const [profileData, setProfileData] = useState<Profile | null>();
@@ -50,11 +51,7 @@ const PublicProfile = () => {
   }
 
   if (!profileData) {
-    return (
-      <div className="min-h-screen flex justify-center items-center">
-        <p className="text-red-500 text-lg">Profile not found</p>
-      </div>
-    );
+    return <ProfileNotFound router={router} />;
   }
 
   const {
@@ -80,7 +77,7 @@ const PublicProfile = () => {
           className="flex items-center p-2 rounded-md gap-2 text-[#003322] font-semibold cursor-pointer mb-3 hover:bg-[#E8F5E9] transition-colors duration-200"
           onClick={() => router.back()}
         >
-          <ArrowBack />
+          <ArrowLeft className="h-5 w-5" />
           Back
         </button>
         {/* Header Section */}

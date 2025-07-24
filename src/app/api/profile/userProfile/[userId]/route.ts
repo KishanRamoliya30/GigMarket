@@ -12,7 +12,6 @@ export async function GET(
   await dbConnect();
 
   const userId = (await params).userId;
-  console.log("090909", userId);
   if (!userId) {
     throw new ApiError("Missing or invalid userId in query.", 400);
   }

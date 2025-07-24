@@ -22,6 +22,8 @@ export async function GET(req: NextRequest) {
   const page = parseInt(searchParams.get("page") || "1");
   const limit = parseInt(searchParams.get("limit") || "10");
   const sort = searchParams.get("sort") || "";
+  const createdByRole = searchParams.get("createdByRole");
+  const userId = searchParams.get("userId");
 
   const sortMap: Record<string, Record<string, 1 | -1>> = {
     "Pricing: High to Low": { price: -1 },
@@ -35,6 +37,18 @@ export async function GET(req: NextRequest) {
   const sortOption = sortMap[sort] || { createdAt: -1 };
 
   const query: FilterQuery<GigDocument> = {};
+
+  if (createdByRole && ["User", "Provider"].includes(createdByRole)) {
+    query.createdByRole = createdByRole;
+  }
+
+  if (userId) {
+    query.createdBy = userId;
+  } else {
+    if (userDetails?.userId && userDetails?.role) {
+      query.createdBy = { $ne: userDetails.userId };
+    }
+  }
 
   if (tierParams.length > 0) {
     const validTiers = tierParams.filter((t) =>
@@ -67,11 +81,9 @@ export async function GET(req: NextRequest) {
     query.reviews = { $gte: Number(minReviews) };
   }
 
+  query.status = "Open";
   const skip = (page - 1) * limit;
 
-  if( userDetails?.userId && userDetails?.role) {
-    query.createdBy = {$ne: userDetails.userId};
-  }
   const [gigsRaw, total] = await Promise.all([
     Gig.find(query)
       .sort(sortOption)
@@ -85,15 +97,11 @@ export async function GET(req: NextRequest) {
     .map((gig) => gig.createdBy && gig.createdBy._id?.toString())
     .filter(Boolean);
 
-  const profiles = await Profile.find(
-    { userId: { $in: userIds } }
-  )
+  const profiles = await Profile.find({ userId: { $in: userIds } })
     .select("fullName pastEducation profilePicture userId")
     .lean();
 
-  const profileMap = new Map(
-    profiles.map((p) => [p.userId.toString(), p])
-  );
+  const profileMap = new Map(profiles.map((p) => [p.userId.toString(), p]));
 
   const gigs = gigsRaw.map((gigDoc) => {
     const gig = gigDoc.toObject();
@@ -118,7 +126,6 @@ export async function GET(req: NextRequest) {
       },
     };
   });
-
 
   return successResponse(gigs, "Gigs fetched successfully", 200, {
     total,

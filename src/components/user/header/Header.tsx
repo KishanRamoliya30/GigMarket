@@ -67,7 +67,7 @@ const HeaderWrapper = styled(Box)(({ theme }) => ({
     backgroundColor: "#222325",
     borderRadius: 0,
     padding: "10px 14px",
-    height:"45px",
+    height: "45px",
     "& svg": {
       color: "#fff",
     },
@@ -189,11 +189,11 @@ export default function Header() {
       setSearchTerm("");
       searchParameter = "";
     }
-    if (pathname === "/gigs") {
-      router.replace(`/gigs?search=${searchParameter}`);
+    if (pathname === "/publicGigs") {
+      router.replace(`/publicGigs?search=${searchParameter}`);
       return;
     }
-    router.push(`/gigs?search=${searchParameter}`);
+    router.push(`/publicGigs?search=${searchParameter}`);
   };
 
   return (
@@ -285,17 +285,19 @@ export default function Header() {
           <FavoriteBorderIcon />
           {_id ? (
             <>
-              {isAllCompleted && <Typography
-                variant="body2"
-                sx={{
-                  fontWeight: 500,
-                  "&:hover": {
-                    borderBottom: "2px solid",
-                  },
-                }}
-              >
-                <Link href="/gigs/create">Add Gig</Link>
-              </Typography>}
+              {isAllCompleted && (
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontWeight: 500,
+                    "&:hover": {
+                      borderBottom: "2px solid",
+                    },
+                  }}
+                >
+                  <Link href="/gigs/create">Add Gig</Link>
+                </Typography>
+              )}
 
               <Typography variant="body2" sx={{ fontWeight: 500 }}>
                 Orders
