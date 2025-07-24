@@ -8,7 +8,6 @@ import PersonIcon from "@mui/icons-material/Person";
 import { apiRequest } from "@/app/lib/apiCall";
 import { Profile } from "@/app/utils/interfaces";
 import { useParams, useRouter } from "next/navigation";
-import { toast } from "react-toastify";
 import { ArrowLeft } from "lucide-react";
 import ProfileNotFound from "../notFoundModals/ProfileNotFound";
 
@@ -31,9 +30,7 @@ const PublicProfile = () => {
         );
         setProfileData(res.data.data);
       } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : "Failed to fetch profile"
-        );
+        console.error(error);
       } finally {
         setLoading(false);
       }

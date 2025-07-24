@@ -23,5 +23,5 @@ export async function GET(
   if (!profile) {
     throw new ApiError("Profile not found", 404);
   }
-  return successResponse(profile, "Profile retrieved successfully");
+  return successResponse(profile, "");
 }
