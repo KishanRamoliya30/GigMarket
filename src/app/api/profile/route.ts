@@ -117,6 +117,8 @@ export async function POST(request: Request) {
       minor,
       graduationYear,
       pastEducation,
+      averageRatings: 0,
+      ratings: [],
     });
 
     const savedProfile = await profile.save();
@@ -179,7 +181,6 @@ export async function GET(request: Request) {
     const profile = await Profile.findOne({
       userId: new mongoose.Types.ObjectId(userId),
     });
-    console.log("Fetched profile:", profile);
 
     if (!profile) {
       return NextResponse.json(
@@ -212,23 +213,35 @@ export async function PUT(request: Request) {
     const fullName = formData.get("fullName") as string;
     const professionalSummary = formData.get("professionalSummary") as string;
     const interests = JSON.parse((formData.get("interests") as string) || "[]");
-    const extracurricularActivities = formData.get("extracurricularActivities") as string;
+    const extracurricularActivities = formData.get(
+      "extracurricularActivities"
+    ) as string;
     const skills = JSON.parse((formData.get("skills") as string) || "[]");
     const currentSchool = formData.get("currentSchool") as string;
     const degreeType = formData.get("degreeType") as string;
     const major = formData.get("major") as string;
     const minor = formData.get("minor") as string;
     const graduationYear = formData.get("graduationYear") as string;
-    const pastEducation = JSON.parse((formData.get("pastEducation") as string) || "[]");
+    const pastEducation = JSON.parse(
+      (formData.get("pastEducation") as string) || "[]"
+    );
 
     if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
-      return NextResponse.json({ error: "Invalid or missing userId." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid or missing userId." },
+        { status: 400 }
+      );
     }
 
-    const existingProfile = await Profile.findOne({ userId: new mongoose.Types.ObjectId(userId) });
+    const existingProfile = await Profile.findOne({
+      userId: new mongoose.Types.ObjectId(userId),
+    });
 
     if (!existingProfile) {
-      return NextResponse.json({ error: "Profile not found." }, { status: 404 });
+      return NextResponse.json(
+        { error: "Profile not found." },
+        { status: 404 }
+      );
     }
 
     // Handle profile picture
