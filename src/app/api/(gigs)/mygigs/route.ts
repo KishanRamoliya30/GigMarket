@@ -2,39 +2,45 @@ import { NextRequest } from "next/server";
 import dbConnect from "@/app/lib/dbConnect";
 import Gig, { GigDocument } from "@/app/models/gig";
 import { successResponse } from "@/app/lib/commonHandlers";
-import { ServiceTier } from "../../../../../../utils/constants";
+import { ServiceTier } from "../../../../../utils/constants";
 import { FilterQuery } from "mongoose";
 import Profile from "@/app/models/profile";
 import { verifyToken } from "@/app/utils/jwt";
+import { ApiError } from "@/app/lib/commonError";
 
 export async function GET(req: NextRequest) {
   await dbConnect();
 
   const userDetails = await verifyToken(req);
+  
+ if (!userDetails?.userId || !userDetails?.role) {
+   throw new ApiError('Unauthorized request', 401);
+ }
 
+ const query: FilterQuery<GigDocument> = {};
+  query.createdBy = userDetails.userId;
+    query.createdByRole = userDetails.role;
   const { searchParams } = new URL(req.url);
   const tierParams = searchParams.getAll("tier[]");
   const search = searchParams.get("search");
   const minPrice = searchParams.get("minPrice");
   const maxPrice = searchParams.get("maxPrice");
-  const minRating = searchParams.get("minRating");
-  const minReviews = searchParams.get("minReviews");
   const page = parseInt(searchParams.get("page") || "1");
   const limit = parseInt(searchParams.get("limit") || "10");
-  const sort = searchParams.get("sort") || "";
+//   const sort = searchParams.get("sort") || "";
 
-  const sortMap: Record<string, Record<string, 1 | -1>> = {
-    "Pricing: High to Low": { price: -1 },
-    "Pricing: Low to High": { price: 1 },
-    "Rating: High to Low": { rating: -1 },
-    "Rating: Low to High": { rating: 1 },
-    "No of Reviews: High to Low": { reviews: -1 },
-    "No of Reviews: Low to High": { reviews: 1 },
-  };
+//   const sortMap: Record<string, Record<string, 1 | -1>> = {
+//     "Pricing: High to Low": { price: -1 },
+//     "Pricing: Low to High": { price: 1 },
+//     "Rating: High to Low": { rating: -1 },
+//     "Rating: Low to High": { rating: 1 },
+//     "No of Reviews: High to Low": { reviews: -1 },
+//     "No of Reviews: Low to High": { reviews: 1 },
+//   };
 
-  const sortOption = sortMap[sort] || { createdAt: -1 };
+//   const sortOption = sortMap[sort] || { createdAt: -1 };
 
-  const query: FilterQuery<GigDocument> = {};
+  
 
   if (tierParams.length > 0) {
     const validTiers = tierParams.filter((t) =>
@@ -58,23 +64,12 @@ export async function GET(req: NextRequest) {
     if (minPrice) query.price.$gte = Number(minPrice);
     if (maxPrice) query.price.$lte = Number(maxPrice);
   }
-
-  if (minRating) {
-    query.rating = { $gte: Number(minRating) };
-  }
-
-  if (minReviews) {
-    query.reviews = { $gte: Number(minReviews) };
-  }
-
+  
   const skip = (page - 1) * limit;
 
-  if( userDetails?.userId && userDetails?.role) {
-    query.createdBy = {$ne: userDetails.userId};
-  }
   const [gigsRaw, total] = await Promise.all([
     Gig.find(query)
-      .sort(sortOption)
+    //   .sort(sortOption)
       .skip(skip)
       .limit(limit)
       .populate({ path: "createdBy", model: "users", select: "email" }),

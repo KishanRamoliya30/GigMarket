@@ -36,12 +36,14 @@ import { ServiceTier } from "../../../utils/constants";
 import { useUser } from "@/context/UserContext";
 const tiers = [ServiceTier.BASIC, ServiceTier.EXPERT, ServiceTier.ADVANCED];
 
-export default function GigListing() {
+export default function GigListing(props?:{self?:boolean}) {
   const searchParams = useSearchParams();
   const search = searchParams.get("search") || "";
   const router = useRouter();
   const { user } = useUser();
   const gigsPerPage = 5;
+
+  const isSelf = props?.self || false;
   const [page, setPage] = useState(1);
 
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
@@ -133,7 +135,9 @@ export default function GigListing() {
     else if (selectedRating === "4⭐ and above") minRating = 4;
     else if (selectedRating === "3⭐ and above") minRating = 3;
     else if (selectedRating === "2⭐ and above") minRating = 2;
-    const res = await apiRequest(`gigs/list`, {
+
+    const gigApiEndpoint = isSelf ? `mygigs` : `gigs/list`;
+    const res = await apiRequest(gigApiEndpoint, {
       method: "GET",
       params: {
         limit: gigsPerPage,
@@ -192,7 +196,7 @@ export default function GigListing() {
   return (
     <StyledWrapper>
       <Typography variant="h4" fontWeight={600} mb={3}>
-        Browse Gigs
+        {isSelf?'My Gigs':'Browse Gigs'}
       </Typography>
 
       {/* Filter bar */}
@@ -214,17 +218,7 @@ export default function GigListing() {
         >
           Tiers
         </Button>
-        <Button
-          variant="outlined"
-          endIcon={
-            <Box component="span">
-              <ExpandMoreOutlined />
-            </Box>
-          }
-          onClick={(e) => handleOpenMenu(e, "rating")}
-        >
-          Rating
-        </Button>
+        
         <Button
           variant="outlined"
           endIcon={
@@ -236,6 +230,21 @@ export default function GigListing() {
         >
           Budget
         </Button>
+        {!isSelf && 
+        <>
+        
+        <Button
+          variant="outlined"
+          endIcon={
+            <Box component="span">
+              <ExpandMoreOutlined />
+            </Box>
+          }
+          onClick={(e) => handleOpenMenu(e, "rating")}
+        >
+          Rating
+        </Button>     
+      
         <Button
           variant="outlined"
           endIcon={
@@ -247,6 +256,7 @@ export default function GigListing() {
         >
           No. of Reviews
         </Button>
+        </>}
       </Box>
 
       {/* Selected filters */}
@@ -728,7 +738,7 @@ export default function GigListing() {
                       size="small"
                       variant="outlined"
                       className="viewBtn"
-                      onClick={() => router.push(`/gigs/${gig._id}`)}
+                      onClick={() => router.push(`/${isSelf?'myGigs':'gigs'}/${gig._id}`)}
                     >
                       View
                     </Button>

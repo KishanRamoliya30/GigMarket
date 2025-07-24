@@ -50,9 +50,9 @@ export const POST = withApiHandler(async (req: NextRequest,{ params }: { params:
     throw new ApiError("You cannot bid on your own gig", 403);
   }
 
-  // if (gig.status !== "Open") {
-  //   throw new ApiError("Bidding is closed for this gig", 403);
-  // }
+  if (gig.status !== "Open") {
+    throw new ApiError("Bidding is closed for this gig", 403);
+  }
   const { bidAmount,description } = await req.json();
   
   if (!bidAmount || !description || isNaN(bidAmount) ) {
