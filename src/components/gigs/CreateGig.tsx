@@ -58,8 +58,6 @@ interface FormValues {
   gigImage: Certification | null;
 }
 
-
-
 export default function CreateGigPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const params = useParams();
@@ -263,6 +261,18 @@ export default function CreateGigPage() {
                 onChange={handleChange}
                 errorText={touched.price && errors.price ? errors.price : ""}
                 isAstrick
+                slotProps={{
+                  input: {
+                    inputProps: {
+                      min: 0,
+                    },
+                    onKeyDown: (e: React.KeyboardEvent) => {
+                      if (e.key === "-" || e.key === "e") {
+                        e.preventDefault();
+                      }
+                    },
+                  },
+                }}
               />
             </Grid>
 
@@ -275,6 +285,18 @@ export default function CreateGigPage() {
                 onChange={handleChange}
                 errorText={touched.time && errors.time ? errors.time : ""}
                 isAstrick
+                slotProps={{
+                  input: {
+                    inputProps: {
+                      min: 0,
+                    },
+                    onKeyDown: (e: React.KeyboardEvent) => {
+                      if (e.key === "-" || e.key === "e") {
+                        e.preventDefault();
+                      }
+                    },
+                  },
+                }}
               />
             </Grid>
 

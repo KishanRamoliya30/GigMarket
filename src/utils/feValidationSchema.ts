@@ -5,7 +5,7 @@ export const CreteGigSchema = Yup.object({
   description: Yup.string().required("This field is required"),
   tier: Yup.string().required("This field is required"),
   price: Yup.number().required("This field is required").min(0),
-  time: Yup.number().required("This field is required").min(1),
+  time: Yup.number().required("This field is required").min(0),
   keywords: Yup.array().min(1, "At least one keyword is required"),
   releventSkills: Yup.array().min(1, "At least one skill is required"),
   certification: Yup.mixed()
