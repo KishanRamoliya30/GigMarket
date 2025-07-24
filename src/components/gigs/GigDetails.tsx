@@ -1,24 +1,36 @@
 "use client";
 
-import { Box, Typography, Chip, Button, Grid, Paper, Divider, Rating, Avatar, Skeleton, Pagination } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Chip,
+  Button,
+  Grid,
+  Paper,
+  Divider,
+  Rating,
+  Avatar,
+  Skeleton,
+  Pagination,
+} from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
 import { useRouter, useParams } from "next/navigation";
 import { styled } from "@mui/system";
 import { useUser } from "@/context/UserContext";
 import { apiRequest } from "@/app/lib/apiCall";
 import { useEffect, useState } from "react";
-import { Gig,Bid } from "@/app/utils/interfaces";
-import { usePathname } from 'next/navigation'
+import { Gig, Bid } from "@/app/utils/interfaces";
+import { usePathname } from "next/navigation";
 import CustomTextField from "../customUi/CustomTextField";
 
-export default function GigDetailPage(props?:{self?: boolean}) {
-  const isSelf = props?.self ?? false; 
+export default function GigDetailPage(props?: { self?: boolean }) {
+  const isSelf = props?.self ?? false;
   const router = useRouter();
   const params = useParams();
   const pathname = usePathname();
-  const { user,setRedirectUrl } = useUser();
+  const { user, setRedirectUrl } = useUser();
   const { gigId } = params;
-  const [gigDetails, setGigDetails] = useState<Gig|null>(null);
+  const [gigDetails, setGigDetails] = useState<Gig | null>(null);
   const [gigBids, setGigBids] = useState<Bid[]>([]);
   const [pagination, setPagination] = useState({
     total: 0,
@@ -30,9 +42,9 @@ export default function GigDetailPage(props?:{self?: boolean}) {
   const [showPlaceBid, setShowPlaceBid] = useState(false);
   const [bidAmount, setBidAmount] = useState("");
   const [bidComment, setBidComment] = useState("");
-  const [loading,setLoading] = useState(true);
-  const [submitting,setSubmitting] = useState(false);
-  const [error,setError] = useState({bidAmount: "", bidComment: ""});
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState({ bidAmount: "", bidComment: "" });
 
   const gig = {
     id: gigId,
@@ -43,12 +55,12 @@ export default function GigDetailPage(props?:{self?: boolean}) {
       certifications: ["Certified Graphic Designer"],
     },
     user: {
-      name: `User 1`
+      name: `User 1`,
     },
     keywords: ["logo", "branding", "startup", "vector"],
   };
   const gigDetail = async () => {
-    const apiPath = isSelf?`mygigs/${gigId}`:`gigs/${gigId}`;
+    const apiPath = isSelf ? `mygigs/${gigId}` : `gigs/${gigId}`;
     const res = await apiRequest(apiPath, {
       method: "GET",
     });
@@ -65,12 +77,12 @@ export default function GigDetailPage(props?:{self?: boolean}) {
     if (res.ok) {
       // setLoading(false);
       setPagination(res.data.pagination);
-      setGigBids([...res.data.data,...res.data.data]);
+      setGigBids([...res.data.data, ...res.data.data]);
     }
-  }
+  };
   useEffect(() => {
     gigDetail();
-    if(isSelf) getGigBids();
+    if (isSelf) getGigBids();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -79,14 +91,14 @@ export default function GigDetailPage(props?:{self?: boolean}) {
       ...prev,
       bidAmount: "",
     }));
-  },[bidAmount]);
-  
+  }, [bidAmount]);
+
   useEffect(() => {
     setError((prev) => ({
       ...prev,
       bidComment: "",
     }));
-  },[bidComment]);
+  }, [bidComment]);
 
   const minutesAgo = Math.floor(
     (new Date().getTime() - new Date(gigDetails?.createdAt ?? "").getTime()) /
@@ -96,9 +108,7 @@ export default function GigDetailPage(props?:{self?: boolean}) {
   const daysAgo = Math.floor(hoursAgo / 24);
 
   let timeToShow =
-    daysAgo > 0
-      ? daysAgo + " days ago"
-      : hoursAgo + " hours ago";
+    daysAgo > 0 ? daysAgo + " days ago" : hoursAgo + " hours ago";
   if (hoursAgo < 1) {
     timeToShow = minutesAgo + " minutes ago";
   }
@@ -106,89 +116,139 @@ export default function GigDetailPage(props?:{self?: boolean}) {
     timeToShow = "Just now";
   }
 
-  function getSkeleton () {
+  function getSkeleton() {
     return (
       <Grid container spacing={4}>
-      <Grid size={{xs:12,md:8}}>
-        <Box display="flex" justifyContent="space-between">
-          <Skeleton animation="wave"  width="60%" height={40} />
-          <Skeleton animation="wave"  width={80} height={40} />
-        </Box>
-
-        <Box className="gigHeader" mt={2} display="flex" justifyContent="space-between">
-          <Skeleton animation="wave"  variant="rectangular" width={80} height={32} />
-          <Skeleton animation="wave"  width={120} height={20} />
-        </Box>
-
-        <Box mt={3}>
-          <Typography variant="subtitle1" fontWeight={600} mb={1}>
-            Description
-          </Typography>
-          <Skeleton animation="wave"  variant="text" width="100%" height={20} />
-          <Skeleton animation="wave"  variant="text" width="90%" height={20} />
-          <Skeleton animation="wave"  variant="text" width="80%" height={20} />
-        </Box>
-
-        <Box mt={3}>
-          <Typography variant="subtitle1" fontWeight={600} mb={1}>
-            Keywords
-          </Typography>
-          <Box display="flex" gap={1} flexWrap="wrap">
-            {[...Array(4)].map((_, i) => (
-              <Skeleton animation="wave"  key={i} variant="rectangular" width={60} height={30} />
-            ))}
+        <Grid size={{ xs: 12, md: 8 }}>
+          <Box display="flex" justifyContent="space-between">
+            <Skeleton animation="wave" width="60%" height={40} />
+            <Skeleton animation="wave" width={80} height={40} />
           </Box>
-        </Box>
 
-        <Box mt={4}>
-          <Skeleton animation="wave"  variant="rectangular" width={140} height={40} />
-        </Box>
+          <Box
+            className="gigHeader"
+            mt={2}
+            display="flex"
+            justifyContent="space-between"
+          >
+            <Skeleton
+              animation="wave"
+              variant="rectangular"
+              width={80}
+              height={32}
+            />
+            <Skeleton animation="wave" width={120} height={20} />
+          </Box>
+
+          <Box mt={3}>
+            <Typography variant="subtitle1" fontWeight={600} mb={1}>
+              Description
+            </Typography>
+            <Skeleton
+              animation="wave"
+              variant="text"
+              width="100%"
+              height={20}
+            />
+            <Skeleton animation="wave" variant="text" width="90%" height={20} />
+            <Skeleton animation="wave" variant="text" width="80%" height={20} />
+          </Box>
+
+          <Box mt={3}>
+            <Typography variant="subtitle1" fontWeight={600} mb={1}>
+              Keywords
+            </Typography>
+            <Box display="flex" gap={1} flexWrap="wrap">
+              {[...Array(4)].map((_, i) => (
+                <Skeleton
+                  animation="wave"
+                  key={i}
+                  variant="rectangular"
+                  width={60}
+                  height={30}
+                />
+              ))}
+            </Box>
+          </Box>
+
+          <Box mt={4}>
+            <Skeleton
+              animation="wave"
+              variant="rectangular"
+              width={140}
+              height={40}
+            />
+          </Box>
+        </Grid>
+
+        {!isSelf && (
+          <Grid size={{ xs: 12, md: 12 }}>
+            <Paper elevation={3} className="providerCard" sx={{ p: 2 }}>
+              <Box display="flex" alignItems="center" gap={2}>
+                <Skeleton
+                  animation="wave"
+                  variant="circular"
+                  width={60}
+                  height={60}
+                />
+                <Box>
+                  <Skeleton animation="wave" width={120} height={24} />
+                  <Skeleton animation="wave" width={80} height={18} />
+                </Box>
+              </Box>
+
+              <Divider sx={{ my: 2 }} />
+
+              <Box>
+                <Typography variant="subtitle1" fontWeight={600} mb={1}>
+                  Skills
+                </Typography>
+                <Box display="flex" flexWrap="wrap" gap={1}>
+                  {[...Array(3)].map((_, i) => (
+                    <Skeleton
+                      animation="wave"
+                      key={i}
+                      variant="rectangular"
+                      width={70}
+                      height={30}
+                    />
+                  ))}
+                </Box>
+              </Box>
+
+              <Box mt={2}>
+                <Typography variant="subtitle1" fontWeight={600} mb={1}>
+                  Certifications
+                </Typography>
+                <Box display="flex" flexWrap="wrap" gap={1}>
+                  {[...Array(2)].map((_, i) => (
+                    <Skeleton
+                      animation="wave"
+                      key={i}
+                      variant="rectangular"
+                      width={100}
+                      height={30}
+                    />
+                  ))}
+                </Box>
+              </Box>
+            </Paper>
+          </Grid>
+        )}
       </Grid>
-
-      {!isSelf && <Grid size={{xs:12,md:4}}>
-        <Paper elevation={3} className="providerCard" sx={{ p: 2 }}>
-          <Box display="flex" alignItems="center" gap={2}>
-            <Skeleton animation="wave"  variant="circular" width={60} height={60} />
-            <Box>
-              <Skeleton animation="wave"  width={120} height={24} />
-              <Skeleton animation="wave"  width={80} height={18} />
-            </Box>
-          </Box>
-
-          <Divider sx={{ my: 2 }} />
-
-          <Box>
-            <Typography variant="subtitle1" fontWeight={600} mb={1}>
-              Skills
-            </Typography>
-            <Box display="flex" flexWrap="wrap" gap={1}>
-              {[...Array(3)].map((_, i) => (
-                <Skeleton animation="wave"  key={i} variant="rectangular" width={70} height={30} />
-              ))}
-            </Box>
-          </Box>
-
-          <Box mt={2}>
-            <Typography variant="subtitle1" fontWeight={600} mb={1}>
-              Certifications
-            </Typography>
-            <Box display="flex" flexWrap="wrap" gap={1}>
-              {[...Array(2)].map((_, i) => (
-                <Skeleton animation="wave"  key={i} variant="rectangular" width={100} height={30} />
-              ))}
-            </Box>
-          </Box>
-        </Paper>
-      </Grid>}
-      </Grid> 
-    )
+    );
   }
 
-  function showPlacedBid () {
+  function showPlacedBid() {
     return (
       <Box className="bidBox">
-        
-        <Box display="flex" gap={2} mb={2} justifyContent={"space-between"} alignItems={"center"}>
+        <Box
+          display="flex"
+          gap={2}
+          mb={2}
+          justifyContent={"space-between"}
+          alignItems={"center"}
+        >
           <Typography variant="h6" fontWeight={600}>
             Your Bid
           </Typography>
@@ -203,92 +263,87 @@ export default function GigDetailPage(props?:{self?: boolean}) {
     );
   }
 
-  function getBidBox () {
-    return gigDetails?.bid? showPlacedBid() : (
-      !showPlaceBid ? (
+  function getBidBox() {
+    return gigDetails?.bid ? (
+      showPlacedBid()
+    ) : !showPlaceBid ? (
+      <Button variant="contained" className="bookBtn" onClick={placebid}>
+        Place Bid
+      </Button>
+    ) : (
+      <Box className="bidBox">
+        <Typography variant="h6" fontWeight={600} mb={2}>
+          Place Your Bid
+        </Typography>
+
+        <Box display="flex" gap={2} mb={2}>
+          <CustomTextField
+            placeholder="Enter your bid amount"
+            type="number"
+            slotProps={{ input: { startAdornment: "$" } }}
+            fullWidth={false}
+            isWithoutMargin
+            value={bidAmount}
+            onChange={(e) => setBidAmount(e.target.value)}
+            disabled={submitting}
+            error={error.bidAmount !== ""}
+            helperText={error.bidAmount}
+          />
+          <Typography variant="h6" fontWeight={600}>
+            / hour
+          </Typography>
+        </Box>
+        <CustomTextField
+          fullWidth
+          multiline
+          minRows={4}
+          placeholder="Why are you the best fit for this gig?"
+          className="bidComment"
+          value={bidComment}
+          onChange={(e) => setBidComment(e.target.value)}
+          disabled={submitting}
+          error={error.bidComment !== ""}
+          helperText={error.bidComment}
+        />
+
         <Button
           variant="contained"
-          className="bookBtn"
-          onClick={placebid}
+          className="submitBtn"
+          onClick={handleBidSubmit}
         >
-          Place Bid
+          Submit Bid
         </Button>
-      ) : (
-        <Box className="bidBox">
-          <Typography variant="h6" fontWeight={600} mb={2}>
-            Place Your Bid
-          </Typography>
-
-          <Box display="flex" gap={2} mb={2}>
-            <CustomTextField
-              placeholder="Enter your bid amount"
-              type="number"
-              slotProps={{ input: { startAdornment: "$" } }}
-              fullWidth={false}
-              isWithoutMargin
-              value={bidAmount}
-              onChange={(e) => setBidAmount(e.target.value)}
-              disabled={submitting}
-              error={error.bidAmount !== ""}
-              helperText={error.bidAmount}
-            />
-            <Typography variant="h6" fontWeight={600}>
-              / hour
-            </Typography>
-          </Box>
-          <CustomTextField
-            fullWidth
-            multiline
-            minRows={4}
-            placeholder="Why are you the best fit for this gig?"
-            className="bidComment"
-            value={bidComment}
-            onChange={(e) => setBidComment(e.target.value)}
-            disabled={submitting}
-            error={error.bidComment !== ""}
-            helperText={error.bidComment}
-          />
-
-          <Button
-            variant="contained"
-            className="submitBtn"
-            onClick={handleBidSubmit}
-          >
-            Submit Bid
-          </Button>
-        </Box>
-      )
-    )
+      </Box>
+    );
   }
 
-  function placebid () {
+  function placebid() {
     if ((user?._id ?? "") === "") {
       setRedirectUrl(pathname);
       router.push("/login");
       return;
     }
     setShowPlaceBid(true);
-  };
+  }
 
-  function handleBidSubmit () {
+  function handleBidSubmit() {
     let hasError = false;
     const bidError = {
       bidAmount: "",
       bidComment: "",
-    }
+    };
     if (!bidAmount) {
       hasError = true;
-      bidError.bidAmount= "Bid amount is required";
-    }
-    else if (isNaN(Number(bidAmount)) || Number(bidAmount) <= 0) {
-      bidError.bidAmount=  "Invalid Amount";
+      bidError.bidAmount = "Bid amount is required";
+    } else if (isNaN(Number(bidAmount)) || Number(bidAmount) <= 0) {
+      bidError.bidAmount = "Invalid Amount";
     }
     if (!bidComment) {
       hasError = true;
-      bidError.bidComment= "Bid Comment is required"
+      bidError.bidComment = "Bid Comment is required";
     }
-    
-    if(hasError) {
+
+    if (hasError) {
       setError(bidError);
       return;
     }
@@ -298,7 +353,7 @@ export default function GigDetailPage(props?:{self?: boolean}) {
       description: bidComment,
     };
     setSubmitting(true);
-    
+
     apiRequest(`gigs/${gigId}/placeBid`, {
       method: "POST",
       data: data,
@@ -306,46 +361,59 @@ export default function GigDetailPage(props?:{self?: boolean}) {
       setSubmitting(false);
       if (res.ok) {
         const bid = res.data.data as Bid;
-        if(gigDetails)
-        setGigDetails({...gigDetails, bid: bid });
+        if (gigDetails) setGigDetails({ ...gigDetails, bid: bid });
       } else {
-        setError({...error,bidComment:res.message ?? "Error placing bid"});
+        setError({ ...error, bidComment: res.message ?? "Error placing bid" });
       }
     });
   }
 
-  function getAllBids () {
+  function getAllBids() {
     return (
       <>
         {gigBids.length > 0 ? (
           <>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-            <Typography variant="h6" fontWeight={600}>
-              All Bids
-            </Typography>
-          </Box>         
-            
+            <Box
+              display="flex"
+              justifyContent="space-between"
+              alignItems="center"
+              mb={2}
+            >
+              <Typography variant="h6" fontWeight={600}>
+                All Bids
+              </Typography>
+            </Box>
+
             {gigBids.map((bid) => (
               <Box key={bid._id} className="bidBox">
-                  <Box  mb={2}>
-                    <Box display="flex" justifyContent="space-between" alignItems="center">
-                      <Typography variant="subtitle1" fontWeight={600}>
-                        {bid.createdBy.fullName}
-                      </Typography>
-                      <Typography variant="subtitle1" fontWeight={600}>
-                        $ {bid.bidAmount} / hour
-                      </Typography>
-                    </Box>
-                    <Typography variant="body2" color="text.secondary" mb={1}>
-                      {bid.description}
+                <Box mb={2}>
+                  <Box
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="center"
+                  >
+                    <Typography variant="subtitle1" fontWeight={600}>
+                      {bid.createdBy.fullName}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      Placed on {new Date(bid.createdAt).toLocaleDateString()}
+                    <Typography variant="subtitle1" fontWeight={600}>
+                      $ {bid.bidAmount} / hour
                     </Typography>
                   </Box>
+                  <Typography variant="body2" color="text.secondary" mb={1}>
+                    {bid.description}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Placed on {new Date(bid.createdAt).toLocaleDateString()}
+                  </Typography>
+                </Box>
               </Box>
             ))}
-            <Box display="flex" justifyContent="center" mt={4} className="pagination">
+            <Box
+              display="flex"
+              justifyContent="center"
+              mt={4}
+              className="pagination"
+            >
               <Pagination
                 count={pagination.totalPages}
                 page={page}
@@ -361,38 +429,38 @@ export default function GigDetailPage(props?:{self?: boolean}) {
             </Typography>
           </Box>
         )}
-      </> 
-    )
+      </>
+    );
   }
   return (
     <StyledWrapper>
       <Button
         startIcon={<ArrowBack />}
-        onClick={() => router.push(isSelf?"/myGigs":"/gigs")}
+        onClick={() => router.push(isSelf ? "/myGigs" : "/publicGigs")}
         className="backBtn"
       >
         Back to Gigs
       </Button>
-      {(loading || !gigDetails) ?
-      getSkeleton()
-    : 
-      <Grid container spacing={4}>
-        <Grid size={{ xs: 12, md: 8 }}>
-          <Box display="flex" justifyContent={"space-between"}>
-            <Typography variant="h5" className="gigTitle">
-              {gigDetails.title}
-            </Typography>
-            <Typography variant="h5" fontWeight={600} mb={2}>
-              $ {gigDetails.price}
-            </Typography>
-          </Box>
+      {loading || !gigDetails ? (
+        getSkeleton()
+      ) : (
+        <Grid container spacing={4}>
+          <Grid size={{ xs: 12, md: 8 }}>
+            <Box display="flex" justifyContent={"space-between"}>
+              <Typography variant="h5" className="gigTitle">
+                {gigDetails.title}
+              </Typography>
+              <Typography variant="h5" fontWeight={600} mb={2}>
+                $ {gigDetails.price}
+              </Typography>
+            </Box>
 
-          <Box className="gigHeader">
-            <Chip label={gigDetails.tier} className="gigChip" />
-            <Typography variant="subtitle1" fontWeight={600}>
-              Posted {timeToShow} • {gigDetails.bids} bids
-            </Typography>
-            {/* <Box display="flex" alignItems="center" gap={0.5}>
+            <Box className="gigHeader">
+              <Chip label={gigDetails.tier} className="gigChip" />
+              <Typography variant="subtitle1" fontWeight={600}>
+                Posted {timeToShow} • {gigDetails.bids} bids
+              </Typography>
+              {/* <Box display="flex" alignItems="center" gap={0.5}>
               <Rating
                 value={gigDetails.rating}
                 precision={0.5}
@@ -401,88 +469,99 @@ export default function GigDetailPage(props?:{self?: boolean}) {
               />
               <Typography variant="body2">({gigDetails.reviews})</Typography>
             </Box> */}
-          </Box>
+            </Box>
 
-          <Typography variant="subtitle1" fontWeight={600} mb={1}>
-            Description
-          </Typography>
-          <Typography variant="body2" color="text.secondary" mb={2}>
-            {gigDetails.description}
-          </Typography>
+            <Typography variant="subtitle1" fontWeight={600} mb={1}>
+              Description
+            </Typography>
+            <Typography variant="body2" color="text.secondary" mb={2}>
+              {gigDetails.description}
+            </Typography>
 
-          <Typography variant="subtitle1" fontWeight={600} mb={1}>
-            Keywords
-          </Typography>
-          <Box className="keywords">
-            {gigDetails.keywords.map((word: string) => (
-              <Chip key={word} label={word} size="small" className="gigChip" />
-            ))}
-          </Box>
-          {isSelf?getAllBids():getBidBox()}
-        </Grid>
+            <Typography variant="subtitle1" fontWeight={600} mb={1}>
+              Keywords
+            </Typography>
+            <Box className="keywords">
+              {gigDetails.keywords.map((word: string) => (
+                <Chip
+                  key={word}
+                  label={word}
+                  size="small"
+                  className="gigChip"
+                />
+              ))}
+            </Box>
+            {isSelf ? getAllBids() : getBidBox()}
+          </Grid>
 
-        {!isSelf && <Grid size={{ xs: 12, md: 4 }}>
-          <Paper elevation={3} className="providerCard">
-            <Box className="providerHeader">
-              <Avatar
-                src={gigDetails.createdBy.profilePicture}
-                alt={gigDetails.createdBy.fullName}
-                sx={{ width: 60, height: 60, cursor: "pointer" }}
-                onClick={() =>
-                  router.push("/profile/" + gigDetails.createdBy.fullName.toLowerCase())
-                }
-              />
-              <Box>
-                <Typography variant="h6" fontWeight={600}>
-                  {gigDetails.createdBy.fullName}
-                </Typography>
-                <Box display="flex" alignItems="center" gap={0.5}>
-                  <Rating
-                    value={gigDetails.rating}
-                    precision={0.5}
-                    readOnly
-                    size="small"
+          {!isSelf && (
+            <Grid size={{ xs: 12, md: 4 }}>
+              <Paper elevation={3} className="providerCard">
+                <Box className="providerHeader">
+                  <Avatar
+                    src={gigDetails.createdBy.profilePicture}
+                    alt={gigDetails.createdBy.fullName}
+                    sx={{ width: 60, height: 60, cursor: "pointer" }}
+                    onClick={() =>
+                      router.push(
+                        "/profile/" +
+                          gigDetails.createdBy.fullName.toLowerCase()
+                      )
+                    }
                   />
-                  <Typography variant="body2">({gigDetails.reviews})</Typography>
+                  <Box>
+                    <Typography variant="h6" fontWeight={600}>
+                      {gigDetails.createdBy.fullName}
+                    </Typography>
+                    <Box display="flex" alignItems="center" gap={0.5}>
+                      <Rating
+                        value={gigDetails.rating}
+                        precision={0.5}
+                        readOnly
+                        size="small"
+                      />
+                      <Typography variant="body2">
+                        ({gigDetails.reviews})
+                      </Typography>
+                    </Box>
+                  </Box>
                 </Box>
-              </Box>
-            </Box>
 
-            <Divider sx={{ my: 1.5 }} />
+                <Divider sx={{ my: 1.5 }} />
 
-            <Box>
-              <Typography variant="subtitle1" fontWeight={600} mb={1}>
-                Skills
-              </Typography>
-              <Box className="chipContainer">
-                {gig.provider.skills.map((skill) => (
-                  <Chip
-                    key={skill}
-                    label={skill}
-                    size="small"
-                    className="gigChip"
-                  />
-                ))}
-              </Box>
-            </Box>
+                <Box>
+                  <Typography variant="subtitle1" fontWeight={600} mb={1}>
+                    Skills
+                  </Typography>
+                  <Box className="chipContainer">
+                    {gig.provider.skills.map((skill) => (
+                      <Chip
+                        key={skill}
+                        label={skill}
+                        size="small"
+                        className="gigChip"
+                      />
+                    ))}
+                  </Box>
+                </Box>
 
-            <Box>
-              <Typography variant="subtitle1" fontWeight={600} mb={1}>
-                Certifications
-              </Typography>
-              <Box className="chipContainer">
-                {gig.provider.certifications.map((cert) => (
-                  <Chip
-                    key={cert}
-                    label={cert}
-                    size="small"
-                    className="gigChip"
-                  />
-                ))}
-              </Box>
-            </Box>
+                <Box>
+                  <Typography variant="subtitle1" fontWeight={600} mb={1}>
+                    Certifications
+                  </Typography>
+                  <Box className="chipContainer">
+                    {gig.provider.certifications.map((cert) => (
+                      <Chip
+                        key={cert}
+                        label={cert}
+                        size="small"
+                        className="gigChip"
+                      />
+                    ))}
+                  </Box>
+                </Box>
 
-            {/* <Button
+                {/* <Button
               variant="contained"
               fullWidth
               className="bookBtn"
@@ -490,10 +569,11 @@ export default function GigDetailPage(props?:{self?: boolean}) {
             >
               Contact / Book Now
             </Button> */}
-          </Paper>
-        </Grid>}
-      </Grid>
-}
+              </Paper>
+            </Grid>
+          )}
+        </Grid>
+      )}
     </StyledWrapper>
   );
 }

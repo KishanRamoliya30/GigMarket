@@ -10,6 +10,14 @@ interface EducationEntry {
   year: string;
 }
 
+interface Ratings {
+  userName: string;
+  userId: string;
+  value: number;
+  feedback: string;
+  createdAt: Date;
+}
+
 export interface IProfile extends Document {
   userId: mongoose.Types.ObjectId;
   fullName: string;
@@ -25,6 +33,8 @@ export interface IProfile extends Document {
   minor?: string;
   graduationYear: string;
   pastEducation: EducationEntry[];
+  ratings: Ratings[];
+  averageRating: number;
 }
 
 const ProfileSchema = new Schema<IProfile>(
@@ -33,7 +43,7 @@ const ProfileSchema = new Schema<IProfile>(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      unique: true, 
+      unique: true,
     },
     fullName: { type: String, required: true },
     profilePicture: { type: String, required: true },
@@ -51,6 +61,16 @@ const ProfileSchema = new Schema<IProfile>(
     major: { type: String, required: true },
     minor: { type: String },
     graduationYear: { type: String },
+    ratings: [
+      {
+        userName: { type: String, required: true },
+        userId: { type: String, required: true },
+        value: { type: Number, required: true },
+        feedback: { type: String },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
+    averageRating: { type: Number },
     pastEducation: [
       {
         school: String,
@@ -62,5 +82,6 @@ const ProfileSchema = new Schema<IProfile>(
   { timestamps: true }
 );
 
-const Profile = mongoose.models.profiles || mongoose.model("profiles", ProfileSchema);
+const Profile =
+  mongoose.models.profiles || mongoose.model("profiles", ProfileSchema);
 export default Profile;
