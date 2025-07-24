@@ -1,6 +1,6 @@
 import React from "react";
 import PublicProfile from "@/components/profile/PublicProfile";
-import PublicProviderGigs from "@/components/Carousel/PublicProviderGigs";
+import PublicProviderGigs from "@/components/carousel/PublicProviderGigs";
 
 const ProfileViewCard = () => {
   return (
