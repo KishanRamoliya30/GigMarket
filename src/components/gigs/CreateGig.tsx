@@ -27,10 +27,11 @@ import { apiRequest } from "@/app/lib/apiCall";
 import { toast } from "react-toastify";
 import CustomButton from "../customUi/CustomButton";
 import AddIcon from "@mui/icons-material/Add";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { Gig } from "@/app/utils/interfaces";
 import Loader from "../Loader";
 import { FormDataValue, getDiffObj, objectToFormData } from "@/app/lib/commonFunctions";
+import { useUser } from "@/context/UserContext";
 
 interface FileMeta {
   name: string;
@@ -72,29 +73,36 @@ const validationSchema = Yup.object({
 export default function CreateGigPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const params = useParams();
+  const router = useRouter();
   const { gigId } = params;
 
+  const { user } = useUser()
   const [loading, setLoading] = useState(true);
   const [skillInput, setSkillInput] = useState("");
   const [keywordInput, setKeywordInput] = useState("");
   const [gigDetails, setGigDetails] = useState<Gig | null>(null);
 
-  const gigDetail = useCallback(async () => {
+  const getGigDetail = useCallback(async () => {
+    setLoading(true);
     const res = await apiRequest(`gigs/${gigId}`, {
       method: "GET",
     });
-    if (res.ok) {
-      setLoading(false);
+    setLoading(false);
+    if (res.ok && res.data.data.gig.createdBy.userId === user?._id) {
       setGigDetails(res.data.data.gig);
+    } else {
+      toast.error("You are not authorized to update this gig");
+      router.back()
     }
-  }, [gigId]);
+  }, [gigId, router, user?._id]);
 
   useEffect(() => {
     if (gigId) {
-      gigDetail();
+      getGigDetail();
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
-  }, [gigId, gigDetail]);
+  }, [gigId, getGigDetail]);
 
   const getInitialFormValues = (gig?: Gig | null): FormValues => ({
     title: gig?.title || "",
@@ -117,8 +125,9 @@ export default function CreateGigPage() {
     validationSchema,
     enableReinitialize: true,
     onSubmit: async (values, { setSubmitting, resetForm, setErrors }) => {
-      let formData;
+      setLoading(true);
 
+      let formData;
       const originalData = initialFormValues;
       const updatedData = values;
 
@@ -142,7 +151,6 @@ export default function CreateGigPage() {
               "Content-Type": "multipart/form-data",
             },
           });
-  
           if (res.success) {
             toast.success(res.message);
             if (gigId) {
@@ -163,6 +171,7 @@ export default function CreateGigPage() {
           console.error("Error: ", error);
         } finally {
           setSubmitting(false);
+          setLoading(false);
         }
       } else {
         toast.error("No changes found");
