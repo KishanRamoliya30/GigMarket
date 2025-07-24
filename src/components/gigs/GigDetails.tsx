@@ -54,7 +54,7 @@ export default function GigDetailPage(props?:{self?: boolean}) {
     });
     if (res.ok) {
       setLoading(false);
-      setGigDetails(res.data.data.gig);
+      setGigDetails(res.data.data);
     }
   };
 

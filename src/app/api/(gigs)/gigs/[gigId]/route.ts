@@ -45,13 +45,21 @@ export async function GET(
       createdBy: userDetails._id,
     }).select("bidAmount description status createdAt");
   }
+
+  const createdBy = gig.createdBy;
+
   return successResponse(
     {
-      gig: {
-        ...gig.toObject(),
-        bids,
-        bid: userBids ? userBids.toObject() : null,
-        createdBy: profile.toObject(),
+      ...gig.toObject(),
+      bids,
+      bid: userBids ? userBids.toObject() : null,
+      createdBy: {
+        ...(createdBy?.toObject?.() ?? createdBy),
+        ...(profile && {
+          fullName: profile.fullName,
+          pastEducation: profile.pastEducation,
+          profilePicture: profile.profilePicture,
+        }),
       },
     },
     "Gig retrieved successfully"
@@ -123,7 +131,8 @@ export const PATCH = withApiHandler(
 
     const formData = await req.formData();
 
-    const file = formData.get("certification") as File | null;
+    const certification = formData.get("certification") as File | null;
+    const gigImage = formData.get("gigImage") as File | null;
     const title = formData.get("title")?.toString();
     const description = formData.get("description")?.toString();
     const tier = formData.get("tier")?.toString();
@@ -136,14 +145,25 @@ export const PATCH = withApiHandler(
     const keywords = JSON.parse((formData.get("keywords") as string) || "[]");
     const releventSkills = JSON.parse((formData.get("releventSkills") as string) || "[]");
 
-    let uploadedFile = gig.certification;
-    if (file) {
-      const url = await uploadToCloudinary(file, { folder: "gig_certifications" });
-      uploadedFile = {
+    let certificationFile = gig.certification;
+    if (certification) {
+      const url = await uploadToCloudinary(certification, { folder: "gig_certifications" });
+      certificationFile = {
         url,
-        name: file.name,
-        type: file.type,
-        size: file.size,
+        name: certification.name,
+        type: certification.type,
+        size: certification.size,
+      };
+    }
+
+    let gigImageFile = gig.gigImage;
+    if (gigImage) {
+      const url = await uploadToCloudinary(gigImage, { folder: "gig_images" });
+      gigImageFile = {
+        url,
+        name: gigImage.name,
+        type: gigImage.type,
+        size: gigImage.size,
       };
     }
 
@@ -157,7 +177,8 @@ export const PATCH = withApiHandler(
       ...(reviews !== undefined && { reviews }),
       ...(keywords.length > 0 && { keywords }),
       ...(releventSkills.length > 0 && { releventSkills }),
-      ...(uploadedFile && { certification: uploadedFile }),
+      ...(certificationFile && { certification: certificationFile }),
+      ...(gigImageFile && { gigImage: gigImageFile }),
     };
 
     updateGigSchema.parse(updatedData);

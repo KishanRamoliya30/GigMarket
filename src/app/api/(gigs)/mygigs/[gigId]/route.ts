@@ -13,17 +13,17 @@ export async function GET(
 ): Promise<NextResponse> {
   await dbConnect();
   const userDetails = await verifyToken(req);
-  
- if (!userDetails?.userId || !userDetails?.role) {
-   throw new ApiError('Unauthorized request', 401);
- }
+
+  if (!userDetails?.userId || !userDetails?.role) {
+    throw new ApiError('Unauthorized request', 401);
+  }
   const gigId = (await params).gigId;
   if (!gigId) {
     throw new ApiError("Gig ID is required", 400);
   }
-  const gig = await  Gig.findOne({
+  const gig = await Gig.findOne({
     _id: gigId,
-    createdBy: userDetails.userId, 
+    createdBy: userDetails.userId,
   }).populate({
     path: "createdBy",
     model: "users",
@@ -42,11 +42,9 @@ export async function GET(
   });
   return successResponse(
     {
-      gig: {
-        ...gig.toObject(),
-        bids,
-        createdBy: profile.toObject(),
-      },
+      ...gig.toObject(),
+      bids,
+      createdBy: profile.toObject(),
     },
     "Gig retrieved successfully"
   );

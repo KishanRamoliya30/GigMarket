@@ -88,8 +88,8 @@ export default function CreateGigPage() {
       method: "GET",
     });
     setLoading(false);
-    if (res.ok && res.data.data.gig.createdBy.userId === user?._id) {
-      setGigDetails(res.data.data.gig);
+    if (res.ok && res.data.data.createdBy._id === user?._id) {
+      setGigDetails(res.data.data);
     } else {
       toast.error("You are not authorized to update this gig");
       router.back()

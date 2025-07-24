@@ -19,6 +19,7 @@ export interface GigDocument extends Document {
   keywords: string[];
   releventSkills: string[];
   certification: Certification;
+  gigImage: Certification;
   createdByRole: 'User' | 'Provider';
   status: "Open" | "Requested" | "In-Progress" | "Completed" | "Rejected"; 
   isPublic: boolean;
@@ -53,6 +54,7 @@ const GigSchema = new Schema<GigDocument>(
     keywords: [{ type: String, trim: true }],
     releventSkills: [{ type: String, trim: true }],
     certification: { type: CertificationSchema, required: true },
+    gigImage: { type: CertificationSchema, required: true },
     createdByRole: {
       type: String,
       enum: ['User', 'Provider'],
