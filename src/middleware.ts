@@ -16,11 +16,12 @@ const START_WITH_PUBLIC_PATHS = [
   "/api/verify-otp",
   "/api/terms",
   "/api/gigs/list",
-
   "/admin/login",
   "/admin/forgot-password",
   "/admin/reset-password",
   "/admin/verify-otp",
+  "/api/profile/userProfile",
+  "/api/profile/allProfile",
 
   "/api/admin/login",
 ];
@@ -32,11 +33,12 @@ const FIX_PUBLIC_PATHS = [
   "/signup",
   "/terms",
   "/privacy",
+  "/myProfile",
   "/forgot-password",
   "/reset-password",
   "/verify-otp",
   "/forgot-password",
-  "/providers"
+  "/providers",
 ];
 
 const COMMON_PATHS = ["/dashboard", "/gigs", "/api/gigs", "/"];
@@ -51,7 +53,7 @@ export async function middleware(request: NextRequest) {
     isAdmin: false,
     role: "",
     subscriptionCompleted: false,
-    profileCompleted: false
+    profileCompleted: false,
   };
 
   if (token) {
@@ -62,17 +64,20 @@ export async function middleware(request: NextRequest) {
       isAdmin: payload.role == "Admin",
       role: payload.role?.toString() ?? "",
       subscriptionCompleted: payload.subscriptionCompleted as boolean,
-      profileCompleted: payload.profileCompleted as boolean
+      profileCompleted: payload.profileCompleted as boolean,
     };
   }
   const email = request.cookies.get("email")?.value;
   const isVerified = request.cookies.get("isVerified")?.value === "true";
-  let isPublicPath = FIX_PUBLIC_PATHS.includes(pathname) || (START_WITH_PUBLIC_PATHS.some((route) => pathname.startsWith(route)) && (pathname !== "/gigs/create"));
+  let isPublicPath =
+    FIX_PUBLIC_PATHS.includes(pathname) ||
+    (START_WITH_PUBLIC_PATHS.some((route) => pathname.startsWith(route)) &&
+      pathname !== "/gigs/create");
 
   // if (pathname === "/") {
   //   return NextResponse.redirect(new URL("/dashboard", request.url));
   // }
-  
+
   //allow gigs/[id] path
   if (pathname.startsWith("/api/gigs")) {
     const segments = pathname.split("/").filter(Boolean);
@@ -106,7 +111,9 @@ export async function middleware(request: NextRequest) {
   } else {
     if (!userData.isAdmin && !!userData._id) {
       const isSubscriptionPage = pathname === "/subscription";
-      const isSubscriptionSuccessPage = pathname.startsWith("/subscriptionSuccess");
+      const isSubscriptionSuccessPage = pathname.startsWith(
+        "/subscriptionSuccess"
+      );
       const isProfilePage = pathname === "/add-profile";
 
       if (
@@ -124,12 +131,8 @@ export async function middleware(request: NextRequest) {
       ) {
         return NextResponse.redirect(new URL("/add-profile", request.url));
       }
-
-    }
-
-    else if (!isPublicPath && userData._id != "") {
+    } else if (!isPublicPath && userData._id != "") {
       //REDIRECTS BASED ON SUBSCRIPTION / PROFILE FLOW
-
 
       //admin can only access pages with path admin
       if (userData.isAdmin && !pathname.includes("/admin")) {
@@ -175,6 +178,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    "/api/profile/:path*",
     "/api/:path*",
     "/admin/:path*",
     // "/((?!_next/static|_next/image|favicon.ico|images|uploads|.*\\.[a-zA-Z0-9]+$).*)",
