@@ -5,6 +5,8 @@ import { generateToken } from "@/app/utils/jwt";
 import Terms from "@/app/models/terms";
 import User from "@/app/models/user";
 import { expiryTime } from "../../../../../utils/constants";
+import "@/app/models/profile";
+
 interface LoginRequestBody {
   email: string;
   password: string;

@@ -72,7 +72,7 @@ const ProfileFormCard: React.FC<ProfileFormCardProps> = ({
   >(profileData?.pastEducation || []);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { user } = useUser();
+  const { user, setUserProfile } = useUser();
   const userId = user?._id;
 
   interface CertificationFile {
@@ -85,9 +85,11 @@ const ProfileFormCard: React.FC<ProfileFormCardProps> = ({
 
   const [certifications, setCertifications] = useState<Certification[]>(
     profileData?.certifications
-      ? profileData.certifications.map((cert): Certification => ({
-          file: { name: cert.fileName },
-        }))
+      ? profileData.certifications.map(
+          (cert): Certification => ({
+            file: { name: cert.fileName },
+          })
+        )
       : []
   );
 
@@ -170,16 +172,15 @@ const ProfileFormCard: React.FC<ProfileFormCardProps> = ({
           }
         });
 
-
         const res = await apiRequest("profile", {
           method: "PUT",
           data: formData,
           headers: { "Content-Type": "multipart/form-data" },
         });
 
-        if (res.ok && res.data) {
+        if ((res.ok || res.success) && res.data) {
+          setUserProfile(res.data.profile);
           toast.success("Profile updated successfully");
-
           const refreshed = await apiRequest(`profile?userId=${userId}`, {
             method: "GET",
           });
@@ -634,20 +635,22 @@ const ProfileFormCard: React.FC<ProfileFormCardProps> = ({
                           handleEducationChange(index, "degree", e.target.value)
                         }
                       />
-                     <CustomTextField
-                       select
-                       fullWidth
-                       label="Year"
-                       InputProps={{ sx: { height: "44px" } }}
-                       value={edu.year}
-                       onChange={(e) => handleEducationChange(index, "year", e.target.value)}
-                       >
-                      {graduationYears.map((year) => (
-                         <MenuItem key={year} value={year}>
-                              {year}
-                         </MenuItem>
-                       ))}
-                       </CustomTextField>
+                      <CustomTextField
+                        select
+                        fullWidth
+                        label="Year"
+                        InputProps={{ sx: { height: "44px" } }}
+                        value={edu.year}
+                        onChange={(e) =>
+                          handleEducationChange(index, "year", e.target.value)
+                        }
+                      >
+                        {graduationYears.map((year) => (
+                          <MenuItem key={year} value={year}>
+                            {year}
+                          </MenuItem>
+                        ))}
+                      </CustomTextField>
                       <IconButton
                         aria-label="remove"
                         // color="error"

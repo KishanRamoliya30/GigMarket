@@ -17,6 +17,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { apiRequest } from "@/app/lib/apiCall";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import PublishedWithChangesIcon from "@mui/icons-material/PublishedWithChanges";
+import { useUser } from "@/context/UserContext";
 
 interface ProfileImageEditorProps {
   avtar?: string;
@@ -30,6 +31,8 @@ const ProfileImageEditor: React.FC<ProfileImageEditorProps> = ({
   const defaultAvatar = "/default-avatar.png";
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  const { setUserProfile } = useUser();
+  
   const [open, setOpen] = useState(false);
   const [imagePreview, setImagePreview] = useState<string>(
     avtar || defaultAvatar
@@ -88,6 +91,7 @@ const ProfileImageEditor: React.FC<ProfileImageEditorProps> = ({
       });
 
       if (res.data.success) {
+        setUserProfile(res.data.profile);
         await fetchProfile();
       } else {
         console.error("Update failed:", res.error);
@@ -106,6 +110,7 @@ const ProfileImageEditor: React.FC<ProfileImageEditorProps> = ({
       });
 
       if (res.data.success) {
+        setUserProfile(res.data.profile);
         await fetchProfile();
       } else {
         console.error("Delete failed:", res.error);
