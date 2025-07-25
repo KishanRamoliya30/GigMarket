@@ -7,6 +7,7 @@ export interface Certification {
   type?: string;
   size?: number;
 }
+type GigStatus = "Open" | "Requested" | "Accepted" | "In-Progress" | "Completed" | "Rejected";
 
 export interface GigDocument extends Document {
   title: string;
@@ -21,9 +22,10 @@ export interface GigDocument extends Document {
   certification: Certification;
   gigImage: Certification;
   createdByRole: 'User' | 'Provider';
-  status: "Open" | "Requested" | "In-Progress" | "Completed" | "Rejected"; 
+  status: GigStatus;
   isPublic: boolean;
   createdBy: Types.ObjectId;
+  assignedToBid: Types.ObjectId | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -63,10 +65,11 @@ const GigSchema = new Schema<GigDocument>(
     isPublic: { type: Boolean, required: true, default: false },
     status: {
       type: String,
-      enum: ["Open", "Requested", "In-Progress", "Completed", "Rejected"],
+      enum: ["Open", "Requested", "Accepted", "In-Progress", "Completed", "Rejected"],
       required: true,
     },
     createdBy: { type: Schema.Types.ObjectId, ref: 'Users', required: true },
+    assignedToBid: { type: Schema.Types.ObjectId, ref: 'bids', default: null },
   },
   {
     timestamps: true,
