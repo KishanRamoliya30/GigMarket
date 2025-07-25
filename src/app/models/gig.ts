@@ -66,7 +66,7 @@ const GigSchema = new Schema<GigDocument>(
       enum: ["Open", "Requested", "In-Progress", "Completed", "Rejected"],
       required: true,
     },
-    createdBy: { type: Schema.Types.ObjectId, ref: 'Users', required: true },
+    createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   },
   {
     timestamps: true,
