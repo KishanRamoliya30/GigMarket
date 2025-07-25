@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Box, Typography } from "@mui/material";
+import { useEffect, useState } from "react";
+import { Box, Pagination, Typography } from "@mui/material";
 import {
   AccessTime,
   CheckCircle,
@@ -9,11 +9,13 @@ import {
   Info,
   InsertChart,
   CalendarMonth,
-  Person,
   AttachMoney,
 } from "@mui/icons-material";
 import GigStatusDialog from "./GigHistoryDailog";
-import { gigData, tabs } from "../../../../utils/constants";
+import { tabs } from "../../../../utils/constants";
+import { apiRequest } from "@/app/lib/apiCall";
+import { GigData } from "@/app/utils/interfaces";
+import Loader from "@/components/Loader";
 
 const statusIcons = {
   Open: <InsertChart className="text-blue-500 mb-1" fontSize="medium" />,
@@ -25,8 +27,35 @@ const statusIcons = {
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("All");
+  const [gigData, setGigData] = useState<GigData[]>([]);
+  const [selectedGig, setSelectedGig] = useState<GigData | null>(null);
+  const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const limit = 3;
 
+const fetchBidPlacedGigs = async (page = 1) => {
+  try {
+    setLoading(true);
+    const res = await apiRequest(`gigs/bid-placed?page=${page}&limit=${limit}`, {
+      method: "GET",
+    });
+
+    if (res?.data) {
+      setGigData(res.data.data.gigs);
+      setTotalPages(res.data.data.totalPages);
+    }
+  } catch (err) {
+    console.error("Failed to fetch bid-placed gigs", err);
+  } finally {
+    setLoading(false);
+  }
+};
+
+useEffect(() => {
+  fetchBidPlacedGigs(page);
+}, [page]);
 
   const getStatusCount = (status: string) =>
     gigData.filter((gig) => gig.status === status).length;
@@ -35,6 +64,10 @@ export default function Dashboard() {
     activeTab === "All"
       ? gigData
       : gigData.filter((gig) => gig.status === activeTab);
+
+  if (loading) {
+    return <Loader loading={loading} />;
+  }
 
   return (
     <Box className="min-h-screen p-6">
@@ -71,12 +104,11 @@ export default function Dashboard() {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 text-sm font-semibold rounded-md transition-all duration-200
-        ${
-          activeTab === tab
-            ? "bg-white text-black shadow-sm"
-            : "text-gray-700 hover:bg-gray-100"
-        }`}
+            className={`px-4 py-2 text-sm font-semibold rounded-md transition-all duration-200 ${
+              activeTab === tab
+                ? "bg-white text-black shadow-sm"
+                : "text-gray-700 hover:bg-gray-100"
+            }`}
           >
             {tab} ({tab === "All" ? gigData.length : getStatusCount(tab)})
           </button>
@@ -87,11 +119,13 @@ export default function Dashboard() {
       <div className="space-y-6">
         {filteredGigs.map((gig, idx) => (
           <div
-            key={idx}
-            onClick={() => setOpen(true)}
-            className="cursor-pointer bg-white border border-blue-100 rounded-xl px-6 py-5 shadow-sm hover:shadow-md transition"
+            key={idx}            
+            className="bg-white border border-blue-100 rounded-xl px-6 py-5 shadow-sm hover:shadow-md transition"
           >
-            <div className="flex justify-between items-start">
+            <div className="cursor-pointer flex justify-between items-start" onClick={() => {
+              setSelectedGig(gig);
+              setOpen(true);
+            }}>
               <h3 className="text-lg font-semibold text-gray-900">
                 {gig.title}
               </h3>
@@ -100,10 +134,10 @@ export default function Dashboard() {
                   gig.status === "In Progress"
                     ? "bg-yellow-100 text-yellow-700"
                     : gig.status === "Completed"
-                      ? "bg-green-100 text-green-700"
-                      : gig.status === "Rejected"
-                        ? "bg-red-100 text-red-700"
-                        : "bg-blue-100 text-blue-700"
+                    ? "bg-green-100 text-green-700"
+                    : gig.status === "Rejected"
+                    ? "bg-red-100 text-red-700"
+                    : "bg-blue-100 text-blue-700"
                 }`}
               >
                 <span className="w-2 h-2 rounded-full bg-current" />
@@ -119,23 +153,37 @@ export default function Dashboard() {
                 <span className="font-semibold">{gig.price}</span>
               </div>
               <div className="flex items-center gap-1 justify-end">
-                <CalendarMonth fontSize="small" /> {gig.date}
-              </div>
-              <div className="flex items-center gap-1">
-                <Person fontSize="small" />
-                <span className="text-gray-600">Client: {gig.client}</span>
-              </div>
-              <div className="flex items-center gap-1 justify-end">
-                <Person fontSize="small" />
-                <span className="text-gray-600">Provider: {gig.provider}</span>
-              </div>
+                <CalendarMonth fontSize="small" />
+                {new Date(gig.createdAt).toLocaleDateString()}
+              </div>              
             </div>
           </div>
         ))}
+          {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-6">
+          <Pagination
+            count={totalPages}
+            page={page}
+            onChange={(e, value) => setPage(value)}
+            color="primary"
+            shape="rounded"
+          />
+        </div>
+      )}
       </div>
 
-      {/* Dialog for Status History */}
-      <GigStatusDialog open={open} onClose={() => setOpen(false)} />
+      {/* Dialog for Single Gig */}
+     {selectedGig && (
+  <GigStatusDialog
+    data={selectedGig}
+    open={open}
+    onClose={() => {
+      setOpen(false);
+      setSelectedGig(null); 
+    }}
+  />
+)}
     </Box>
   );
 }
