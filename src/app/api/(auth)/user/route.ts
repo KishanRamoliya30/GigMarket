@@ -5,6 +5,7 @@ import User from '@/app/models/user';
 import dbConnect from '@/app/lib/dbConnect';
 import { generateToken, verifyToken } from '@/app/utils/jwt';
 import { expiryTime } from '../../../../../utils/constants';
+import "@/app/models/profile";
 
 export const GET = withApiHandler(async (request: NextRequest): Promise<NextResponse> => {
   await dbConnect();

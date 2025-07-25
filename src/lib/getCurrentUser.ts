@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
 import User from '@/app/models/user';
 import dbConnect from '@/app/lib/dbConnect';
+import "@/app/models/profile";
 
 export async function getUserFromSession(cookieStore: ReturnType<typeof cookies>) {
   await dbConnect();

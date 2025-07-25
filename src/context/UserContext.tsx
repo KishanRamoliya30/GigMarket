@@ -1,6 +1,6 @@
 "use client";
 
-import { UserType } from "@/utils/commonInterface/userInterface";
+import { UserProfile, UserType } from "@/utils/commonInterface/userInterface";
 import {
   createContext,
   ReactNode,
@@ -13,6 +13,7 @@ interface UserContextType {
   redirectUrl: string;
   setRedirectUrl: (url: string) => void;
   setUser: (user: UserType | null) => void;
+  setUserProfile: (user: UserProfile) => void;
   setRole: (role: string) => void;
   resetUser: () => void;
 }
@@ -37,7 +38,13 @@ export const UserProvider = ({
   const [user, setUserState] = useState<UserType | null>(currentUser);
   const [redirectUrl, setRedirectUrl] = useState<string>("");
   const setUser = (newUser: UserType | null) => setUserState({ ...user, ...(newUser as UserType) });
-
+  const setUserProfile = (newProfile: UserProfile) => {
+    if (!user || !user._id) return;
+    setUserState({
+      ...user,
+      profile: newProfile,
+    } as UserType);
+  };
 
   const setRole = (role: string) => {
     setUserState((prev) => (prev ? { ...prev, role } : prev));
@@ -46,7 +53,17 @@ export const UserProvider = ({
   const resetUser = () => setUserState(null);
 
   return (
-    <UserContext.Provider value={{ user, setUser, setRole, resetUser, redirectUrl, setRedirectUrl }}>
+    <UserContext.Provider
+      value={{
+        user,
+        setUser,
+        setRole,
+        resetUser,
+        redirectUrl,
+        setRedirectUrl,
+        setUserProfile,
+      }}
+    >
       {children}
     </UserContext.Provider>
   );
