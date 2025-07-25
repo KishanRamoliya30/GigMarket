@@ -3,9 +3,9 @@ import { apiRequest } from "@/app/lib/apiCall";
 import { Profile } from "@/app/utils/interfaces";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import CustomCarousel from "./CustomCarousel";
 import { ArrowRight } from "lucide-react";
 import { renderProfileCard } from "@/app/providers/ProviderCardList";
+import CustomCarousel from "@/components/Carousel/CustomCarousel";
 
 const LandingProviderProfiles = () => {
   const [data, setData] = useState<{

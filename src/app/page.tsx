@@ -11,7 +11,7 @@ import FreelancerBenefits from "@/components/landing/FreelancerBenefits";
 import MadeOnFiverr from "@/components/landing/MadeOnFiverr";
 import TrustedServices from "@/components/landing/TrustedService";
 import ServiceTiers from "@/components/landing/ServiceTiers";
-import LandingProviderProfiles from "@/components/carousel/LandingProviderProfiles";
+import LandingProviderProfiles from "@/components/Carousel/LandingProviderProfiles";
 
 export default function Home() {
   return (
