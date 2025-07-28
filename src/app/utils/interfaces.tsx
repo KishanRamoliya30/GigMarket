@@ -97,6 +97,7 @@ export interface Bid {
   };
   createdAt: Date;
   updatedAt: Date;
+  status: string;
 }
 
 export interface GigData {

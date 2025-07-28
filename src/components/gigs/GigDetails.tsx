@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import {
@@ -12,6 +13,19 @@ import {
   Avatar,
   Skeleton,
   Pagination,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Menu,
+  MenuItem,
+  Stack,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
+
 } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
 import { useRouter, useParams } from "next/navigation";
@@ -22,7 +36,8 @@ import { useEffect, useState } from "react";
 import { Gig, Bid } from "@/app/utils/interfaces";
 import { usePathname } from "next/navigation";
 import CustomTextField from "../customUi/CustomTextField";
-
+import { ExpandMoreOutlined, Check as CheckIcon } from "@mui/icons-material";
+import { toast } from "react-toastify";
 export default function GigDetailPage(props?: { self?: boolean }) {
   const isSelf = props?.self ?? false;
   const router = useRouter();
@@ -45,7 +60,15 @@ export default function GigDetailPage(props?: { self?: boolean }) {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState({ bidAmount: "", bidComment: "" });
-
+  const [expandedBidIds, setExpandedBidIds] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState("Recently Added");
+  const [sortAnchorEl, setSortAnchorEl] = useState<null | HTMLElement>(null);
+  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
+  const [openMenu, setOpenMenu] = useState("");
+  const [selectedRating, setSelectedRating] = useState("");
+  const [selectedBudget, setSelectedBudget] = useState("");
+  const [customMin, setCustomMin] = useState("");
+  const [customMax, setCustomMax] = useState("");
   const gig = {
     id: gigId,
     provider: {
@@ -71,20 +94,48 @@ export default function GigDetailPage(props?: { self?: boolean }) {
   };
 
   const getGigBids = async () => {
-    const res = await apiRequest(`mygigs/${gigId}/bids`, {
-      method: "GET",
-    });
+    const res = await apiRequest(
+      `mygigs/${gigId}/bids?page=${page}&limit=${pagination.limit}`,
+      {
+        method: "GET",
+      }
+    );
     if (res.ok) {
       // setLoading(false);
       setPagination(res.data.pagination);
-      setGigBids([...res.data.data, ...res.data.data]);
+      setGigBids(res.data.data);
+    }
+  };
+
+  const updateBidStatus = async (bidId: string, status: "approved" | "rejected") => {
+    return await apiRequest(`mygigs/${gigId}/bids/${bidId}/status`, {
+      method: "PUT",
+      data: { status },
+    });
+  };
+
+  const handleBidStatusChange = async (bidId: string, status: "approved" | "rejected") => {
+    try {
+      const res = await updateBidStatus(bidId, status);
+  
+      if (res.ok) {
+        toast.success(`Bid ${status} successfully`);
+        getGigBids();
+      } else {
+        toast.error(res?.data?.message || "Something went wrong");
+      }
+    } catch (err) {
+      toast.error("Error while updating bid status");
+      console.error(err);
     }
   };
   useEffect(() => {
     gigDetail();
-    if (isSelf) getGigBids();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (isSelf) getGigBids();
+  }, [page]);
 
   useEffect(() => {
     setError((prev) => ({
@@ -119,7 +170,7 @@ export default function GigDetailPage(props?: { self?: boolean }) {
   function getSkeleton() {
     return (
       <Grid container spacing={4}>
-        <Grid size={{ xs: 12, md: 8 }}>
+        <Grid size={isSelf?{ xs: 12}:{ xs: 12, md: 8 }}>
           <Box display="flex" justifyContent="space-between">
             <Skeleton animation="wave" width="60%" height={40} />
             <Skeleton animation="wave" width={80} height={40} />
@@ -369,76 +420,437 @@ export default function GigDetailPage(props?: { self?: boolean }) {
   }
 
   function getAllBids() {
-    return (
-      <>
-        {gigBids.length > 0 ? (
-          <>
-            <Box
-              display="flex"
-              justifyContent="space-between"
-              alignItems="center"
-              mb={2}
-            >
-              <Typography variant="h6" fontWeight={600}>
-                All Bids
-              </Typography>
-            </Box>
+    const loadingMore = false;
 
-            {gigBids.map((bid) => (
-              <Box key={bid._id} className="bidBox">
-                <Box mb={2}>
-                  <Box
-                    display="flex"
-                    justifyContent="space-between"
-                    alignItems="center"
-                  >
-                    <Typography variant="subtitle1" fontWeight={600}>
-                      {bid.createdBy.fullName}
-                    </Typography>
-                    <Typography variant="subtitle1" fontWeight={600}>
-                      $ {bid.bidAmount} / hour
-                    </Typography>
-                  </Box>
-                  <Typography variant="body2" color="text.secondary" mb={1}>
-                    {bid.description}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    Placed on {new Date(bid.createdAt).toLocaleDateString()}
-                  </Typography>
+    const handleExpand = (id: string) => {
+      setExpandedBidIds((prev) =>
+        prev.includes(id) ? prev.filter((b) => b !== id) : [...prev, id]
+      );
+    };
+    const handleSortClose = () => {
+      setSortAnchorEl(null);
+    };
+    const handleSortSelect = (option: string) => {
+      setSortBy(option);
+      handleSortClose();
+    };
+    const handleSortClick = (event: React.MouseEvent<HTMLDivElement>) => {
+      setSortAnchorEl(event.currentTarget);
+    };
+
+    const sortOptions = [
+      "Pricing: High to Low",
+      "Pricing: Low to High",
+      "Rating: High to Low",
+      "Rating: Low to High",
+      "Recently Added",
+    ];
+    const handleOpenMenu = (
+      event: React.MouseEvent<HTMLButtonElement>,
+      menuType: string
+    ) => {
+      setAnchorEl(event.currentTarget);
+      setOpenMenu(menuType);
+    };
+    const handleCloseMenu = () => {
+      setAnchorEl(null);
+      setOpenMenu("");
+    };
+    return (
+      <Box>
+        <Typography variant="h6" fontWeight={600} mb={2}>
+          All Bids
+        </Typography>
+
+        <Menu
+          anchorEl={anchorEl}
+          open={openMenu === "rating"}
+          onClose={handleCloseMenu}
+        >
+          <Box px={2} py={1} width={250}>
+            <Typography fontWeight={600} mb={1}>
+              Select Rating
+            </Typography>
+            <RadioGroup
+              value={selectedRating}
+              onChange={(e) => {
+                setSelectedRating(e.target.value);
+              }}
+            >
+              {["5⭐", "4⭐ and above", "3⭐ and above", "2⭐ and above"].map(
+                (opt) => (
+                  <FormControlLabel
+                    key={opt}
+                    value={opt}
+                    control={
+                      <Radio
+                        sx={{
+                          color: "#388E3C",
+                          "&.Mui-checked": {
+                            color: "#388E3C",
+                          },
+                        }}
+                      />
+                    }
+                    label={opt}
+                    sx={{
+                      ".MuiTypography-root": {
+                        fontWeight: 500,
+                        color: "#333",
+                      },
+                    }}
+                  />
+                )
+              )}
+            </RadioGroup>
+          </Box>
+        </Menu>
+
+        <Menu
+          anchorEl={anchorEl}
+          open={openMenu === "budget"}
+          onClose={handleCloseMenu}
+        >
+          <Box px={2} py={1} width={250}>
+            <Typography fontWeight={600} mb={1} color="#333">
+              Select Budget
+            </Typography>
+            <RadioGroup
+              value={selectedBudget}
+              onChange={(e) => {
+                setSelectedBudget(e.target.value);
+                setCustomMin("");
+                setCustomMax("");
+              }}
+            >
+              {[
+                "Under ₹2,252",
+                "₹2,252–₹5,404",
+                "₹5,404 & Above",
+                "custom",
+              ].map((opt) => (
+                <FormControlLabel
+                  key={opt}
+                  value={opt}
+                  control={
+                    <Radio
+                      sx={{
+                        color: "#388E3C",
+                        "&.Mui-checked": {
+                          color: "#388E3C",
+                        },
+                      }}
+                    />
+                  }
+                  label={opt === "custom" ? "Custom" : opt}
+                  sx={{
+                    ".MuiTypography-root": {
+                      fontWeight: 500,
+                      color: "#333",
+                    },
+                  }}
+                />
+              ))}
+            </RadioGroup>
+            {selectedBudget === "custom" && (
+              <Box display="flex" gap={1} mt={1}>
+                <Box flex={1}>
+                  <CustomTextField
+                    type="number"
+                    variant="outlined"
+                    size="small"
+                    fullWidth
+                    value={customMin}
+                    onChange={(e) => setCustomMin(e.target.value)}
+                    placeholder="Min ₹"
+                    slotProps={{
+                      input: {
+                        style: {
+                          fontSize: "0.9rem",
+                        },
+                      },
+                    }}
+                  />
+                </Box>
+                <Box flex={1}>
+                  <CustomTextField
+                    type="number"
+                    variant="outlined"
+                    size="small"
+                    fullWidth
+                    value={customMax}
+                    onChange={(e) => setCustomMax(e.target.value)}
+                    placeholder="Max ₹"
+                    slotProps={{
+                      input: {
+                        style: {
+                          fontSize: "0.9rem",
+                        },
+                      },
+                    }}
+                  />
                 </Box>
               </Box>
-            ))}
-            <Box
-              display="flex"
-              justifyContent="center"
-              mt={4}
-              className="pagination"
+            )}
+          </Box>
+        </Menu>
+        
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          alignItems="center"
+          mb={2}
+        >
+          <Box
+            display="flex"
+            flexWrap="wrap"
+            alignItems="center"
+            gap={2}
+            className="filterMenu"
+          >
+            <Button
+              variant="outlined"
+              endIcon={
+                <Box component="span">
+                  <ExpandMoreOutlined />
+                </Box>
+              }
+              onClick={(e) => handleOpenMenu(e, "budget")}
             >
-              <Pagination
-                count={pagination.totalPages}
-                page={page}
-                onChange={(_, value) => setPage(value)}
-                shape="circular"
+              Budget
+            </Button>
+            <Button
+              variant="outlined"
+              endIcon={
+                <Box component="span">
+                  <ExpandMoreOutlined />
+                </Box>
+              }
+              onClick={(e) => handleOpenMenu(e, "rating")}
+            >
+              Rating
+            </Button>
+          </Box>
+
+          <Box display="flex" alignItems="center" mb={2} mt={1}>
+            <Typography fontWeight={600} mr={1} color="#333">
+              Sort by:
+            </Typography>
+            <Box
+              onClick={handleSortClick}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                px: 2,
+                py: 1,
+                cursor: "pointer",
+                position: "relative",
+                fontWeight: 500,
+                fontSize: "0.9rem",
+                color: "#333",
+                backgroundColor: "#E8F5E9",
+                borderRadius: "8px",
+                boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                ":hover": {
+                  backgroundColor: "#fff",
+                  color: "#388E3C",
+                },
+              }}
+            >
+              {sortBy}
+              <ExpandMoreOutlined
+                sx={{ ml: 1, fontSize: "1rem", color: "#388E3C" }}
               />
             </Box>
-          </>
+            <Menu
+              anchorEl={sortAnchorEl}
+              open={Boolean(sortAnchorEl)}
+              onClose={handleSortClose}
+              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+              transformOrigin={{ vertical: "top", horizontal: "right" }}
+              slotProps={{
+                paper: {
+                  sx: {
+                    borderRadius: 2,
+                    mt: 1,
+                    boxShadow: 3,
+                    minWidth: 180,
+                    backgroundColor: "#fff",
+                  },
+                },
+              }}
+            >
+              {sortOptions.map((option) => (
+                <MenuItem
+                  key={option}
+                  onClick={() => handleSortSelect(option)}
+                  selected={sortBy === option}
+                  sx={{
+                    fontWeight: sortBy === option ? 600 : 400,
+                    fontSize: "0.9rem",
+                    color: "#333",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    backgroundColor:
+                      sortBy === option ? "#E8F5E9 !important" : "transparent",
+                    "&:hover": {
+                      backgroundColor: "#E8F5E9 !important",
+                    },
+                  }}
+                >
+                  {option}
+                  {sortBy === option && (
+                    <CheckIcon sx={{ color: "#333", fontSize: "1rem" }} />
+                  )}
+                </MenuItem>
+              ))}
+            </Menu>
+          </Box>
+        </Box>
+        {gigBids.length > 0 ? (
+          <TableContainer
+            component={Paper}
+            sx={{ borderRadius: 2, boxShadow: 2 }}
+          >
+            <Table>
+              <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
+                <TableRow>
+                  <TableCell>Bidder</TableCell>
+                  <TableCell>Description</TableCell>
+                  <TableCell>Amount</TableCell>
+                  <TableCell>Date</TableCell>
+                  <TableCell align="center">Status</TableCell>
+                </TableRow>
+              </TableHead>
+
+              <TableBody>
+                {gigBids.map((bid, index) => {
+                  const isExpanded = expandedBidIds.includes(bid._id);
+                  const truncatedDescription =
+                    bid.description.length > 120 && !isExpanded
+                      ? bid.description.slice(0, 120) + "..."
+                      : bid.description;
+
+                  return (
+                    <TableRow
+                      key={bid._id}
+                      sx={{
+                        backgroundColor: index % 2 === 0 ? "#fff" : "#fafafa",
+                        "&:hover": { backgroundColor: "#f0f0f0" },
+                      }}
+                    >
+                      <TableCell>
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <Avatar
+                            src={bid.createdBy.profilePicture}
+                            alt={bid.createdBy.fullName}
+                            sx={{ width: 36, height: 36 }}
+                          />
+                          <Typography variant="subtitle2">
+                            {bid.createdBy.fullName}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+
+                      <TableCell sx={{maxWidth:500}}>
+                        <Typography variant="body2" color="text.secondary">
+                          {truncatedDescription}
+                        </Typography>
+                        {bid.description.length > 120 && (
+                          <Typography
+                            variant="caption"
+                            color="primary"
+                            sx={{ cursor: "pointer" }}
+                            onClick={() => handleExpand(bid._id)}
+                          >
+                            {isExpanded ? "Read less" : "Read more"}
+                          </Typography>
+                        )}
+                      </TableCell>
+
+                      <TableCell sx={{ minWidth: 120,fontWeight: 600 }}>
+                          ${bid.bidAmount} / hr
+                      </TableCell>
+
+                      <TableCell>
+                        <Typography variant="caption" color="text.secondary">
+                          {new Date(bid.createdAt).toLocaleDateString()}
+                        </Typography>
+                      </TableCell>
+
+                      <TableCell align="center">
+                      {(bid.status =="pending" || !bid.status) ? 
+                      <Stack
+                          direction="row"
+                          spacing={1}
+                          justifyContent="center"
+                        > <Button
+                            variant="outlined"
+                            color="success"
+                            size="small"
+                            onClick={()=>handleBidStatusChange(bid._id, "approved")}
+                          >
+                            Approve
+                          </Button>
+                          <Button
+                            variant="outlined"
+                            color="error"
+                            size="small"
+                            onClick={() => handleBidStatusChange(bid._id, "rejected")}
+                          >
+                            Reject
+                          </Button>
+                          </Stack> 
+                        :
+                        // show bid.status here
+                        <Chip label={bid.status.charAt(0).toUpperCase() + bid.status.slice(1)} className={`gig${bid.status}`} />
+                        
+                        }
+                        
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+
+                {loadingMore && (
+                  <TableRow>
+                    <TableCell colSpan={5} align="center">
+                      <Skeleton variant="rectangular" width={120} height={30} />
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+
+            {pagination.totalPages > 1 && (
+              <Box display="flex" justifyContent="center" mt={2} mb={2}>
+                <Pagination
+                  count={pagination.totalPages}
+                  page={page}
+                  onChange={(_, value) => setPage(value)}
+                  shape="circular"
+                />
+              </Box>
+            )}
+          </TableContainer>
         ) : (
-          <Box className="bidBox">
+          <Paper elevation={1} sx={{ p: 2, borderRadius: 2 }}>
             <Typography variant="body2" color="text.secondary">
               No bids placed yet.
             </Typography>
-          </Box>
+          </Paper>
         )}
-      </>
+      </Box>
     );
   }
+
   return (
     <StyledWrapper>
       <Button
         startIcon={<ArrowBack />}
         onClick={() => {
           if (isSelf) {
-            router.push("/mygigs");
+            router.push("/myGigs");
           } else {
             router.back();
           }
@@ -451,7 +863,7 @@ export default function GigDetailPage(props?: { self?: boolean }) {
         getSkeleton()
       ) : (
         <Grid container spacing={4}>
-          <Grid size={{ xs: 12, md: 8 }}>
+          <Grid size={isSelf?{ xs: 12}:{ xs: 12, md: 8 }}>
             <Box display="flex" justifyContent={"space-between"}>
               <Typography variant="h5" className="gigTitle">
                 {gigDetails.title}
@@ -618,6 +1030,16 @@ const StyledWrapper = styled(Box)(({ theme }) => ({
     color: "#388E3C",
   },
 
+  
+  ".gigapproved": {
+    backgroundColor: "#E8F5E9",
+    color: "#388E3C",
+  },
+  
+  ".gigrejected": {
+    backgroundColor: "#FFCDD2",
+    color: "#D32F2F",
+  },
   ".keywords": {
     display: "flex",
     flexWrap: "wrap",
@@ -699,5 +1121,13 @@ const StyledWrapper = styled(Box)(({ theme }) => ({
     "&:hover": {
       backgroundColor: "#004d33",
     },
+  },
+  ".filterMenu button": {
+    border: "1px solid #388E3C",
+    borderRadius: 8,
+    color: "#388E3C",
+    marginBottom: "10px",
+    paddingTop:"0px",
+    paddingBottom:"0px",
   },
 }));
