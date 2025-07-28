@@ -7,8 +7,8 @@ const BidSchema = new Schema(
       createdBy: { type: Schema.Types.ObjectId, ref: 'Users', required: true },
       status: {
         type: String,
-        enum: ['pending', 'approved', 'rejected'],
-        default: 'pending',
+        enum: ["Requested", "Assigned", "Not-Assigned",],
+        default: 'Requested',
       },
     },
     {
