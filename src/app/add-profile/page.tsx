@@ -135,18 +135,23 @@ const Profile = () => {
         }
 
         // Append certification metadata and files
-        formData.append(
-          "certifications",
-          JSON.stringify(
-            certifications.map((cert) => ({
-              file: { name: cert.file?.name },
-            }))
-          )
-        );
+        // formData.append(
+        //   "certifications",
+        //   JSON.stringify(
+        //     certifications.map((cert) => ({
+        //       file: { name: cert.file?.name },
+        //     }))
+        //   )
+        // );
 
-        certifications.forEach((cert, index) => {
-          formData.append(`certifications[${index}].file`, cert.file);
-        });
+        // certifications.forEach((cert, index) => {
+        //   formData.append(`certifications[${index}].file`, cert.file);
+        // });
+        certifications.forEach(cert => {
+  if (cert.file instanceof File) {
+    formData.append("certifications", cert.file);
+  }
+});
 
         const res = await apiRequest("profile", {
           method: "POST",
