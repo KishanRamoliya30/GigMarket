@@ -12,6 +12,7 @@ const validGigStatuses = [
   "Accepted",
   "In-Progress",
   "Completed",
+  "Approved",
   "Rejected",
 ] as const;
 
@@ -34,6 +35,9 @@ export const PATCH = withApiHandler(
     }
 
     const { status, bidId } = await req.json();
+
+    const gigCreaterId = gig.createdBy;
+    console.log("######41", gigCreaterId);
 
     if (!validGigStatuses.includes(status)) {
       throw new ApiError("Invalid gig status", 400);

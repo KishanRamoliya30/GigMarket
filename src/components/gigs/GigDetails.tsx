@@ -77,7 +77,7 @@ export default function GigDetailPage(props?: { self?: boolean }) {
     if (res.ok) {
       // setLoading(false);
       setPagination(res.data.pagination);
-      setGigBids([...res.data.data, ...res.data.data]);
+      setGigBids([...res.data.data]);
     }
   };
   useEffect(() => {
@@ -383,7 +383,7 @@ export default function GigDetailPage(props?: { self?: boolean }) {
                 All Bids
               </Typography>
             </Box>
-
+            {console.log("######45", gigBids)}
             {gigBids.map((bid) => (
               <Box key={bid._id} className="bidBox">
                 <Box mb={2}>
