@@ -12,7 +12,10 @@ function HomeBanner() {
   const [placeholder, setPlaceholder] = useState("");
 
   useEffect(() => {
-    const interval = setInterval(() => setImage(image >= 6 ? 1 : image + 1), 10000);
+    const interval = setInterval(
+      () => setImage(image >= 6 ? 1 : image + 1),
+      10000
+    );
     return () => clearInterval(interval);
   }, [image]);
 
@@ -59,47 +62,49 @@ function HomeBanner() {
       </div>
 
       {/* Foreground Content */}
-      <div className="z-10 relative w-full max-w-[650px] flex justify-center flex-col h-full gap-5 ml-5 sm:ml-10 md:ml-20 px-4 sm:px-0">
-        <h1 className="text-white text-3xl sm:text-4xl md:text-5xl leading-snug">
+      <div className="z-10 relative w-full max-w-[650px] flex justify-center flex-col h-full gap-3 md:gap-5 p-4 md:p-0 md:ml-20">
+        <h1 className="text-white text-2xl xs:text-3xl sm:text-4xl md:text-5xl leading-tight md:leading-snug">
           Find the perfect&nbsp;
           <i>freelance</i>
-          <br />
+          <br className="hidden xs:block" />
           services for your business
         </h1>
 
         {/* Search Bar - joined input and button */}
-        <div className="flex w-full">
+        <div className="flex w-full flex-col sm:flex-row gap-2 xs:gap-0">
           <div className="relative flex-grow">
-            <IoSearchOutline className="absolute text-gray-500 text-2xl h-full left-2 top-1/2 -translate-y-1/2" />
+            <IoSearchOutline className="absolute text-gray-500 text-xl md:text-2xl h-full left-2 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              className="h-14 w-full pl-10 rounded-md rounded-r-none bg-white"
+              className="h-12 md:h-14 w-full pl-10 rounded-md xs:rounded-r-none bg-white text-sm md:text-base"
               placeholder={placeholder}
               value={searchData}
               onChange={(e) => setSearchData(e.target.value)}
             />
           </div>
           <button
-            className="h-14 bg-[#1DBF73] text-white px-6 sm:px-10 text-base sm:text-lg font-semibold rounded-r-md"
-            onClick={() => router.push(`/search?q=${searchData}`)}
+            className=" w-auto h-12 md:h-14 bg-[#1DBF73] text-white px-4 md:px-10 text-sm md:text-lg font-semibold rounded-md xs:rounded-l-none cursor-pointer hover:bg-[#19a564] transition-colors"
+            onClick={() => router.push(`/publicGigs?search=${searchData}`)}
           >
             Search
           </button>
         </div>
 
         {/* Popular Tags */}
-        <div className="text-white flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm mt-4">
-          <span>Popular:</span>
-          <ul className="flex flex-wrap gap-3">
-            {["website design", "wordpress", "logo design", "ai services"].map((term) => (
-              <li
-                key={term}
-                className="py-1 px-3 border rounded-full hover:bg-white hover:text-black transition-all duration-300 cursor-pointer"
-                onClick={() => router.push(`/search?q=${term}`)}
-              >
-                {term.charAt(0).toUpperCase() + term.slice(1)}
-              </li>
-            ))}
+        <div className="text-white flex flex-col xs:flex-row xs:items-center gap-2 xs:gap-4 text-xs md:text-sm mt-2 md:mt-4">
+          <span className="whitespace-nowrap">Popular:</span>
+          <ul className="flex flex-wrap gap-2 md:gap-3">
+            {["website design", "wordpress", "logo design", "ai services"].map(
+              (term) => (
+                <li
+                  key={term}
+                  className="py-1 px-2 md:px-3 border rounded-full hover:bg-white hover:text-black transition-all duration-300 cursor-pointer text-xs md:text-sm"
+                  onClick={() => router.push(`/publicGigs?search=${term}`)}
+                >
+                  {term.charAt(0).toUpperCase() + term.slice(1)}
+                </li>
+              )
+            )}
           </ul>
         </div>
       </div>

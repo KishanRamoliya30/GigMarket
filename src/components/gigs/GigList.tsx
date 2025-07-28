@@ -43,7 +43,7 @@ export default function GigListing(props?: { self?: boolean }) {
   const search = searchParams.get("search") || "";
   const router = useRouter();
   const { user } = useUser();
-  const gigsPerPage = 5;
+  const gigsPerPage = 8;
 
   const isSelf = props?.self || false;
   const [page, setPage] = useState(1);

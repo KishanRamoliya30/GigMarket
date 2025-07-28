@@ -9,17 +9,19 @@ function PopularServices() {
   const router = useRouter();
 
   return (
-    <section className="py-12 md:px-16 sm:px-10 lg:px-20 py-16">
-    <h2 className="text-2xl sm:text-3xl lg:text-4xl mb-8 text-[#404145] font-bold text-center">
-  Popular Gigs
-</h2>
-      
+    <section className="py-12 md:px-16 sm:px-10 lg:px-20">
+      <h2 className="text-2xl sm:text-3xl lg:text-4xl mb-8 text-[#404145] font-bold text-center">
+        Popular Gigs
+      </h2>
+
       <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10">
         {popularServicesData.map(({ name, label, image }) => (
           <li
             key={name}
             className="relative cursor-pointer group h-80 w-full max-w-[18rem] mx-auto"
-            onClick={() => router.push(`/search?q=${name.toLowerCase()}`)}
+            onClick={() =>
+              router.push(`/publicGigs?search=${name.toLowerCase()}`)
+            }
           >
             {/* Text Overlay */}
             <div className="absolute z-10 text-white left-4 top-4">
