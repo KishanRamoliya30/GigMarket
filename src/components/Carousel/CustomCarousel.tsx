@@ -19,7 +19,7 @@ function PrevArrow({ onClick }: { onClick?: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="absolute z-10 -left-3 top-1/2 transform -translate-y-1/2 bg-emerald-600 text-white p-2 rounded-full shadow-md  hover:scale-110 hover:shadow-lg transition-all duration-300 ease-in-out hidden sm:block"
+      className="absolute z-10 -left-3 top-1/2 transform -translate-y-1/2 bg-emerald-600 text-white p-2 rounded-full shadow-md  hover:scale-110 hover:shadow-lg cursor-pointer transition-all duration-300 ease-in-out hidden sm:block"
     >
       <ArrowLeft className="w-5 h-5" />
     </button>
@@ -30,7 +30,7 @@ function NextArrow({ onClick }: { onClick?: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="absolute z-10 -right-3 top-1/2 transform -translate-y-1/2 bg-emerald-600 text-white p-2 rounded-full shadow-md  hover:scale-110 hover:shadow-lg transition-all duration-300 ease-in-out hidden sm:block"
+      className="absolute z-10 -right-3 top-1/2 transform -translate-y-1/2 bg-emerald-600 text-white p-2 rounded-full shadow-md cursor-pointer hover:scale-110 hover:shadow-lg transition-all duration-300 ease-in-out hidden sm:block"
     >
       <ArrowRight className="w-5 h-5" />
     </button>
