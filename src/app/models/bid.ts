@@ -5,6 +5,11 @@ const BidSchema = new Schema(
       description: { type: String, required: true },
       gigId: { type: Schema.Types.ObjectId, ref: 'gigs', required: true },
       createdBy: { type: Schema.Types.ObjectId, ref: 'Users', required: true },
+      status: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending',
+      },
     },
     {
       timestamps: true,
