@@ -98,3 +98,22 @@ export interface Bid {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export interface GigData {
+  _id: string;
+  title: string;
+  description: string;
+  tier: string;
+  price: number;
+  status: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  keywords: string[];
+  releventSkills: string[];
+  certification?: {
+    name: string;
+    url: string;
+  };
+  providerName:string
+}

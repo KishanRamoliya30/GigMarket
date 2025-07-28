@@ -148,112 +148,119 @@ const ProfileImageEditor: React.FC<ProfileImageEditorProps> = ({
       </Box>
 
       {/* Dialog */}
-      <Dialog
-        open={open}
-        onClose={() => setOpen(false)}
-        maxWidth="xs"
-        fullWidth
-        PaperProps={{
-          sx: {
-            bgcolor: "#1d2226", // Dark LinkedIn-style background
-            color: "#fff",
-            borderRadius: 3,
-            overflow: "hidden",
-          },
-        }}
+   <Dialog
+  open={open}
+  onClose={() => setOpen(false)}
+  maxWidth="xs"
+  fullWidth
+  PaperProps={{
+    sx: {
+      bgcolor: "#fff",         
+      color: "#000",          
+      borderRadius: 3,
+      overflow: "hidden",
+    },
+  }}
+>
+  <DialogTitle
+    sx={{
+      fontWeight: 600,
+      color: "#000",           // Ensure title text is black
+    }}
+  >
+    Profile Photo
+    <IconButton
+      onClick={() => setOpen(false)}
+      sx={{ position: "absolute", right: 8, top: 8, color: "#000" }}
+    >
+      <CloseIcon />
+    </IconButton>
+  </DialogTitle>
+
+  <DialogContent
+    sx={{
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      p: 3,
+      color: "#000",           // Ensure body text is black
+    }}
+  >
+    {/* Profile Image */}
+    <Box
+      sx={{
+        width: 160,
+        height: 160,
+        borderRadius: "50%",
+        overflow: "hidden",
+        mb: 2,
+        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+      }}
+    >
+      <Avatar
+        src={imagePreview || "/default-avatar.png"}
+        sx={{ width: "100%", height: "100%", objectFit: "cover" }}
+      />
+    </Box>
+
+    {/* Edit/Delete Buttons */}
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "space-between",
+        width: "100%",
+        borderTop: "1px solid rgba(0,0,0,0.1)",
+        pt: 2,
+        mt: 2,
+      }}
+    >
+      <Stack
+        alignItems="center"
+        spacing={1}
+        sx={{ cursor: "pointer" }}
+        onClick={() => fileInputRef.current?.click()}
       >
-        <DialogTitle sx={{ fontWeight: 600 }}>
-          Profile Photo
-          <IconButton
-            onClick={() => setOpen(false)}
-            sx={{ position: "absolute", right: 8, top: 8, color: "#fff" }}
-          >
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
+        <PhotoCameraIcon sx={{ color: "#000" }} />
+        <Typography variant="caption" sx={{ color: "#000" }}>
+          Add Photo
+        </Typography>
+      </Stack>
 
-        <DialogContent
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            p: 3,
-          }}
-        >
-          {/* Profile Image */}
-          <Box
-            sx={{
-              width: 160,
-              height: 160,
-              borderRadius: "50%",
-              overflow: "hidden",
-              mb: 2,
-              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-            }}
-          >
-            <Avatar
-              src={imagePreview || "/default-avatar.png"}
-              sx={{ width: "100%", height: "100%", objectFit: "cover" }}
-            />
-          </Box>
+      <Stack
+        alignItems="center"
+        spacing={1}
+        sx={{ cursor: "pointer" }}
+        onClick={handleDelete}
+      >
+        <DeleteIcon sx={{ color: "#000" }} />
+        <Typography variant="caption" sx={{ color: "#000" }}>
+          Delete
+        </Typography>
+      </Stack>
 
-          {/* Edit/Delete Buttons */}
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              width: "100%",
-              borderTop: "1px solid rgba(255,255,255,0.1)",
-              pt: 2,
-              mt: 2,
-            }}
-          >
-            <Stack
-              alignItems="center"
-              spacing={1}
-              sx={{ cursor: "pointer" }}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <PhotoCameraIcon sx={{ color: "#ccc" }} />
-              <Typography variant="caption" sx={{ color: "#ccc" }}>
-                Add Photo
-              </Typography>
-            </Stack>
+      <Stack
+        alignItems="center"
+        spacing={1}
+        sx={{ cursor: "pointer" }}
+        onClick={handleUpdate}
+      >
+        <PublishedWithChangesIcon sx={{ color: "#000" }} />
+        <Typography variant="caption" sx={{ color: "#000" }}>
+          Update Photo
+        </Typography>
+      </Stack>
+    </Box>
 
-            <Stack
-              alignItems="center"
-              spacing={1}
-              sx={{ cursor: "pointer" }}
-              onClick={handleDelete}
-            >
-              <DeleteIcon sx={{ color: "#ccc" }} />
-              <Typography variant="caption" sx={{ color: "#ccc" }}>
-                Delete
-              </Typography>
-            </Stack>
-            <Stack
-              alignItems="center"
-              spacing={1}
-              sx={{ cursor: "pointer" }}
-              onClick={handleUpdate}
-            >
-              <PublishedWithChangesIcon sx={{ color: "#ccc" }} />
-              <Typography variant="caption" sx={{ color: "#ccc" }}>
-                Update Photo
-              </Typography>
-            </Stack>
-          </Box>
+    <input
+      type="file"
+      accept=".png, .jpg, .jpeg, .svg, image/png, image/jpeg, image/svg+xml"
+      hidden
+      ref={fileInputRef}
+      onChange={handleImageUpload}
+    />
+  </DialogContent>
+</Dialog>
 
-          {/* Hidden Input for File Upload */}
-          <input
-            type="file"
-            accept=".png, .jpg, .jpeg, .svg, image/png, image/jpeg, image/svg+xml"
-            hidden
-            ref={fileInputRef}
-            onChange={handleImageUpload}
-          />
-        </DialogContent>
-      </Dialog>
     </Box>
   );
 };
