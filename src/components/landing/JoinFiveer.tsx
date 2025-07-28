@@ -4,7 +4,7 @@ import React from "react";
 import { useRouter } from "next/navigation";
 
 function JoinFiverr() {
-  const router = useRouter()
+  const router = useRouter();
   return (
     <div className="relative py-12 md:px-16 sm:px-10 md:px-20 my-10 sm:my-16">
       {/* Background Image */}
@@ -24,7 +24,7 @@ function JoinFiverr() {
           <button
             className="border cursor-pointer text-sm sm:text-base font-medium px-5 py-2 border-[#1DBF73] bg-[#1DBF73] text-white rounded-md"
             type="button"
-            onClick={()=>router.push("/signup")}
+            onClick={() => router.push("/signup")}
           >
             Join GigMarket
           </button>

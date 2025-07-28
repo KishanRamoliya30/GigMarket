@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { renderProfileCard } from "@/app/providers/ProviderCardList";
-import CustomCarousel from "@/components/Carousel/CustomCarousel";
+import CustomCarousel from "@/components/carousel/CustomCarousel";
 
 const LandingProviderProfiles = () => {
   const [data, setData] = useState<{
@@ -51,7 +51,6 @@ const LandingProviderProfiles = () => {
         ViewAllButtonComponent={() => ViewAllButton()}
         heading="Top Providers"
         subheading="Most viewed and all-time top-rated providers"
-        total={data.pagination.total}
       />
     </div>
   );

@@ -32,7 +32,8 @@ export async function GET(req: NextRequest,{ params }: { params: Promise<{ gigId
     Bids.find({gigId:gigId})
       .skip(skip)
       .limit(limit)
-      .populate({ path: "createdBy", model: "users", select: "email" }),
+      .populate({ path: "createdBy", model: "users", select: "email" })
+      .sort({ status: 1,createdAt: -1 }),
     Bids.countDocuments({gigId:gigId}),
   ]);
 
