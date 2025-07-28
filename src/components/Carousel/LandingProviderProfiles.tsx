@@ -51,7 +51,6 @@ const LandingProviderProfiles = () => {
         ViewAllButtonComponent={() => ViewAllButton()}
         heading="Top Providers"
         subheading="Most viewed and all-time top-rated providers"
-        total={data.pagination.total}
       />
     </div>
   );
