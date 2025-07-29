@@ -107,14 +107,18 @@ export default function GigDetailPage(props?: { self?: boolean }) {
     }
   };
 
-  const updateBidStatus = async (bidId: string, status: "approved" | "rejected") => {
-    return await apiRequest(`mygigs/${gigId}/bids/${bidId}/status`, {
-      method: "PUT",
-      data: { status },
+  const updateBidStatus = async (bidId: string, status: "Assigned" | "Not-Assigned") => {
+    // return await apiRequest(`mygigs/${gigId}/bids/${bidId}/status`, {
+    //   method: "PUT",
+    //   data: { status },
+    // });
+    return await apiRequest(`gigs/${gigId}/changeStatus`, {
+      method: "PATCH",
+      data: { status, bidId },
     });
   };
 
-  const handleBidStatusChange = async (bidId: string, status: "approved" | "rejected") => {
+  const handleBidStatusChange = async (bidId: string, status: "Assigned" | "Not-Assigned") => {
     try {
       const res = await updateBidStatus(bidId, status);
   
@@ -779,7 +783,7 @@ export default function GigDetailPage(props?: { self?: boolean }) {
                       </TableCell>
 
                       <TableCell align="center">
-                      {(bid.status =="pending" || !bid.status) ? 
+                      {(bid.status =="Requested" || !bid.status) ? 
                       <Stack
                           direction="row"
                           spacing={1}
@@ -788,7 +792,7 @@ export default function GigDetailPage(props?: { self?: boolean }) {
                             variant="outlined"
                             color="success"
                             size="small"
-                            onClick={()=>handleBidStatusChange(bid._id, "approved")}
+                            onClick={()=>handleBidStatusChange(bid._id, "Assigned")}
                           >
                             Approve
                           </Button>
@@ -796,7 +800,7 @@ export default function GigDetailPage(props?: { self?: boolean }) {
                             variant="outlined"
                             color="error"
                             size="small"
-                            onClick={() => handleBidStatusChange(bid._id, "rejected")}
+                            onClick={() => handleBidStatusChange(bid._id, "Not-Assigned")}
                           >
                             Reject
                           </Button>

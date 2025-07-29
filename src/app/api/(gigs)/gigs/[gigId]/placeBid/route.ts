@@ -7,7 +7,7 @@ import { successResponse, withApiHandler } from "@/app/lib/commonHandlers";
 import { placeBidSchema } from "@/utils/beValidationSchema";
 import User from "@/app/models/user";
 
-export const POST = withApiHandler(async (req: NextRequest,{ params }: { params: Promise<{ gigId: string }>}): Promise<NextResponse> => {
+export const POST = withApiHandler(async (req: NextRequest, { params }: { params: Promise<{ gigId: string }> }): Promise<NextResponse> => {
   await dbConnect();
 
   const gigId = (await params).gigId;
@@ -49,13 +49,14 @@ export const POST = withApiHandler(async (req: NextRequest,{ params }: { params:
   if (gig.createdBy.toString() === user._id.toString()) {
     throw new ApiError("You cannot bid on your own gig", 403);
   }
-
-  if (gig.status !== "Open") {
+  
+  if(!["Open", "Requested"].includes(gig.status)) {
     throw new ApiError("Bidding is closed for this gig", 403);
   }
-  const { bidAmount,description } = await req.json();
-  
-  if (!bidAmount || !description || isNaN(bidAmount) ) {
+
+  const { bidAmount, description } = await req.json();
+
+  if (!bidAmount || !description || isNaN(bidAmount)) {
     throw new ApiError("Missing or invalid required fields", 400);
   }
 
@@ -64,9 +65,15 @@ export const POST = withApiHandler(async (req: NextRequest,{ params }: { params:
     createdBy: user._id,
     bidAmount: Number(bidAmount),
     description: description.trim(),
+    status: "Requested",
   };
 
   placeBidSchema.parse(data);
   const bid = await Bid.create(data);
+
+  if (gig.status === "Open") {
+    gig.status = "Requested";
+    await gig.save();
+  }
   return successResponse(bid, "Bid placed successfully", 201);
 });

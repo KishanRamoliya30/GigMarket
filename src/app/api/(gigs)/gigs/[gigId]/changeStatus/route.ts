@@ -6,17 +6,6 @@ import { ApiError } from "@/app/lib/commonError";
 import { successResponse, withApiHandler } from "@/app/lib/commonHandlers";
 import { verifyToken } from "@/app/utils/jwt";
 
-// const validGigStatuses = [
-//   "Open",
-//   "Requested",
-//   "Assigned",
-//   "Not-Assigned",
-//   "In-Progress",
-//   "Completed",
-//   "Approved",
-//   "Rejected",
-// ] as const;
-
 const gigCreaterAllowedStatus = ["Open", "Assigned", "Not-Assigned", "Approved", "Rejected"]
 const bidCreaterAllowedStatus = ["Requested", "In-Progress", "Completed"]
 
@@ -36,10 +25,6 @@ export const PATCH = withApiHandler(
 
     if (!gig) throw new ApiError("Gig not found", 404);
 
-    if (gigCreaterId !== userId && role !== "Admin") {
-      throw new ApiError("Not authorized to update this gig", 403);
-    }
-
     const { status, bidId } = await req.json();
 
     if (!bidId) {
@@ -54,14 +39,12 @@ export const PATCH = withApiHandler(
 
     const bidCreaterId = bid.createdBy.toString();
 
-    console.log("######41", gigCreaterId, bidCreaterId, gigCreaterAllowedStatus, bidCreaterAllowedStatus, userId);
-
     if ((gigCreaterId === userId && !gigCreaterAllowedStatus.includes(status) || (bidCreaterId === userId && !bidCreaterAllowedStatus.includes(status)))) {
-      throw new ApiError("Not authorized to change this gig status", 403);
+      throw new ApiError("You are not authorized to change this gig status", 403);
     }
 
-    if ((gigCreaterId === userId && !gigCreaterAllowedStatus.includes(status) || role === "Admin")) {
-      if (status === "Assigned" || status === "Not-assigned") {
+    if ((gigCreaterId === userId || role === "Admin")) {
+      if (status === "Assigned") {
         if (gig.status !== "Requested" && bid.status !== "Requested") {
           throw new ApiError("Only requested bids can be Assigned", 400);
         }
@@ -82,20 +65,31 @@ export const PATCH = withApiHandler(
         // return successResponse({ gig, bid }, `Gig marked as ${status}`);
       }
 
-      if (status === "Approved" || status === "Rejected") {
-        if (gig.status !== "Completed" || gig.status !== "Rejected") {
+      if (status === "Not-Assigned") {
+        if (gig.status !== "Requested" && bid.status !== "Requested") {
+          throw new ApiError("Only requested bids can be Assigned", 400);
+        }
+
+        bid.status = status;
+        await bid.save();
+
+        return successResponse({ gig, bid }, `Bid status updated to ${status}`);
+      }
+
+      if (["Approved", "Rejected"].includes(status)) {
+        if (!["Completed", "Rejected"].includes(gig.status)) {
           throw new ApiError("Only completed bids can be Assigned", 400);
         }
       }
     }
 
-    if ((bidCreaterId === userId && !bidCreaterAllowedStatus.includes(status) || role === "Admin")) {
+    if ((bidCreaterId === userId || role === "Admin")) {
       if (status === "In-Progress") {
         if (gig.status !== "Assigned") {
           throw new ApiError("Only assigned bids can be Assigned", 400);
         }
       }
-  
+
       if (status === "Completed") {
         if (gig.status !== "In-Progress") {
           throw new ApiError("Only in-progress bids can be Assigned", 400);
