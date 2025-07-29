@@ -1,79 +1,103 @@
 "use client";
 
 import Image from "next/image";
-import { FavoriteBorderOutlined, MoreHoriz } from "@mui/icons-material";
-import { useState } from "react";
-import { portfolioItems } from "../../../utils/constants";
+import { FavoriteBorderOutlined } from "@mui/icons-material";
+import { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { apiRequest } from "@/app/lib/apiCall";
+import { Gig } from "@/app/utils/interfaces";
 
 const MadeOnFiverr = () => {
-  const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+  const router = useRouter();
+  const [data, setData] = useState<{
+    data: Gig[];
+    pagination: { total: number };
+  }>({ data: [], pagination: { total: 0 } });
 
-  const toggleMenu = (id: number) => {
-    setOpenMenuId((prev) => (prev === id ? null : id));
-  };
+  useEffect(() => {
+    async function getOpenGigs() {
+      try {
+        const res = await apiRequest("gigs/list", {
+          method: "GET",
+          params: {
+            limit: 8,
+            page: 1,
+          },
+        });
+        if (res.ok) {
+          setData(res.data);
+        }
+      } catch (error) {
+        console.error("Error fetching gigs:", error);
+      }
+    }
+    getOpenGigs();
+  }, []);
 
   return (
-    <section className="py-12 md:px-16 md:px-10 bg-white">
-      <h2 className="text-3xl md:text-4xl font-semibold text-gray-800 mb-10 text-center">
-        Made on GigMarket
-      </h2>
+    data.data.length > 0 && (
+      <section className="py-12 px-4 md:px-16 lg:px-24">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl mb-2 text-[#404145] font-bold text-center">
+            Made on Gig Market
+          </h2>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {portfolioItems.map((gig) => (
-          <div
-            key={gig.id}
-            className="relative group rounded-lg overflow-hidden shadow-md cursor-pointer transition-transform hover:scale-105"
-          >
-            {/* Image */}
-            <Image
-              src={gig.image}
-              alt={gig.title}
-              width={400}
-              height={250}
-              className="object-cover w-full h-[230px]"
-            />
-
-            {/* Hover overlay with text */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-              <div className="absolute bottom-4 left-4 text-white">
-                <p className="text-sm font-semibold">
-                  Featured in: {gig.title}
-                </p>
-                <p className="text-sm">by: {gig.subtitle}</p>
-              </div>
-            </div>
-
-            {/* Like icon (top-left) */}
-            <div className="absolute top-3 left-3 bg-white rounded-full p-1 shadow-sm hover:bg-gray-100 z-10">
-              <FavoriteBorderOutlined
-                fontSize="small"
-                className="text-gray-700"
-              />
-            </div>
-
-            {/* 3 Dots icon (top-right) */}
-            <div className="absolute top-3 right-3 bg-white rounded-full p-1 shadow-sm hover:bg-gray-100 z-10">
-              <button onClick={() => toggleMenu(gig.id)}>
-                <MoreHoriz fontSize="small" />
-              </button>
-
-              {openMenuId === gig.id && (
-                <div className="absolute top-8 right-0 bg-white shadow-md rounded-md px-4 py-2 text-sm text-gray-800 whitespace-nowrap">
-                  See Gig
+          <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            {data.data.map((gig, index) => (
+              <div
+                key={index}
+                className="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:-translate-y-2 hover:cursor-pointer"
+                onClick={() => {
+                  router.push(`gigs/${gig._id}`);
+                }}
+              >
+                {/* Image */}
+                <div className="aspect-[4/3] overflow-hidden">
+                  <Image
+                    src={gig.gigImage?.url || "/noImageFound.png"}
+                    alt={gig.title}
+                    width={400}
+                    height={300}
+                    className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500"
+                  />
                 </div>
-              )}
 
-            </div>
+                {/* Hover overlay with text */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent  transition-opacity duration-300">
+                  <div className="absolute bottom-6 left-6 right-6">
+                    <p className="text-base font-semibold text-white mb-2">
+                      Featured in:{" "}
+                      {gig.title.length > 30
+                        ? `${gig.title.substring(0, 30)}...`
+                        : gig.title}
+                    </p>
+                    <p className="text-sm text-gray-200 flex items-center gap-2">
+                      <span className="p-1 w-6 h-6 rounded-full bg-purple-500 flex items-center justify-center">
+                        {gig.createdBy.fullName.charAt(0)}
+                      </span>
+                      {gig.createdBy.fullName}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Like icon */}
+                <button className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full p-1 shadow-lg hover:bg-white transition-colors z-10 group-hover:scale-110">
+                  <FavoriteBorderOutlined className="w-5 h-5 text-gray-700" />
+                </button>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-         <button
-        className="cursor-pointer text-sm font-semibold mt-6 ml-auto mr-auto hover:underline flex items-center gap-1"
-      >
-        Browse All <ArrowRight className="w-4 h-4" />
-      </button>
-    </section>
+
+          <button
+            onClick={() => router.push(`/publicGigs`)}
+            className="text-sm mt-10 ml-auto mr-auto font-semibold hover:underline flex items-center gap-1 cursor-pointer"
+          >
+            Browse All <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+      </section>
+    )
   );
 };
 

@@ -9,9 +9,9 @@ import JoinFiverr from "@/components/landing/JoinFiveer";
 import FiverrBusiness from "@/components/landing/FiverrBusiness";
 import FreelancerBenefits from "@/components/landing/FreelancerBenefits";
 import MadeOnFiverr from "@/components/landing/MadeOnFiverr";
-import TrustedServices from "@/components/landing/TrustedService";
+// import TrustedServices from "@/components/landing/TrustedService";
 import ServiceTiers from "@/components/landing/ServiceTiers";
-import LandingProviderProfiles from "@/components/Carousel/LandingProviderProfiles";
+import LandingProviderProfiles from "@/components/carousel/LandingProviderProfiles";
 
 export default function Home() {
   return (
@@ -24,7 +24,7 @@ export default function Home() {
       <MadeOnFiverr />
       <ServiceTiers />
       <FiverrBusiness />
-      <TrustedServices />
+      {/* <TrustedServices /> */}
       <FreelancerBenefits />
       <Everything />
       <JoinFiverr />
