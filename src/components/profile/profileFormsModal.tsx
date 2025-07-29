@@ -75,27 +75,21 @@ const ProfileFormCard: React.FC<ProfileFormCardProps> = ({
   const { user, setUserProfile } = useUser();
   const userId = user?._id;
 
-  interface FileMeta {
-    name: string;
-    url: string;
-    type?: string;
-    size?: number;
-  }
-
-  const [certifications, setCertifications] = useState<File[]>([]);
-  console.log("certifications123", certifications);
+  const [certifications, setCertifications] = useState<
+    { file: File | { name: string; url: string; type: string; size: number } }[]
+  >([]);
 
   useEffect(() => {
     if (
       profileData?.certifications &&
       Array.isArray(profileData.certifications)
     ) {
-      const formatted = profileData.certifications.map((cert:any) => ({
+      const formatted = profileData.certifications.map((cert: any) => ({
         file: {
-          name: cert.name || "",
-          url: cert.url || "",
-          type: cert.type || "application/pdf",
-          size: cert.size || 0,
+          name: cert?.name || "",
+          url: cert?.url || "",
+          type: cert?.type || "application/pdf",
+          size: cert?.size || 0,
         },
       }));
       setCertifications(formatted);
@@ -106,7 +100,6 @@ const ProfileFormCard: React.FC<ProfileFormCardProps> = ({
     const files = e.target.files;
     if (files && files.length > 0) {
       const fileArray = Array.from(files).map((file) => ({ file }));
-      console.log("certifications123", fileArray);
       setCertifications((prev) => [...prev, ...fileArray]);
     }
   };
