@@ -1,5 +1,5 @@
 "use client";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Avatar,
   Box,
@@ -75,23 +75,26 @@ const ProfileFormCard: React.FC<ProfileFormCardProps> = ({
   const { user, setUserProfile } = useUser();
   const userId = user?._id;
 
-  interface CertificationFile {
-    name: string;
-  }
+  const [certifications, setCertifications] = useState<
+    { file: File | { name: string; url: string; type: string; size: number } }[]
+  >([]);
 
-  interface Certification {
-    file: File | CertificationFile;
-  }
-
-  const [certifications, setCertifications] = useState<Certification[]>(
-    profileData?.certifications
-      ? profileData.certifications.map(
-          (cert): Certification => ({
-            file: { name: cert.fileName },
-          })
-        )
-      : []
-  );
+  useEffect(() => {
+    if (
+      profileData?.certifications &&
+      Array.isArray(profileData.certifications)
+    ) {
+      const formatted = profileData.certifications.map((cert: any) => ({
+        file: {
+          name: cert?.name || "",
+          url: cert?.url || "",
+          type: cert?.type || "application/pdf",
+          size: cert?.size || 0,
+        },
+      }));
+      setCertifications(formatted);
+    }
+  }, [profileData?.certifications]);
 
   const handleCertUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -166,9 +169,12 @@ const ProfileFormCard: React.FC<ProfileFormCardProps> = ({
         }
 
         // Certifications
-        certifications.forEach((cert, i) => {
+
+        certifications.forEach((cert) => {
           if (cert.file instanceof File) {
-            formData.append(`certifications[${i}].file`, cert.file);
+            formData.append("certifications", cert.file);
+          } else {
+            formData.append("certifications", JSON.stringify(cert.file));
           }
         });
 

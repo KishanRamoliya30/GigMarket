@@ -1,8 +1,20 @@
 import mongoose, { Schema, Document } from "mongoose";
-
-interface Certification {
-  fileName: string;
+export interface Certification {
+  name: string;
+  url: string;
+  type?: string;
+  size?: number;
 }
+const CertificationSchema = new Schema<Certification>(
+  {
+    name: { type: String, required: true },
+    url: { type: String, required: true },
+    type: { type: String },
+    size: { type: Number },
+  },
+  { _id: false }
+);
+
 
 interface EducationEntry {
   school: string;
@@ -25,7 +37,7 @@ export interface IProfile extends Document {
   professionalSummary: string;
   interests: string[];
   extracurricularActivities: string;
-  certifications: Certification[];
+  certifications: Certification;
   skills: string[];
   currentSchool: string;
   degreeType: string;
@@ -50,11 +62,7 @@ const ProfileSchema = new Schema<IProfile>(
     professionalSummary: { type: String, required: true },
     interests: [{ type: String }],
     extracurricularActivities: { type: String, required: true },
-    certifications: [
-      {
-        fileName: { type: String },
-      },
-    ],
+    certifications: [CertificationSchema],
     skills: [{ type: String }],
     currentSchool: { type: String, required: true },
     degreeType: { type: String, required: true },

@@ -5,9 +5,9 @@ import User from "@/app/models/user";
 import mongoose from "mongoose";
 import { generateToken } from "@/app/utils/jwt";
 import { expiryTime } from "../../../../utils/constants";
+import { uploadToCloudinary } from "@/lib/cloudinaryFileUpload";
 import cloudinary from "@/lib/cloudinary";
-
-async function uploadToCloudinary(file: File, folder = "profiles") {
+async function uploadToCloudinaryImage(file: File, folder = "profiles") {
   const buffer = Buffer.from(await file.arrayBuffer());
   const base64 = buffer.toString("base64");
   const dataURI = `data:${file.type};base64,${base64}`;
@@ -34,10 +34,8 @@ export async function POST(request: Request) {
     const interests = JSON.parse((formData.get("interests") as string) || "[]");
     const extracurricularActivities = formData.get(
       "extracurricularActivities"
-    ) as string;
-    const certifications = JSON.parse(
-      (formData.get("certifications") as string) || "[]"
-    );
+    ) as string; 
+    const certifications = formData.getAll("certifications") as File[] || [];
     const skills = JSON.parse((formData.get("skills") as string) || "[]");
     const currentSchool = formData.get("currentSchool") as string;
     const degreeType = formData.get("degreeType") as string;
@@ -47,6 +45,21 @@ export async function POST(request: Request) {
     const pastEducation = JSON.parse(
       (formData.get("pastEducation") as string) || "[]"
     );
+    let certificationFiles = null;
+    if (certifications && certifications.length > 0) {
+        certificationFiles = await Promise.all(
+          certifications.map(async (file) => {
+            const url = await uploadToCloudinary(file, {
+              folder: "certification", });
+            return {
+              url,
+              name: file.name,
+              type: file.type,
+              size: file.size,
+            };
+          })
+        );
+      }
 
     if (!userId) {
       return NextResponse.json(
@@ -67,40 +80,13 @@ export async function POST(request: Request) {
     let profilePictureUrl = "";
     const profilePictureFile = formData.get("profilePicture") as File;
     if (profilePictureFile && profilePictureFile.size > 0) {
-      const uploadResult = await uploadToCloudinary(
+      const uploadResult = await uploadToCloudinaryImage(
         profilePictureFile,
         "profiles"
       );
       profilePictureUrl = uploadResult.url;
     }
 
-    // Define a type for certification
-    type Certification = {
-      file?: {
-        name?: string;
-        url?: string;
-      };
-      [key: string]: unknown;
-    };
-
-    // Upload certifications
-    const uploadedCertifications = await Promise.all(
-      certifications.map(async (cert: Certification, index: number) => {
-        const file = formData.get(`certifications[${index}].file`) as File;
-        if (file && file.size > 0) {
-          const upload = await uploadToCloudinary(file, "certifications");
-          return {
-            fileName: file.name,
-            url: upload.url,
-          };
-        } else {
-          return {
-            fileName: cert?.file?.name || "Unnamed.pdf",
-            url: cert?.file?.url || "",
-          };
-        }
-      })
-    );
 
     const profile = new Profile({
       userId,
@@ -109,7 +95,7 @@ export async function POST(request: Request) {
       professionalSummary,
       interests,
       extracurricularActivities,
-      certifications: uploadedCertifications,
+      certifications: certificationFiles,
       skills,
       currentSchool,
       degreeType,
@@ -180,7 +166,7 @@ export async function GET(request: Request) {
 
     const profile = await Profile.findOne({
       userId: new mongoose.Types.ObjectId(userId),
-    });
+    }).lean();
 
     if (!profile) {
       return NextResponse.json(
@@ -248,25 +234,35 @@ export async function PUT(request: Request) {
     let profilePictureUrl = existingProfile.profilePicture;
     const newProfilePicture = formData.get("profilePicture") as File;
     if (newProfilePicture && newProfilePicture.size > 0) {
-      const uploaded = await uploadToCloudinary(newProfilePicture, "profiles");
+      const uploaded = await uploadToCloudinaryImage(newProfilePicture, "profiles");
       profilePictureUrl = uploaded.url;
     }
 
-    // Handle certifications
-    const updatedCertifications: { fileName: string; url: string }[] = [];
-    let index = 0;
-    while (true) {
-      const file = formData.get(`certifications[${index}].file`) as File;
-      if (!file) break;
 
-      if (file.size > 0) {
-        const upload = await uploadToCloudinary(file, "certifications");
-        updatedCertifications.push({
-          fileName: file.name,
-          url: upload.url,
+    // Handle certifications
+    const certificationFileList = [];
+
+    const certificationFiles = formData.getAll("certifications");
+
+    for (const cert of certificationFiles) {
+      if (typeof cert === "string") {
+        try {
+          const parsed = JSON.parse(cert);
+          if (parsed?.url && parsed?.name) {
+            certificationFileList.push(parsed);
+          }
+        } catch (err) {
+          console.error("Invalid certification JSON string:", err);
+        }
+      } else if (cert instanceof File && cert.size > 0) {
+        const url = await uploadToCloudinary(cert, { folder: "certification" });
+        certificationFileList.push({
+          url,
+          name: cert.name,
+          type: cert.type,
+          size: cert.size,
         });
       }
-      index++;
     }
 
     // Update the profile fields
@@ -275,7 +271,7 @@ export async function PUT(request: Request) {
     existingProfile.professionalSummary = professionalSummary;
     existingProfile.interests = interests;
     existingProfile.extracurricularActivities = extracurricularActivities;
-    existingProfile.certifications = updatedCertifications;
+    existingProfile.certifications = certificationFileList;
     existingProfile.skills = skills;
     existingProfile.currentSchool = currentSchool;
     existingProfile.degreeType = degreeType;
