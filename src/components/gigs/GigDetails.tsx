@@ -25,7 +25,6 @@ import {
   RadioGroup,
   FormControlLabel,
   Radio,
-
 } from "@mui/material";
 import { ArrowBack } from "@mui/icons-material";
 import { useRouter, useParams } from "next/navigation";
@@ -94,12 +93,38 @@ export default function GigDetailPage(props?: { self?: boolean }) {
   };
 
   const getGigBids = async () => {
-    const res = await apiRequest(
-      `mygigs/${gigId}/bids?page=${page}&limit=${pagination.limit}`,
-      {
-        method: "GET",
-      }
-    );
+    const priceParams: { minPrice?: number; maxPrice?: number } = {
+      minPrice: undefined,
+      maxPrice: undefined,
+    };
+    if (selectedBudget === "Under ₹500") {
+      priceParams.maxPrice = 500;
+    } else if (selectedBudget === "₹500–₹1500") {
+      priceParams.minPrice = 500;
+      priceParams.maxPrice = 1500;
+    } else if (selectedBudget === "₹1500 & Above") {
+      priceParams.minPrice = 1501;
+    } else if (selectedBudget === "custom" && customMin && customMax) {
+      priceParams.minPrice = Number(customMin);
+      priceParams.maxPrice = Number(customMax);
+    }
+
+    let minRating: number | undefined = undefined;
+    if (selectedRating === "5⭐") minRating = 5;
+    else if (selectedRating === "4⭐ and above") minRating = 4;
+    else if (selectedRating === "3⭐ and above") minRating = 3;
+    else if (selectedRating === "2⭐ and above") minRating = 2;
+    const res = await apiRequest(`mygigs/${gigId}/bids`, {
+      method: "GET",
+      params: {
+        limit: pagination.limit,
+        page: page,
+        minPrice: priceParams.minPrice,
+        maxPrice: priceParams.maxPrice,
+        minRating: minRating,
+        sort: sortBy,
+      },
+    });
     if (res.ok) {
       // setLoading(false);
       setPagination(res.data.pagination);
@@ -107,17 +132,23 @@ export default function GigDetailPage(props?: { self?: boolean }) {
     }
   };
 
-  const updateBidStatus = async (bidId: string, status: "approved" | "rejected") => {
+  const updateBidStatus = async (
+    bidId: string,
+    status: "approved" | "rejected"
+  ) => {
     return await apiRequest(`mygigs/${gigId}/bids/${bidId}/status`, {
       method: "PUT",
       data: { status },
     });
   };
 
-  const handleBidStatusChange = async (bidId: string, status: "approved" | "rejected") => {
+  const handleBidStatusChange = async (
+    bidId: string,
+    status: "approved" | "rejected"
+  ) => {
     try {
       const res = await updateBidStatus(bidId, status);
-  
+
       if (res.ok) {
         toast.success(`Bid ${status} successfully`);
         getGigBids();
@@ -135,7 +166,7 @@ export default function GigDetailPage(props?: { self?: boolean }) {
 
   useEffect(() => {
     if (isSelf) getGigBids();
-  }, [page]);
+  }, [page, sortBy, selectedRating, selectedBudget, customMin, customMax]);
 
   useEffect(() => {
     setError((prev) => ({
@@ -170,7 +201,7 @@ export default function GigDetailPage(props?: { self?: boolean }) {
   function getSkeleton() {
     return (
       <Grid container spacing={4}>
-        <Grid size={isSelf?{ xs: 12}:{ xs: 12, md: 8 }}>
+        <Grid size={isSelf ? { xs: 12 } : { xs: 12, md: 8 }}>
           <Box display="flex" justifyContent="space-between">
             <Skeleton animation="wave" width="60%" height={40} />
             <Skeleton animation="wave" width={80} height={40} />
@@ -523,34 +554,31 @@ export default function GigDetailPage(props?: { self?: boolean }) {
                 setCustomMax("");
               }}
             >
-              {[
-                "Under ₹2,252",
-                "₹2,252–₹5,404",
-                "₹5,404 & Above",
-                "custom",
-              ].map((opt) => (
-                <FormControlLabel
-                  key={opt}
-                  value={opt}
-                  control={
-                    <Radio
-                      sx={{
-                        color: "#388E3C",
-                        "&.Mui-checked": {
+              {["Under ₹500", "₹500–₹1500", "₹1500 & Above", "custom"].map(
+                (opt) => (
+                  <FormControlLabel
+                    key={opt}
+                    value={opt}
+                    control={
+                      <Radio
+                        sx={{
                           color: "#388E3C",
-                        },
-                      }}
-                    />
-                  }
-                  label={opt === "custom" ? "Custom" : opt}
-                  sx={{
-                    ".MuiTypography-root": {
-                      fontWeight: 500,
-                      color: "#333",
-                    },
-                  }}
-                />
-              ))}
+                          "&.Mui-checked": {
+                            color: "#388E3C",
+                          },
+                        }}
+                      />
+                    }
+                    label={opt === "custom" ? "Custom" : opt}
+                    sx={{
+                      ".MuiTypography-root": {
+                        fontWeight: 500,
+                        color: "#333",
+                      },
+                    }}
+                  />
+                )
+              )}
             </RadioGroup>
             {selectedBudget === "custom" && (
               <Box display="flex" gap={1} mt={1}>
@@ -594,13 +622,8 @@ export default function GigDetailPage(props?: { self?: boolean }) {
             )}
           </Box>
         </Menu>
-        
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          mb={2}
-        >
+
+        <Box display="flex" justifyContent="space-between" alignItems="center">
           <Box
             display="flex"
             flexWrap="wrap"
@@ -707,6 +730,33 @@ export default function GigDetailPage(props?: { self?: boolean }) {
             </Menu>
           </Box>
         </Box>
+        <Box display="flex" flexWrap="wrap" gap={1} mt={0.5} mb={1}>
+          {selectedBudget && selectedBudget !== "custom" && (
+            <Chip
+              label={selectedBudget}
+              onDelete={() => setSelectedBudget("")}
+              className="chip"
+            />
+          )}
+          {selectedBudget === "custom" && customMin && customMax && (
+            <Chip
+              label={`₹${customMin} - ₹${customMax}`}
+              onDelete={() => {
+                setCustomMin("");
+                setCustomMax("");
+                setSelectedBudget("");
+              }}
+              className="chip"
+            />
+          )}
+          {selectedRating && (
+            <Chip
+              label={selectedRating}
+              onDelete={() => setSelectedRating("")}
+              className="chip"
+            />
+          )}
+        </Box>
         {gigBids.length > 0 ? (
           <TableContainer
             component={Paper}
@@ -752,15 +802,14 @@ export default function GigDetailPage(props?: { self?: boolean }) {
                         </Box>
                       </TableCell>
 
-                      <TableCell sx={{maxWidth:500}}>
+                      <TableCell sx={{ maxWidth: 500 }}>
                         <Typography variant="body2" color="text.secondary">
                           {truncatedDescription}
                         </Typography>
                         {bid.description.length > 120 && (
                           <Typography
                             variant="caption"
-                            color="primary"
-                            sx={{ cursor: "pointer" }}
+                            sx={{ cursor: "pointer",color:"#000" }}
                             onClick={() => handleExpand(bid._id)}
                           >
                             {isExpanded ? "Read less" : "Read more"}
@@ -768,8 +817,8 @@ export default function GigDetailPage(props?: { self?: boolean }) {
                         )}
                       </TableCell>
 
-                      <TableCell sx={{ minWidth: 120,fontWeight: 600 }}>
-                          ${bid.bidAmount} / hr
+                      <TableCell sx={{ minWidth: 120, fontWeight: 600 }}>
+                        ${bid.bidAmount} / hr
                       </TableCell>
 
                       <TableCell>
@@ -779,34 +828,44 @@ export default function GigDetailPage(props?: { self?: boolean }) {
                       </TableCell>
 
                       <TableCell align="center">
-                      {(bid.status =="pending" || !bid.status) ? 
-                      <Stack
-                          direction="row"
-                          spacing={1}
-                          justifyContent="center"
-                        > <Button
-                            variant="outlined"
-                            color="success"
-                            size="small"
-                            onClick={()=>handleBidStatusChange(bid._id, "approved")}
+                        {bid.status == "pending" || !bid.status ? (
+                          <Stack
+                            direction="row"
+                            spacing={1}
+                            justifyContent="center"
                           >
-                            Approve
-                          </Button>
-                          <Button
-                            variant="outlined"
-                            color="error"
-                            size="small"
-                            onClick={() => handleBidStatusChange(bid._id, "rejected")}
-                          >
-                            Reject
-                          </Button>
-                          </Stack> 
-                        :
-                        // show bid.status here
-                        <Chip label={bid.status.charAt(0).toUpperCase() + bid.status.slice(1)} className={`gig${bid.status}`} />
-                        
-                        }
-                        
+                            {" "}
+                            <Button
+                              variant="outlined"
+                              color="success"
+                              size="small"
+                              onClick={() =>
+                                handleBidStatusChange(bid._id, "approved")
+                              }
+                            >
+                              Approve
+                            </Button>
+                            <Button
+                              variant="outlined"
+                              color="error"
+                              size="small"
+                              onClick={() =>
+                                handleBidStatusChange(bid._id, "rejected")
+                              }
+                            >
+                              Reject
+                            </Button>
+                          </Stack>
+                        ) : (
+                          // show bid.status here
+                          <Chip
+                            label={
+                              bid.status.charAt(0).toUpperCase() +
+                              bid.status.slice(1)
+                            }
+                            className={`gig${bid.status}`}
+                          />
+                        )}
                       </TableCell>
                     </TableRow>
                   );
@@ -836,7 +895,7 @@ export default function GigDetailPage(props?: { self?: boolean }) {
         ) : (
           <Paper elevation={1} sx={{ p: 2, borderRadius: 2 }}>
             <Typography variant="body2" color="text.secondary">
-              No bids placed yet.
+              {(!selectedBudget && !selectedRating) ? "No bids placed yet.":"No bids match this filter."}
             </Typography>
           </Paper>
         )}
@@ -863,7 +922,7 @@ export default function GigDetailPage(props?: { self?: boolean }) {
         getSkeleton()
       ) : (
         <Grid container spacing={4}>
-          <Grid size={isSelf?{ xs: 12}:{ xs: 12, md: 8 }}>
+          <Grid size={isSelf ? { xs: 12 } : { xs: 12, md: 8 }}>
             <Box display="flex" justifyContent={"space-between"}>
               <Typography variant="h5" className="gigTitle">
                 {gigDetails.title}
@@ -1030,12 +1089,10 @@ const StyledWrapper = styled(Box)(({ theme }) => ({
     color: "#388E3C",
   },
 
-  
   ".gigapproved": {
     backgroundColor: "#E8F5E9",
     color: "#388E3C",
   },
-  
   ".gigrejected": {
     backgroundColor: "#FFCDD2",
     color: "#D32F2F",
@@ -1127,7 +1184,7 @@ const StyledWrapper = styled(Box)(({ theme }) => ({
     borderRadius: 8,
     color: "#388E3C",
     marginBottom: "10px",
-    paddingTop:"0px",
-    paddingBottom:"0px",
+    paddingTop: "0px",
+    paddingBottom: "0px",
   },
 }));
