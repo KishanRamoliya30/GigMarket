@@ -201,14 +201,18 @@ export const TierList: ServiceTier[] = Object.values(ServiceTier);
 export const capitalizeFirstLetter = (str: string) => {
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 };
-  export const tabs = [
-    "All",
-    "Open",
-    "Requested",
-    "In Progress",
-    "Completed",
-    "Rejected",
-  ];
+export const tabs = [
+  "All",
+  "Open",
+  "Requested",
+  "Assigned",
+  "Not-Assigned",
+  "In Progress",
+  "Completed",
+  "Approved",
+  "Rejected",
+];
+
 export const gigData = [
   {
     title: "React Developer for E-commerce Website",

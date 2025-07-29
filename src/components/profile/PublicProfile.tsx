@@ -195,13 +195,13 @@ const PublicProfile = () => {
             {/* Certifications */}
             <div className="bg-white rounded-xl shadow-sm p-6">
               <h2 className="text-xl font-semibold mb-4">Certifications</h2>
-              {certifications.length > 0 ? (
+              {certifications?.length > 0 ? (
                 <div className="space-y-2">
-                  {certifications.map((cert, idx) => (
+                  {certifications?.map((cert, idx) => (
                     <div key={idx} className="flex items-center">
                       <WorkspacePremiumIcon className="text-green-500 mr-2" />
                       <span className="text-gray-600">
-                        {cert.fileName || cert.file?.fileName}
+                        {cert.name}
                       </span>
                     </div>
                   ))}

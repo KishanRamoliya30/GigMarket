@@ -21,9 +21,36 @@ const statusIcons = {
   Open: <InsertChart className="text-blue-500 mb-1" fontSize="medium" />,
   Requested: <AccessTime className="text-indigo-500 mb-1" fontSize="medium" />,
   "In Progress": <Info className="text-yellow-500 mb-1" fontSize="medium" />,
+  Assigned: <CheckCircle className="text-purple-500 mb-1" fontSize="medium" />,
+  "Not-Assigned": <Close className="text-gray-500 mb-1" fontSize="medium" />,
   Completed: <CheckCircle className="text-green-500 mb-1" fontSize="medium" />,
+  Approved: <CheckCircle className="text-teal-500 mb-1" fontSize="medium" />,
   Rejected: <Close className="text-red-500 mb-1" fontSize="medium" />,
 };
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case "Open":
+      return "bg-blue-100 text-blue-700";
+    case "Requested":
+      return "bg-indigo-100 text-indigo-700";
+    case "In Progress":
+      return "bg-yellow-100 text-yellow-700";
+    case "Assigned":
+      return "bg-purple-100 text-purple-700";
+    case "Not-Assigned":
+      return "bg-gray-100 text-gray-700";
+    case "Completed":
+      return "bg-green-100 text-green-700";
+    case "Approved":
+      return "bg-teal-100 text-teal-700";
+    case "Rejected":
+      return "bg-red-100 text-red-700";
+    default:
+      return "bg-gray-100 text-gray-600";
+  }
+};
+
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("All");
@@ -85,7 +112,7 @@ export default function Dashboard() {
       </div>
 
       {/* Status Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
+  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 mb-8">
         {tabs.slice(1).map((status) => (
           <div
             key={status}
@@ -136,20 +163,11 @@ export default function Dashboard() {
                 <h3 className="text-lg font-semibold text-gray-900">
                   {gig.title}
                 </h3>
-                <span
-                  className={`px-3 py-1 text-xs font-semibold rounded-full flex items-center gap-1 ${
-                    gig.status === "In Progress"
-                      ? "bg-yellow-100 text-yellow-700"
-                      : gig.status === "Completed"
-                        ? "bg-green-100 text-green-700"
-                        : gig.status === "Rejected"
-                          ? "bg-red-100 text-red-700"
-                          : "bg-blue-100 text-blue-700"
-                  }`}
-                >
-                  <span className="w-2 h-2 rounded-full bg-current" />
-                  {gig.status}
-                </span>
+               <span className={`px-3 py-1 text-xs font-semibold rounded-full flex items-center gap-1 ${getStatusColor(gig.status)}`}>
+                <span className="w-2 h-2 rounded-full bg-current" />
+                {gig.status}
+              </span>
+
               </div>
 
               <p className="text-sm text-gray-600 my-2">{gig.description}</p>

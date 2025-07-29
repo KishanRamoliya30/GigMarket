@@ -230,7 +230,7 @@ const ProfileViewCard: React.FC = () => {
                 className="flex items-center bg-green-50 p-3 rounded-lg text-sm"
               >
                 <WorkspacePremium className="text-green-600 mr-2" />
-                <span>{cert.name }</span>
+                <span>{cert?.name}</span>
               </div>
             ))}
           </div>
