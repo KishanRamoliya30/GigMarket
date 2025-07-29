@@ -22,7 +22,6 @@ export async function GET(req: NextRequest) {
   const page = parseInt(searchParams.get("page") || "1");
   const limit = parseInt(searchParams.get("limit") || "10");
   const sort = searchParams.get("sort") || "";
-  const createdByRole = searchParams.get("createdByRole");
   const userId = searchParams.get("userId");
 
   const sortMap: Record<string, Record<string, 1 | -1>> = {
@@ -38,8 +37,8 @@ export async function GET(req: NextRequest) {
 
   const query: FilterQuery<GigDocument> = {};
 
-  if (createdByRole && ["User", "Provider"].includes(createdByRole)) {
-    query.createdByRole = createdByRole;
+  if (userDetails?.role && ["user", "provider"].includes(userDetails?.role.toLowerCase())) {
+    query.createdByRole = userDetails?.role.toLowerCase() === 'user' ? 'Provider' : 'User';
   }
 
   if (userId) {

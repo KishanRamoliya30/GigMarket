@@ -109,13 +109,13 @@ export default function GigListing(props?: { self?: boolean }) {
       minPrice: undefined,
       maxPrice: undefined,
     };
-    if (selectedBudget === "Under ₹2,252") {
-      priceParams.maxPrice = 2252;
-    } else if (selectedBudget === "₹2,252–₹5,404") {
-      priceParams.minPrice = 2252;
-      priceParams.maxPrice = 5404;
-    } else if (selectedBudget === "₹5,404 & Above") {
-      priceParams.minPrice = 5405;
+    if (selectedBudget === "Under ₹500") {
+      priceParams.maxPrice = 500;
+    } else if (selectedBudget === "₹500–₹1500") {
+      priceParams.minPrice = 500;
+      priceParams.maxPrice = 1500;
+    } else if (selectedBudget === "₹1500 & Above") {
+      priceParams.minPrice = 1501;
     } else if (selectedBudget === "custom" && customMin && customMax) {
       priceParams.minPrice = Number(customMin);
       priceParams.maxPrice = Number(customMax);
@@ -433,7 +433,7 @@ export default function GigListing(props?: { self?: boolean }) {
               setCustomMax("");
             }}
           >
-            {["Under ₹2,252", "₹2,252–₹5,404", "₹5,404 & Above", "custom"].map(
+            {["Under ₹500", "₹500–₹1500", "₹1500 & Above", "custom"].map(
               (opt) => (
                 <FormControlLabel
                   key={opt}
@@ -681,7 +681,7 @@ export default function GigListing(props?: { self?: boolean }) {
                       >
                         {gig.title}
                       </Typography>
-                      {gig.createdBy._id.toString() === user?._id && (
+                      {gig.createdBy?._id === user?._id && (
                         <Box>
                           <EditIcon
                             sx={{
