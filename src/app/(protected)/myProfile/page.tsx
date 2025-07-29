@@ -222,15 +222,15 @@ const ProfileViewCard: React.FC = () => {
 
       {/* Certifications */}
       <SectionCard title="Certifications" icon={<Verified className="text-blue-500" />}>
-        {certifications.length > 0 ? (
+        {certifications?.length > 0 ? (
           <div className="flex flex-col gap-2">
-            {certifications.map((cert, idx) => (
+            {certifications?.map((cert, idx) => (
               <div
                 key={idx}
                 className="flex items-center bg-green-50 p-3 rounded-lg text-sm"
               >
                 <WorkspacePremium className="text-green-600 mr-2" />
-                <span>{cert.fileName || cert?.file?.fileName}</span>
+                <span>{cert.name }</span>
               </div>
             ))}
           </div>

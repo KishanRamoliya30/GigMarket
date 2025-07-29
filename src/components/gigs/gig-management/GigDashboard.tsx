@@ -35,30 +35,33 @@ export default function Dashboard() {
   const [totalPages, setTotalPages] = useState(1);
   const limit = 3;
 
-const fetchBidPlacedGigs = async (page = 1) => {
-  try {
-    setLoading(true);
-    const res = await apiRequest(`gigs/bid-placed?page=${page}&limit=${limit}`, {
-      method: "GET",
-    });
+  const fetchBidPlacedGigs = async (page = 1) => {
+    try {
+      setLoading(true);
+      const res = await apiRequest(
+        `gigs/bid-placed?page=${page}&limit=${limit}`,
+        {
+          method: "GET",
+        }
+      );
 
-    if (res?.data) {
-      setGigData(res.data.data.gigs);
-      setTotalPages(res.data.data.totalPages);
+      if (res?.data) {
+        setGigData(res.data.data.gigs);
+        setTotalPages(res.data.data.totalPages);
+      }
+    } catch (err) {
+      console.error("Failed to fetch bid-placed gigs", err);
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.error("Failed to fetch bid-placed gigs", err);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
-useEffect(() => {
-  fetchBidPlacedGigs(page);
-}, [page]);
+  useEffect(() => {
+    fetchBidPlacedGigs(page);
+  }, [page]);
 
   const getStatusCount = (status: string) =>
-    gigData.filter((gig) => gig.status === status).length;
+    gigData?.filter((gig) => gig.status === status).length;
 
   const filteredGigs =
     activeTab === "All"
@@ -110,80 +113,88 @@ useEffect(() => {
                 : "text-gray-700 hover:bg-gray-100"
             }`}
           >
-            {tab} ({tab === "All" ? gigData.length : getStatusCount(tab)})
+            {tab} ({tab === "All" ? gigData?.length : getStatusCount(tab)})
           </button>
         ))}
       </div>
 
       {/* Gig List */}
       <div className="space-y-6">
-        {filteredGigs.map((gig, idx) => (
-          <div
-            key={idx}            
-            className="bg-white border border-blue-100 rounded-xl px-6 py-5 shadow-sm hover:shadow-md transition"
-          >
-            <div className="cursor-pointer flex justify-between items-start" onClick={() => {
-              setSelectedGig(gig);
-              setOpen(true);
-            }}>
-              <h3 className="text-lg font-semibold text-gray-900">
-                {gig.title}
-              </h3>
-              <span
-                className={`px-3 py-1 text-xs font-semibold rounded-full flex items-center gap-1 ${
-                  gig.status === "In Progress"
-                    ? "bg-yellow-100 text-yellow-700"
-                    : gig.status === "Completed"
-                    ? "bg-green-100 text-green-700"
-                    : gig.status === "Rejected"
-                    ? "bg-red-100 text-red-700"
-                    : "bg-blue-100 text-blue-700"
-                }`}
+        {filteredGigs && filteredGigs.length > 0 ? (
+          filteredGigs.map((gig, idx) => (
+            <div
+              key={idx}
+              className="bg-white border border-blue-100 rounded-xl px-6 py-5 shadow-sm hover:shadow-md transition"
+            >
+              <div
+                className="cursor-pointer flex justify-between items-start"
+                onClick={() => {
+                  setSelectedGig(gig);
+                  setOpen(true);
+                }}
               >
-                <span className="w-2 h-2 rounded-full bg-current" />
-                {gig.status}
-              </span>
-            </div>
-
-            <p className="text-sm text-gray-600 my-2">{gig.description}</p>
-
-            <div className="grid grid-cols-2 gap-4 text-sm text-gray-700 pt-2">
-              <div className="flex items-center gap-1">
-                <AttachMoney fontSize="small" />
-                <span className="font-semibold">{gig.price}</span>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {gig.title}
+                </h3>
+                <span
+                  className={`px-3 py-1 text-xs font-semibold rounded-full flex items-center gap-1 ${
+                    gig.status === "In Progress"
+                      ? "bg-yellow-100 text-yellow-700"
+                      : gig.status === "Completed"
+                        ? "bg-green-100 text-green-700"
+                        : gig.status === "Rejected"
+                          ? "bg-red-100 text-red-700"
+                          : "bg-blue-100 text-blue-700"
+                  }`}
+                >
+                  <span className="w-2 h-2 rounded-full bg-current" />
+                  {gig.status}
+                </span>
               </div>
-              <div className="flex items-center gap-1 justify-end">
-                <CalendarMonth fontSize="small" />
-                {new Date(gig.createdAt).toLocaleDateString()}
-              </div>              
+
+              <p className="text-sm text-gray-600 my-2">{gig.description}</p>
+
+              <div className="grid grid-cols-2 gap-4 text-sm text-gray-700 pt-2">
+                <div className="flex items-center gap-1">
+                  <AttachMoney fontSize="small" />
+                  <span className="font-semibold">{gig.price}</span>
+                </div>
+                <div className="flex items-center gap-1 justify-end">
+                  <CalendarMonth fontSize="small" />
+                  {new Date(gig.createdAt).toLocaleDateString()}
+                </div>
+              </div>
             </div>
+          ))
+        ) : (
+          <div className="text-center text-gray-500 py-8">No gigs found.</div>
+        )}
+
+        {/* Pagination */}
+        {filteredGigs && filteredGigs.length > 0 && totalPages > 1 && (
+          <div className="flex justify-center mt-6">
+            <Pagination
+              count={totalPages}
+              page={page}
+              onChange={(e, value) => setPage(value)}
+              color="primary"
+              shape="rounded"
+            />
           </div>
-        ))}
-          {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center mt-6">
-          <Pagination
-            count={totalPages}
-            page={page}
-            onChange={(e, value) => setPage(value)}
-            color="primary"
-            shape="rounded"
-          />
-        </div>
-      )}
+        )}
       </div>
 
       {/* Dialog for Single Gig */}
-     {selectedGig && (
-  <GigStatusDialog
-    data={selectedGig}
-    open={open}
-    onClose={() => {
-      setOpen(false);
-      setSelectedGig(null); 
-    }}
-  />
-)}
+      {selectedGig && (
+        <GigStatusDialog
+          data={selectedGig}
+          open={open}
+          onClose={() => {
+            setOpen(false);
+            setSelectedGig(null);
+          }}
+        />
+      )}
     </Box>
   );
 }
