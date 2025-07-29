@@ -131,6 +131,9 @@ export default function GigDetailPage(props?: { self?: boolean }) {
       setGigBids(res.data.data);
     }
   };
+  const redirectToPublicProfile = (userId: string) => {
+    router.push("/publicProfile/" + userId);
+  };
 
   const updateBidStatus = async (
     bidId: string,
@@ -790,13 +793,23 @@ export default function GigDetailPage(props?: { self?: boolean }) {
                       }}
                     >
                       <TableCell>
-                        <Box display="flex" alignItems="center" gap={1}>
+                        <Box
+                          display="flex"
+                          alignItems="center"
+                          gap={1}
+                          onClick={()=>redirectToPublicProfile(bid.createdBy._id)}
+
+                          sx={{ cursor: "pointer" }}
+                        >
                           <Avatar
                             src={bid.createdBy.profilePicture}
                             alt={bid.createdBy.fullName}
                             sx={{ width: 36, height: 36 }}
                           />
-                          <Typography variant="subtitle2">
+                          <Typography
+                            variant="subtitle2"
+                            sx={{ cursor: "pointer !important" }}
+                          >
                             {bid.createdBy.fullName}
                           </Typography>
                         </Box>
@@ -809,7 +822,7 @@ export default function GigDetailPage(props?: { self?: boolean }) {
                         {bid.description.length > 120 && (
                           <Typography
                             variant="caption"
-                            sx={{ cursor: "pointer",color:"#000" }}
+                            sx={{ cursor: "pointer", color: "#000" }}
                             onClick={() => handleExpand(bid._id)}
                           >
                             {isExpanded ? "Read less" : "Read more"}
@@ -895,7 +908,9 @@ export default function GigDetailPage(props?: { self?: boolean }) {
         ) : (
           <Paper elevation={1} sx={{ p: 2, borderRadius: 2 }}>
             <Typography variant="body2" color="text.secondary">
-              {(!selectedBudget && !selectedRating) ? "No bids placed yet.":"No bids match this filter."}
+              {!selectedBudget && !selectedRating
+                ? "No bids placed yet."
+                : "No bids match this filter."}
             </Typography>
           </Paper>
         )}
@@ -979,15 +994,15 @@ export default function GigDetailPage(props?: { self?: boolean }) {
                     src={gigDetails.createdBy.profilePicture}
                     alt={gigDetails.createdBy.fullName}
                     sx={{ width: 60, height: 60, cursor: "pointer" }}
-                    onClick={() =>
-                      router.push(
-                        "/profile/" +
-                          gigDetails.createdBy.fullName.toLowerCase()
-                      )
-                    }
+                   
+                    onClick={()=>redirectToPublicProfile(gigDetails.createdBy._id)}
                   />
                   <Box>
-                    <Typography variant="h6" fontWeight={600}>
+                    <Typography
+                      variant="h6"
+                      fontWeight={600}
+                      onClick={()=>redirectToPublicProfile(gigDetails.createdBy._id)}
+                    >
                       {gigDetails.createdBy.fullName}
                     </Typography>
                     <Box display="flex" alignItems="center" gap={0.5}>
