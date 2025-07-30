@@ -44,7 +44,7 @@ const LandingProviderProfiles = () => {
   };
 
   return (
-    <div>
+    <div className="py-12 md:px-12 sm:px-6 lg:px-16">
       <CustomCarousel
         data={data.profiles}
         CardComponent={renderProfileCard}
