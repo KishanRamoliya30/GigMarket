@@ -37,8 +37,8 @@ const MadeOnFiverr = () => {
 
   return (
     data.data.length > 0 && (
-      <section className="py-12 px-4 md:px-16 lg:px-24">
-        <div className="max-w-7xl mx-auto">
+      <section className="py-12 px-10 md:px-18 lg:px-26">
+        <div className="mx-auto">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl mb-2 text-[#404145] font-bold text-center">
             Made on Gig Market
           </h2>
@@ -72,12 +72,14 @@ const MadeOnFiverr = () => {
                         ? `${gig.title.substring(0, 30)}...`
                         : gig.title}
                     </p>
-                    <p className="text-sm text-gray-200 flex items-center gap-2">
-                      <span className="p-1 w-6 h-6 rounded-full bg-purple-500 flex items-center justify-center">
-                        {gig.createdBy.fullName.charAt(0)}
-                      </span>
-                      {gig.createdBy.fullName}
-                    </p>
+                    {gig.createdBy.fullName && (
+                      <p className="text-sm text-gray-200 flex items-center gap-2">
+                        <span className="p-1 w-6 h-6 rounded-full bg-purple-500 flex items-center justify-center">
+                          {gig.createdBy.fullName.charAt(0)}
+                        </span>
+                        {gig.createdBy.fullName}
+                      </p>
+                    )}
                   </div>
                 </div>
 

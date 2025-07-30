@@ -67,7 +67,7 @@ function HomeBanner() {
           Find the perfect&nbsp;
           <i>freelance</i>
           <br className="hidden xs:block" />
-          services for your business
+          &nbsp; services for your business
         </h1>
 
         {/* Search Bar - joined input and button */}
