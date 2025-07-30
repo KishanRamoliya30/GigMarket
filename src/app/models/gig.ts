@@ -1,13 +1,23 @@
 import mongoose, { Schema, Document, Types } from 'mongoose';
 import { ServiceTier } from '../../../utils/constants';
 
+const statusList = ["Open", "Requested", "Assigned", "Not-Assigned", "In-Progress", "Completed", "Approved", "Rejected"]
 export interface Certification {
   name: string;
   url: string;
   type?: string;
   size?: number;
 }
+type GigStatus = "Open" | "Requested" | "Assigned" | "Not-Assigned" | "In-Progress" | "Completed" | "Approved" |"Rejected";
 
+export interface StatusHistory {
+  previousStatus: GigStatus;
+  currentStatus: GigStatus;
+  changedBy: Types.ObjectId;
+  changedByRole: 'User' | 'Provider' | 'Admin';
+  description?: string;
+  changedAt: Date;
+}
 export interface GigDocument extends Document {
   title: string;
   description: string;
@@ -21,12 +31,38 @@ export interface GigDocument extends Document {
   certification: Certification;
   gigImage: Certification;
   createdByRole: 'User' | 'Provider';
-  status: "Open" | "Requested" | "In-Progress" | "Completed" | "Rejected"; 
+  status: GigStatus;
   isPublic: boolean;
   createdBy: Types.ObjectId;
+  assignedToBid: Types.ObjectId | null;
+  statusHistory: StatusHistory[];
   createdAt: Date;
   updatedAt: Date;
 }
+
+const StatusHistorySchema = new Schema<StatusHistory>(
+  {
+    previousStatus: {
+      type: String,
+      enum: statusList,
+    },
+    currentStatus: {
+      type: String,
+      enum: statusList,
+      required: true,
+    },
+    changedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    changedByRole: {
+      type: String,
+      enum: ['User', 'Provider', 'Admin'],
+      required: true,
+    },
+    description: { type: String },
+    changedAt: { type: Date, default: Date.now },
+  },
+  { _id: false }
+);
+
 
 const CertificationSchema = new Schema<Certification>(
   {
@@ -63,10 +99,12 @@ const GigSchema = new Schema<GigDocument>(
     isPublic: { type: Boolean, required: true, default: false },
     status: {
       type: String,
-      enum: ["Open", "Requested", "In-Progress", "Completed", "Rejected"],
+      enum: statusList,
       required: true,
     },
+    statusHistory: { type: [StatusHistorySchema], default: [] },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    assignedToBid: { type: Schema.Types.ObjectId, ref: 'bids', default: null },
   },
   {
     timestamps: true,
