@@ -201,7 +201,7 @@ const PublicProfile = () => {
                     <div key={idx} className="flex items-center">
                       <WorkspacePremiumIcon className="text-green-500 mr-2" />
                       <span className="text-gray-600">
-                        {cert.fileName || cert.file?.fileName}
+                        {cert.name}
                       </span>
                     </div>
                   ))}

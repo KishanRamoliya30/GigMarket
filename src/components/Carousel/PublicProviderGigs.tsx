@@ -1,10 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import CustomCarousel from "./CustomCarousel";
 import { ArrowRight } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { apiRequest } from "@/app/lib/apiCall";
 import { Gig } from "@/app/utils/interfaces";
+import CustomCarousel from "./CustomCarousel";
 
 const PublicProviderGigs = () => {
   const [data, setData] = useState<{

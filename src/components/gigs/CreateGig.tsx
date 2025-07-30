@@ -27,7 +27,7 @@ import { toast } from "react-toastify";
 import CustomButton from "../customUi/CustomButton";
 import AddIcon from "@mui/icons-material/Add";
 import { useParams, useRouter } from "next/navigation";
-import { Gig } from "@/app/utils/interfaces";
+import { Certification, Gig } from "@/app/utils/interfaces";
 import Loader from "../Loader";
 import {
   FormDataValue,
@@ -36,15 +36,6 @@ import {
 } from "@/app/lib/commonFunctions";
 import { useUser } from "@/context/UserContext";
 import { CreteGigSchema } from "@/utils/feValidationSchema";
-
-interface FileMeta {
-  name: string;
-  url: string;
-  type?: string;
-  size?: number;
-}
-
-type Certification = File | FileMeta;
 
 interface FormValues {
   title: string;
