@@ -12,7 +12,7 @@ import {
   AttachMoney,
 } from "@mui/icons-material";
 import GigStatusDialog from "./GigHistoryDailog";
-import { tabs } from "../../../../utils/constants";
+import { getStatusColor, tabs } from "../../../../utils/constants";
 import { apiRequest } from "@/app/lib/apiCall";
 import { GigData } from "@/app/utils/interfaces";
 import Loader from "@/components/Loader";
@@ -26,29 +26,6 @@ const statusIcons = {
   Completed: <CheckCircle className="text-green-500 mb-1" fontSize="medium" />,
   Approved: <CheckCircle className="text-teal-500 mb-1" fontSize="medium" />,
   Rejected: <Close className="text-red-500 mb-1" fontSize="medium" />,
-};
-
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case "Open":
-      return "bg-blue-100 text-blue-700";
-    case "Requested":
-      return "bg-indigo-100 text-indigo-700";
-    case "In Progress":
-      return "bg-yellow-100 text-yellow-700";
-    case "Assigned":
-      return "bg-purple-100 text-purple-700";
-    case "Not-Assigned":
-      return "bg-gray-100 text-gray-700";
-    case "Completed":
-      return "bg-green-100 text-green-700";
-    case "Approved":
-      return "bg-teal-100 text-teal-700";
-    case "Rejected":
-      return "bg-red-100 text-red-700";
-    default:
-      return "bg-gray-100 text-gray-600";
-  }
 };
 
 
