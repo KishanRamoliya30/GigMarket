@@ -62,10 +62,14 @@ export interface Pagination {
   page: number;
 }
 
-export interface Certification {
-  fileName: string;
-  file: { fileName: string };
+export interface FileMeta {
+  name: string;
+  url: string;
+  type?: string;
+  size?: number;
 }
+
+export type Certification = File | FileMeta;
 
 export interface PastEducation {
   school: string;
