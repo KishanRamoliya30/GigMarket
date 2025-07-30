@@ -57,7 +57,7 @@ export const PATCH = withApiHandler(
         // Reject other bids
         await Bid.updateMany(
           { gigId: bid.gigId, _id: { $ne: bid._id } },
-          { status: "Rejected" }
+          { status: "Not-Assigned" }
         );
 
         gig.assignedToBid = bid._id;
