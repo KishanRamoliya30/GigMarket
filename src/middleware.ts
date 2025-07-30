@@ -50,6 +50,16 @@ const COMMON_PATHS = ["/dashboard", "/gigs", "/api/gigs", "/"];
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  if (
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/favicon.ico") ||
+    pathname.startsWith("/images") ||
+    pathname.startsWith("/uploads") ||
+    /\.(.*)$/.test(pathname)
+  ) {
+    return NextResponse.next();
+  }
+
   const token = request.cookies.get("token")?.value;
   let userData: LoginUser = {
     _id: "",
