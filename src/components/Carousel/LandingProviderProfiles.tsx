@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { renderProfileCard } from "@/app/providers/ProviderCardList";
-import CustomCarousel from "@/components/carousel/CustomCarousel";
+import CustomCarousel from "./CustomCarousel";
 
 const LandingProviderProfiles = () => {
   const [data, setData] = useState<{
@@ -44,7 +44,7 @@ const LandingProviderProfiles = () => {
   };
 
   return (
-    <div>
+    <div className="py-12 md:px-12 sm:px-6 lg:px-16">
       <CustomCarousel
         data={data.profiles}
         CardComponent={renderProfileCard}

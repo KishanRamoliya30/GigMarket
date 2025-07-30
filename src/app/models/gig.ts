@@ -1,13 +1,8 @@
 import mongoose, { Schema, Document, Types } from 'mongoose';
 import { ServiceTier } from '../../../utils/constants';
+import { FileMeta } from '../utils/interfaces';
 
 const statusList = ["Open", "Requested", "Assigned", "Not-Assigned", "In-Progress", "Completed", "Approved", "Rejected"]
-export interface Certification {
-  name: string;
-  url: string;
-  type?: string;
-  size?: number;
-}
 type GigStatus = "Open" | "Requested" | "Assigned" | "Not-Assigned" | "In-Progress" | "Completed" | "Approved" |"Rejected";
 
 export interface StatusHistory {
@@ -28,8 +23,8 @@ export interface GigDocument extends Document {
   reviews: number;
   keywords: string[];
   releventSkills: string[];
-  certification: Certification;
-  gigImage: Certification;
+  certification: FileMeta;
+  gigImage: FileMeta;
   createdByRole: 'User' | 'Provider';
   status: GigStatus;
   isPublic: boolean;
@@ -64,7 +59,7 @@ const StatusHistorySchema = new Schema<StatusHistory>(
 );
 
 
-const CertificationSchema = new Schema<Certification>(
+const CertificationSchema = new Schema<FileMeta>(
   {
     name: { type: String, required: true },
     url: { type: String, required: true },
