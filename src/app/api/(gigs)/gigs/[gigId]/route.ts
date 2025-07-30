@@ -133,6 +133,7 @@ export const PATCH = withApiHandler(
 
     const certification = formData.get("certification") as File | null;
     const gigImage = formData.get("gigImage") as File | null;
+
     const title = formData.get("title")?.toString();
     const description = formData.get("description")?.toString();
     const tier = formData.get("tier")?.toString();

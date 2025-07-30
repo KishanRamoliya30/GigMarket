@@ -4,22 +4,21 @@ import Gig from "@/app/models/gig";
 import { ApiError } from "@/app/lib/commonError";
 import { successResponse, withApiHandler } from "@/app/lib/commonHandlers";
 import { createGigSchema } from "@/utils/beValidationSchema";
-
 import { uploadToCloudinary } from "@/lib/cloudinaryFileUpload";
 import User from "@/app/models/user";
 import { verifyToken } from "@/app/utils/jwt";
 
 export const POST = withApiHandler(async (req: NextRequest): Promise<NextResponse> => {
   await dbConnect();
-  
-  const userDetails = await verifyToken(req);
 
+  const userDetails = await verifyToken(req);
   if (!userDetails?.userId || !userDetails?.role) {
-    throw new ApiError('Unauthorized request', 401);
+    throw new ApiError("Unauthorized request", 401);
   }
 
   const user = await User.findById(userDetails.userId);
   if (!user) throw new ApiError("User not found", 404);
+
   const plan = user.subscription?.planName || "Free";
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -66,7 +65,6 @@ export const POST = withApiHandler(async (req: NextRequest): Promise<NextRespons
     };
   }
 
-  
   let gigImageFile = null;
   if (gigImage) {
     const url = await uploadToCloudinary(gigImage, { folder: "gig_images" });
@@ -91,7 +89,8 @@ export const POST = withApiHandler(async (req: NextRequest): Promise<NextRespons
     createdByRole: userDetails.role,
     createdBy: userDetails.userId,
     status: "Open",
-    isPublic: userDetails.role === "Provider"
+    isPublic: userDetails.role === "Provider",
+    assignedToBid: null,
   };
 
   createGigSchema.parse(data);

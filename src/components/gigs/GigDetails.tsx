@@ -135,20 +135,14 @@ export default function GigDetailPage(props?: { self?: boolean }) {
     router.push("/publicProfile/" + userId);
   };
 
-  const updateBidStatus = async (
-    bidId: string,
-    status: "approved" | "rejected"
-  ) => {
-    return await apiRequest(`mygigs/${gigId}/bids/${bidId}/status`, {
-      method: "PUT",
-      data: { status },
+  const updateBidStatus = async (bidId: string, status: "Assigned" | "Not-Assigned") => {
+    return await apiRequest(`gigs/${gigId}/changeStatus`, {
+      method: "PATCH",
+      data: { status, bidId },
     });
   };
 
-  const handleBidStatusChange = async (
-    bidId: string,
-    status: "approved" | "rejected"
-  ) => {
+  const handleBidStatusChange = async (bidId: string, status: "Assigned" | "Not-Assigned") => {
     try {
       const res = await updateBidStatus(bidId, status);
 
@@ -853,7 +847,7 @@ export default function GigDetailPage(props?: { self?: boolean }) {
                               color="success"
                               size="small"
                               onClick={() =>
-                                handleBidStatusChange(bid._id, "approved")
+                                handleBidStatusChange(bid._id, "Assigned")
                               }
                             >
                               Approve
@@ -863,7 +857,7 @@ export default function GigDetailPage(props?: { self?: boolean }) {
                               color="error"
                               size="small"
                               onClick={() =>
-                                handleBidStatusChange(bid._id, "rejected")
+                                handleBidStatusChange(bid._id, "Not-Assigned")
                               }
                             >
                               Reject
