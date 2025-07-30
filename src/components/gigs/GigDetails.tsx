@@ -835,7 +835,7 @@ export default function GigDetailPage(props?: { self?: boolean }) {
                       </TableCell>
 
                       <TableCell align="center">
-                        {bid.status == "pending" || !bid.status ? (
+                        {bid.status == "Requested" || !bid.status ? (
                           <Stack
                             direction="row"
                             spacing={1}
