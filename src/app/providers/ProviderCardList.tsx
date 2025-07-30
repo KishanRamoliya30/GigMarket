@@ -6,6 +6,7 @@ import { apiRequest } from "../lib/apiCall";
 import CardList from "@/components/cardList/CardList";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 
 const ITEMS_PER_PAGE = 8;
 
@@ -14,9 +15,10 @@ export const renderProfileCard = ({ item }: { item: Profile }) => {
   return (
     <div className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 relative group">
       <div className="relative h-72">
-        <img
-          src={profilePicture}
+        <Image
+          src={profilePicture || "/noImageFound.png"}
           alt={fullName}
+          fill
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
