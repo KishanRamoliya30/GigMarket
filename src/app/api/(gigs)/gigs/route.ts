@@ -7,6 +7,7 @@ import { createGigSchema } from "@/utils/beValidationSchema";
 import { uploadToCloudinary } from "@/lib/cloudinaryFileUpload";
 import User from "@/app/models/user";
 import { verifyToken } from "@/app/utils/jwt";
+import "@/app/models/profile";
 
 export const POST = withApiHandler(async (req: NextRequest): Promise<NextResponse> => {
   await dbConnect();
@@ -16,7 +17,7 @@ export const POST = withApiHandler(async (req: NextRequest): Promise<NextRespons
     throw new ApiError("Unauthorized request", 401);
   }
 
-  const user = await User.findById(userDetails.userId);
+  const user = await User.findById(userDetails.userId).populate({ path: 'profile', model: 'profiles' });
   if (!user) throw new ApiError("User not found", 404);
 
   const plan = user.subscription?.planName || "Free";
@@ -76,6 +77,16 @@ export const POST = withApiHandler(async (req: NextRequest): Promise<NextRespons
     };
   }
 
+  const statusHistory = [{
+    previousStatus: "",
+    currentStatus: "Open",
+    changedBy: userDetails.userId,
+    changedByName: user.profile.fullName,
+    changedByRole: userDetails.role,
+    description: "",
+    changedAt: new Date(),
+  }]
+
   const data = {
     title,
     description,
@@ -91,6 +102,7 @@ export const POST = withApiHandler(async (req: NextRequest): Promise<NextRespons
     status: "Open",
     isPublic: userDetails.role === "Provider",
     assignedToBid: null,
+    statusHistory
   };
 
   createGigSchema.parse(data);
