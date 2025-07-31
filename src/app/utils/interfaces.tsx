@@ -106,6 +106,7 @@ export interface Bid {
 
 export interface GigData {
   _id: string;
+  assignedToBid:string | null;
   title: string;
   description: string;
   tier: string;
@@ -113,6 +114,7 @@ export interface GigData {
   status: string;
   createdBy: string;
   createdAt: string;
+  createdByRole: string;
   updatedAt: string;
   keywords: string[];
   releventSkills: string[];
@@ -120,5 +122,6 @@ export interface GigData {
     name: string;
     url: string;
   };
-  providerName:string
+  providerName:string;
+  statusHistory:[]
 }

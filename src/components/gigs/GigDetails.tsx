@@ -37,6 +37,7 @@ import { usePathname } from "next/navigation";
 import CustomTextField from "../customUi/CustomTextField";
 import { ExpandMoreOutlined, Check as CheckIcon } from "@mui/icons-material";
 import { toast } from "react-toastify";
+import { getStatusStyles } from "../../../utils/constants";
 export default function GigDetailPage(props?: { self?: boolean }) {
   const isSelf = props?.self ?? false;
   const router = useRouter();
@@ -870,7 +871,10 @@ export default function GigDetailPage(props?: { self?: boolean }) {
                               bid.status.charAt(0).toUpperCase() +
                               bid.status.slice(1)
                             }
-                            className={`gig${bid.status}`}
+                            sx={{
+                              ...getStatusStyles(bid.status)                          
+                            }}
+                            variant="outlined"
                           />
                         )}
                       </TableCell>
