@@ -1,28 +1,48 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { JSX, useEffect, useState } from "react";
 import { Box, Pagination, Typography } from "@mui/material";
 import {
   AccessTime,
-  CheckCircle,
-  Close,
   Info,
   InsertChart,
   CalendarMonth,
   AttachMoney,
+  AssignmentInd,
+  Cancel,
+  TaskAlt,
+  ThumbUp,
+  ThumbDown,
 } from "@mui/icons-material";
 import GigStatusDialog from "./GigHistoryDailog";
-import { tabs } from "../../../../utils/constants";
+import { getStatusColor } from "../../../../utils/constants";
 import { apiRequest } from "@/app/lib/apiCall";
 import { GigData } from "@/app/utils/interfaces";
 import Loader from "@/components/Loader";
+import { useUser } from "@/context/UserContext";
 
-const statusIcons = {
+// Status arrays
+const userStatuses = [
+  "Open",
+  "Assigned",
+  "Not-Assigned",
+  "Approved",
+  "Rejected",
+];
+const providerStatuses = ["Requested", "In-Progress", "Completed"];
+
+// Icons per status
+export const statusIcons: Record<string, JSX.Element> = {
   Open: <InsertChart className="text-blue-500 mb-1" fontSize="medium" />,
   Requested: <AccessTime className="text-indigo-500 mb-1" fontSize="medium" />,
-  "In Progress": <Info className="text-yellow-500 mb-1" fontSize="medium" />,
-  Completed: <CheckCircle className="text-green-500 mb-1" fontSize="medium" />,
-  Rejected: <Close className="text-red-500 mb-1" fontSize="medium" />,
+  "In-Progress": <Info className="text-yellow-500 mb-1" fontSize="medium" />,
+  Assigned: (
+    <AssignmentInd className="text-purple-500 mb-1" fontSize="medium" />
+  ),
+  "Not-Assigned": <Cancel className="text-gray-500 mb-1" fontSize="medium" />,
+  Completed: <TaskAlt className="text-green-500 mb-1" fontSize="medium" />,
+  Approved: <ThumbUp className="text-teal-500 mb-1" fontSize="medium" />,
+  Rejected: <ThumbDown className="text-red-500 mb-1" fontSize="medium" />,
 };
 
 export default function Dashboard() {
@@ -34,6 +54,15 @@ export default function Dashboard() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const limit = 5;
+
+  const { user } = useUser();
+  const role = user?.role;
+
+  // Dynamic tabs based on role
+  const roleTabs = [
+    "All",
+    ...(role === "User" ? userStatuses : providerStatuses),
+  ];
 
   const fetchBidPlacedGigs = async (page = 1) => {
     try {
@@ -85,8 +114,8 @@ export default function Dashboard() {
       </div>
 
       {/* Status Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
-        {tabs.slice(1).map((status) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 mb-8">
+        {roleTabs.slice(1).map((status) => (
           <div
             key={status}
             className="bg-white p-5 rounded-xl shadow-sm flex flex-col items-center text-center border border-gray-200 hover:shadow-md transition"
@@ -101,9 +130,9 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Tabs Container */}
+      {/* Tabs */}
       <div className="bg-[#f6f9fc] rounded-lg flex gap-1 px-2 py-1 mb-6 overflow-x-auto">
-        {tabs.map((tab) => (
+        {roleTabs.map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -118,7 +147,7 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Gig List */}
+      {/* Gigs List */}
       <div className="space-y-6">
         {filteredGigs && filteredGigs.length > 0 ? (
           filteredGigs.map((gig, idx) => (
@@ -137,15 +166,9 @@ export default function Dashboard() {
                   {gig.title}
                 </h3>
                 <span
-                  className={`px-3 py-1 text-xs font-semibold rounded-full flex items-center gap-1 ${
-                    gig.status === "In Progress"
-                      ? "bg-yellow-100 text-yellow-700"
-                      : gig.status === "Completed"
-                        ? "bg-green-100 text-green-700"
-                        : gig.status === "Rejected"
-                          ? "bg-red-100 text-red-700"
-                          : "bg-blue-100 text-blue-700"
-                  }`}
+                  className={`px-3 py-1 text-xs font-semibold rounded-full flex items-center gap-1 ${getStatusColor(
+                    gig.status
+                  )}`}
                 >
                   <span className="w-2 h-2 rounded-full bg-current" />
                   {gig.status}
@@ -184,7 +207,7 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* Dialog for Single Gig */}
+      {/* Gig Dialog */}
       {selectedGig && (
         <GigStatusDialog
           data={selectedGig}
