@@ -33,7 +33,7 @@ export default function Dashboard() {
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const limit = 3;
+  const limit = 5;
 
   const fetchBidPlacedGigs = async (page = 1) => {
     try {

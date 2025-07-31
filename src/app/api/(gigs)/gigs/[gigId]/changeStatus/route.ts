@@ -5,6 +5,8 @@ import Bid from "@/app/models/bid";
 import { ApiError } from "@/app/lib/commonError";
 import { successResponse, withApiHandler } from "@/app/lib/commonHandlers";
 import { verifyToken } from "@/app/utils/jwt";
+import User from "@/app/models/user";
+import "@/app/models/profile";
 
 const gigCreaterAllowedStatus = ["Open", "Assigned", "Not-Assigned", "Approved", "Rejected"];
 const bidCreaterAllowedStatus = ["Requested", "In-Progress", "Completed"];
@@ -19,6 +21,11 @@ export const PATCH = withApiHandler(
     const { gigId } = await params;
     const { userId, role } = await verifyToken(req) || {};
     if (!userId || !role) throw new ApiError("Unauthorized", 401);
+    
+    const [foundUser] = await Promise.all([
+        User.findById(userId)
+          .populate({ path: 'profile', model: 'profiles' })
+      ]);
 
     const gig = await Gig.findById(gigId);
     if (!gig) throw new ApiError("Gig not found", 404);
@@ -95,6 +102,7 @@ export const PATCH = withApiHandler(
       previousStatus: gig.status,
       currentStatus: status,
       changedBy: userId,
+      changedByName: foundUser.profile.fullName,
       changedByRole: role,
       description: description || "",
       changedAt: new Date(),

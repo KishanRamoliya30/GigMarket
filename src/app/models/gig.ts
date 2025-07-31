@@ -2,13 +2,15 @@ import mongoose, { Schema, Document, Types } from 'mongoose';
 import { ServiceTier } from '../../../utils/constants';
 import { FileMeta } from '../utils/interfaces';
 
-const statusList = ["Open", "Requested", "Assigned", "Not-Assigned", "In-Progress", "Completed", "Approved", "Rejected"]
+export const statusList = ["Open", "Requested", "Assigned", "Not-Assigned", "In-Progress", "Completed", "Approved", "Rejected"]
+const prevStatusList = [...statusList, ""]
 type GigStatus = "Open" | "Requested" | "Assigned" | "Not-Assigned" | "In-Progress" | "Completed" | "Approved" |"Rejected";
 
 export interface StatusHistory {
   previousStatus: GigStatus;
   currentStatus: GigStatus;
   changedBy: Types.ObjectId;
+  changedByName: string;
   changedByRole: 'User' | 'Provider' | 'Admin';
   description?: string;
   changedAt: Date;
@@ -39,7 +41,7 @@ const StatusHistorySchema = new Schema<StatusHistory>(
   {
     previousStatus: {
       type: String,
-      enum: statusList,
+      enum: prevStatusList,
     },
     currentStatus: {
       type: String,
@@ -53,6 +55,7 @@ const StatusHistorySchema = new Schema<StatusHistory>(
       required: true,
     },
     description: { type: String },
+    changedByName: { type: String, required: true },
     changedAt: { type: Date, default: Date.now },
   },
   { _id: false }

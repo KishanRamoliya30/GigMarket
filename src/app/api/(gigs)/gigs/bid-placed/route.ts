@@ -1,49 +1,88 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/app/lib/dbConnect";
-import Gig from "@/app/models/gig";
+import Gig, { statusList } from "@/app/models/gig";
 import Bid from "@/app/models/bid";
 import { ApiError } from "@/app/lib/commonError";
 import { successResponse, withApiHandler } from "@/app/lib/commonHandlers";
 import { verifyToken } from "@/app/utils/jwt";
+import { Types } from "mongoose";
+
+type GigType = typeof Gig extends import("mongoose").Model<infer T> ? T : never;
+
+type EnrichedGig = Omit<GigType, "createdBy"> & {
+  _id: Types.ObjectId;
+  createdBy: Types.ObjectId;
+  providerName: string;
+};
+
+type StatusType = typeof statusList[number];
 
 export const GET = withApiHandler(async (req: NextRequest): Promise<NextResponse> => {
   await dbConnect();
 
   const userDetails = await verifyToken(req);
-  if (!userDetails?.userId) {
-    throw new ApiError("Unauthorized", 401);
-  }
+  if (!userDetails?.userId) throw new ApiError("Unauthorized", 401);
 
   const searchParams = req.nextUrl.searchParams;
   const page = parseInt(searchParams.get("page") || "1", 10);
   const limit = parseInt(searchParams.get("limit") || "10", 10);
   const skip = (page - 1) * limit;
+  const filterStatus = searchParams.get("status");
+  const role = userDetails.role as "User" | "Provider";
 
   const User = (await import("@/app/models/user")).default;
 
-  // Step 1: Get all bids by the user
-  const userBids = await Bid.find({ createdBy: userDetails.userId }).lean();
+  let gigs: GigType[] = [];
+  let totalCount = 0;
+  let baseQuery: Record<string, unknown> = {};
 
-  if (userBids.length === 0) {
-    return successResponse([], "No gigs found for placed bids");
+  if (role === "Provider") {
+    const userBids = await Bid.find({ createdBy: userDetails.userId }).lean();
+    const gigIds = [...new Set(userBids.map((bid) => bid.gigId.toString()))];
+
+    if (gigIds.length === 0) {
+      return successResponse(
+        {
+          gigs: [],
+          page,
+          limit,
+          totalPages: 0,
+          totalCount: 0,
+          statusCounts: Object.fromEntries(statusList.map((s) => [s, 0])) as Record<StatusType, number>,
+        },
+        "No gigs found for placed bids"
+      );
+    }
+
+    baseQuery = {
+      _id: { $in: gigIds.map((id) => new Types.ObjectId(id)) },
+    };
+  } else if (role === "User") {
+    baseQuery = {
+      createdBy: new Types.ObjectId(userDetails.userId),
+    };
+  } else {
+    throw new ApiError("Invalid user", 400);
   }
 
-  // Step 2: Extract unique gig IDs
-  const gigIds = [...new Set(userBids.map(bid => bid.gigId.toString()))];
+  const query = { ...baseQuery };
+  if (filterStatus) query.status = filterStatus;
 
-  // Step 3: Get total count before paginating
-  const totalCount = await Gig.countDocuments({ _id: { $in: gigIds } });
+  totalCount = await Gig.countDocuments(query);
+  gigs = await Gig.find(query).skip(skip).limit(limit).lean();
 
-  // Step 4: Apply pagination
-  const gigs = await Gig.find({ _id: { $in: gigIds } })
-    .skip(skip)
-    .limit(limit)
-    .lean();
+  const statusCounts: Record<StatusType, number> = Object.fromEntries(
+    await Promise.all(
+      statusList.map(async (status) => {
+        const count = await Gig.countDocuments({ ...baseQuery, status });
+        return [status, count];
+      })
+    )
+  ) as Record<StatusType, number>;
 
-  // Step 5: Enrich with provider names
-  const enrichedGigs = await Promise.all(
+  const enrichedGigs: EnrichedGig[] = await Promise.all(
     gigs.map(async (gig) => {
-      const provider: { firstName: string; lastName: string } | null = await User.findById(gig.createdBy);
+      const provider = await User.findById(gig.createdBy);
       return {
         ...gig,
         providerName: provider ? `${provider.firstName} ${provider.lastName}` : "",
@@ -58,7 +97,8 @@ export const GET = withApiHandler(async (req: NextRequest): Promise<NextResponse
       limit,
       totalPages: Math.ceil(totalCount / limit),
       totalCount,
+      statusCounts,
     },
-    "Gigs with placed bids fetched successfully"
+    "Gigs fetched successfully"
   );
 });
