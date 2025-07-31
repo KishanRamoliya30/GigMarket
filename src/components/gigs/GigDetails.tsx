@@ -38,6 +38,7 @@ import CustomTextField from "../customUi/CustomTextField";
 import { ExpandMoreOutlined, Check as CheckIcon } from "@mui/icons-material";
 import { toast } from "react-toastify";
 import { getStatusStyles } from "../../../utils/constants";
+import { Dot } from "lucide-react";
 export default function GigDetailPage(props?: { self?: boolean }) {
   const isSelf = props?.self ?? false;
   const router = useRouter();
@@ -136,14 +137,20 @@ export default function GigDetailPage(props?: { self?: boolean }) {
     router.push("/publicProfile/" + userId);
   };
 
-  const updateBidStatus = async (bidId: string, status: "Assigned" | "Not-Assigned") => {
+  const updateBidStatus = async (
+    bidId: string,
+    status: "Assigned" | "Not-Assigned"
+  ) => {
     return await apiRequest(`gigs/${gigId}/changeStatus`, {
       method: "PATCH",
       data: { status, bidId },
     });
   };
 
-  const handleBidStatusChange = async (bidId: string, status: "Assigned" | "Not-Assigned") => {
+  const handleBidStatusChange = async (
+    bidId: string,
+    status: "Assigned" | "Not-Assigned"
+  ) => {
     try {
       const res = await updateBidStatus(bidId, status);
 
@@ -330,7 +337,9 @@ export default function GigDetailPage(props?: { self?: boolean }) {
           alignItems={"center"}
         >
           <Typography variant="h6" fontWeight={600}>
-            Your Bid
+            {gigDetails?.createdByRole === "Provider"
+              ? "Your Request"
+              : "Your Bid"}
           </Typography>
           <Typography variant="h6" fontWeight={600}>
             $ {gigDetails?.bid?.bidAmount} / hour
@@ -348,17 +357,23 @@ export default function GigDetailPage(props?: { self?: boolean }) {
       showPlacedBid()
     ) : !showPlaceBid ? (
       <Button variant="contained" className="bookBtn" onClick={placebid}>
-        Place Bid
+        {gigDetails?.createdByRole === "Provider" ? "Request" : "Place Bid"}
       </Button>
     ) : (
       <Box className="bidBox">
         <Typography variant="h6" fontWeight={600} mb={2}>
-          Place Your Bid
+          {gigDetails?.createdByRole === "Provider"
+            ? "Place Your Request"
+            : "Place Your Bid"}
         </Typography>
 
         <Box display="flex" gap={2} mb={2}>
           <CustomTextField
-            placeholder="Enter your bid amount"
+            placeholder={
+              gigDetails?.createdByRole === "Provider"
+                ? "Enter your request amount"
+                : "Enter your bid amount"
+            }
             type="number"
             slotProps={{ input: { startAdornment: "$" } }}
             fullWidth={false}
@@ -377,7 +392,11 @@ export default function GigDetailPage(props?: { self?: boolean }) {
           fullWidth
           multiline
           minRows={4}
-          placeholder="Why are you the best fit for this gig?"
+          placeholder={
+            gigDetails?.createdByRole === "Provider"
+              ? "Enter your request description for this gig"
+              : "Why are you the best fit for this gig?"
+          }
           className="bidComment"
           value={bidComment}
           onChange={(e) => setBidComment(e.target.value)}
@@ -391,7 +410,9 @@ export default function GigDetailPage(props?: { self?: boolean }) {
           className="submitBtn"
           onClick={handleBidSubmit}
         >
-          Submit Bid
+          {gigDetails?.createdByRole === "Provider"
+            ? "Submit Request"
+            : "Submit Bid"}
         </Button>
       </Box>
     );
@@ -488,7 +509,9 @@ export default function GigDetailPage(props?: { self?: boolean }) {
     return (
       <Box>
         <Typography variant="h6" fontWeight={600} mb={2}>
-          All Bids
+          {gigDetails?.createdByRole === "Provider"
+            ? "All Requests"
+            : "All Bids"}
         </Typography>
 
         <Menu
@@ -763,7 +786,11 @@ export default function GigDetailPage(props?: { self?: boolean }) {
             <Table>
               <TableHead sx={{ backgroundColor: "#f5f5f5" }}>
                 <TableRow>
-                  <TableCell>Bidder</TableCell>
+                  <TableCell>
+                    {gigDetails?.createdByRole === "Provider"
+                      ? "Requester"
+                      : "Bidder"}
+                  </TableCell>
                   <TableCell>Description</TableCell>
                   <TableCell>Amount</TableCell>
                   <TableCell>Date</TableCell>
@@ -792,8 +819,9 @@ export default function GigDetailPage(props?: { self?: boolean }) {
                           display="flex"
                           alignItems="center"
                           gap={1}
-                          onClick={()=>redirectToPublicProfile(bid.createdBy._id)}
-
+                          onClick={() =>
+                            redirectToPublicProfile(bid.createdBy._id)
+                          }
                           sx={{ cursor: "pointer" }}
                         >
                           <Avatar
@@ -907,14 +935,22 @@ export default function GigDetailPage(props?: { self?: boolean }) {
           <Paper elevation={1} sx={{ p: 2, borderRadius: 2 }}>
             <Typography variant="body2" color="text.secondary">
               {!selectedBudget && !selectedRating
-                ? "No bids placed yet."
-                : "No bids match this filter."}
+                ? gigDetails?.createdByRole === "Provider"
+                  ? "No Requests yet"
+                  : "No bids placed yet."
+                : gigDetails?.createdByRole === "Provider"
+                  ? "No Requests match this filter"
+                  : "No bids match this filter."}
             </Typography>
           </Paper>
         )}
       </Box>
     );
   }
+
+  const renderDynamicContent = () => {
+    return isSelf ? getAllBids() : getBidBox();
+  };
 
   return (
     <StyledWrapper>
@@ -948,7 +984,8 @@ export default function GigDetailPage(props?: { self?: boolean }) {
             <Box className="gigHeader">
               <Chip label={gigDetails.tier} className="gigChip" />
               <Typography variant="subtitle1" fontWeight={600}>
-                Posted {timeToShow} • {gigDetails.bids} bids
+                Posted {timeToShow} • {gigDetails.bids}{" "}
+                {gigDetails.createdByRole === "Provider" ? "requests" : "bids"}
               </Typography>
               {/* <Box display="flex" alignItems="center" gap={0.5}>
               <Rating
@@ -981,7 +1018,7 @@ export default function GigDetailPage(props?: { self?: boolean }) {
                 />
               ))}
             </Box>
-            {isSelf ? getAllBids() : getBidBox()}
+            {renderDynamicContent() as React.ReactNode}
           </Grid>
 
           {!isSelf && (
@@ -992,18 +1029,31 @@ export default function GigDetailPage(props?: { self?: boolean }) {
                     src={gigDetails.createdBy.profilePicture}
                     alt={gigDetails.createdBy.fullName}
                     sx={{ width: 60, height: 60, cursor: "pointer" }}
-                   
-                    onClick={()=>redirectToPublicProfile(gigDetails.createdBy._id)}
+                    onClick={() =>
+                      redirectToPublicProfile(gigDetails.createdBy._id)
+                    }
                   />
                   <Box>
                     <Typography
                       variant="h6"
                       fontWeight={600}
-                      onClick={()=>redirectToPublicProfile(gigDetails.createdBy._id)}
+                      className="cursor-pointer"
+                      onClick={() =>
+                        redirectToPublicProfile(gigDetails.createdBy._id)
+                      }
                     >
-                      {gigDetails.createdBy.fullName}
+                      {gigDetails.createdBy.fullName}&nbsp;
                     </Typography>
-                    <Box display="flex" alignItems="center" gap={0.5}>
+                    <span className="flex flex-raw flex-nowrap items-center text-sm text-gray-400 mb-1">
+                      <Dot className="-mr-[3px] -ml-[8px]" />
+                      {gigDetails.createdByRole}
+                    </span>
+                    <Box
+                      display="flex"
+                      className="flex-raw mt-1"
+                      alignItems="center"
+                      gap={0.5}
+                    >
                       <Rating
                         value={gigDetails.rating}
                         precision={0.5}
