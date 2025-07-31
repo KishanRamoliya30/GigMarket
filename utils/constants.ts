@@ -195,24 +195,76 @@ export const TierDescriptions: Record<ServiceTier, string> = {
 export const getTierDescription = (tier: ServiceTier): string => {
   return TierDescriptions[tier];
 };
+import { SxProps } from "@mui/material";
+
+export const getStatusStyles = (status: string): SxProps => {
+  switch (status) {
+    case "Open":
+      return {
+        backgroundColor: "#DBEAFE", // Tailwind: bg-blue-100
+        color: "oklch(48.8% 0.243 264.376)",           // Tailwind: text-blue-700
+      };
+    case "Requested":
+      return {
+        backgroundColor: "#E0E7FF", // bg/-indigo-100
+        color: "oklch(45.7% 0.24 277.023)",           // text-indigo-700
+      };
+    case "Assigned":
+      return {
+        backgroundColor: "#EDE9FE", // bg-purple-100
+        color: "oklch(49.6% 0.265 301.924)",           // text-purple-700
+      };
+    case "Not-Assigned":
+      return {
+        backgroundColor: "#E5E7EB", // bg-gray-200
+        color: "oklch(37.3% 0.034 259.733)",           // text-gray-700
+      };
+    case "In-Progress":
+      return {
+        backgroundColor: "#FEF9C3", // bg-yellow-100
+        color: "oklch(0.554 0.135 66.442)",           // text-yellow-700
+      };
+    case "Completed":
+      return {
+        backgroundColor: "#DCFCE7", // bg-green-100
+        color: "oklch(52.7% 0.154 150.069)",           // text-green-700
+      };
+    case "Approved":
+      return {
+        backgroundColor: "#CCFBF1", // bg-teal-100
+        color: "oklch(51.1% 0.096 186.391)",           // text-teal-700
+      };
+    case "Rejected":
+      return {
+        backgroundColor: "#FECACA", // bg-red-100
+        color: "oklch(50.5% 0.213 27.518)",           // text-red-700
+      };
+    default:
+      return {
+        backgroundColor: "#F3F4F6", // bg-gray-100
+        color: "oklch(44.6% 0.03 256.802)",           // text-gray-600
+      };
+  }
+};
+
 export const getStatusColor = (status: string) => {
   switch (status) {
     case "Open":
-      return "bg-blue-100 text-blue-700"; // Client creates gig
+      return "bg-blue-100 text-blue-700"; 
     case "Requested":
-      return "bg-indigo-100 text-indigo-700"; // Providers request
+      return "bg-indigo-100 text-indigo-700"; 
     case "Assigned":
-      return "bg-purple-100 text-purple-700"; // Client selects one
+      return "bg-purple-100 text-purple-700"; 
     case "Not-Assigned":
-      return "bg-gray-200 text-gray-700"; // Other providers not selected
+      return "oklch(37.3% 0.034 259.733)";
     case "In-Progress":
-      return "bg-yellow-100 text-yellow-700"; // Provider accepts
+      return "oklch(0.554 0.135 66.442)";
     case "Completed":
-      return "bg-green-100 text-green-700"; // Provider submits work
+      return "bg-green-100 text-green-700"; 
     case "Approved":
-      return "bg-teal-100 text-teal-700"; // Client approves
+      return "bg-teal-100 text-teal-700";
     case "Rejected":
-      return "bg-red-100 text-red-700"; // Client rejects
+      return "bg-red-100 text-red-700";
     default:
       return "bg-gray-100 text-gray-600";
   }
@@ -245,18 +297,6 @@ export const TierList: ServiceTier[] = Object.values(ServiceTier);
 export const capitalizeFirstLetter = (str: string) => {
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 };
-
-export const tabs = [
-  "All",
-  "Open",
-  "Requested",
-  "Assigned",
-  "Not-Assigned",
-  "In Progress",
-  "Completed",
-  "Approved",
-  "Rejected",
-];
 
 export const gigData = [
   {
