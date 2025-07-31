@@ -154,8 +154,8 @@ export default function GigDetailPage(props?: { self?: boolean }) {
     try {
       const res = await updateBidStatus(bidId, status);
 
-      if (res.ok) {
-        toast.success(`Bid ${status} successfully`);
+      if (res.success) {
+        toast.success(res?.data?.message);
         getGigBids();
       } else {
         toast.error(res?.data?.message || "Something went wrong");

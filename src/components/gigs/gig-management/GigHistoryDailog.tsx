@@ -46,7 +46,7 @@ export default function GigStatusDialog({
 
         <div className="flex gap-2 items-center">
           <button
-            onClick={() => router.push(`/${"gigs"}/${data._id}`)}
+            onClick={() => router.push(`/${"myGigs"}/${data._id}`)}
             className="cursor-pointer text-sm bg-[#2e7d32] text-white px-3 py-1 rounded hover:bg-[#2e7d32]"
           >
             View Gig

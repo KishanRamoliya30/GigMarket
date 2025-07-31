@@ -34,8 +34,8 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({ data }) => {
   const getStatusOptions = () => {
     const userStatuses = [
       "Open",
-      "Assigned",
       "Not-Assigned",
+      "Assigned",
       "Approved",
       "Rejected",
     ];
