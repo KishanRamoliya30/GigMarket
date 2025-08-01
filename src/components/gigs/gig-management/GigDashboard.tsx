@@ -1,6 +1,6 @@
 "use client";
 
-import { JSX, useEffect, useState } from "react";
+import { JSX, useCallback, useEffect, useState } from "react";
 import { Box, Pagination, Typography } from "@mui/material";
 import {
   AccessTime,
@@ -77,7 +77,9 @@ export default function Dashboard() {
     ...(role === "User" ? userStatuses : providerStatuses),
   ];
 
-  const fetchBidPlacedGigs = async (page = 1) => {
+  const selectedGigId = selectedGig?._id;
+
+  const fetchBidPlacedGigs = useCallback(async () => {
     try {
       setLoading(true);
       const res = await apiRequest(
@@ -89,21 +91,32 @@ export default function Dashboard() {
 
       if (res?.data) {
         setGigData(res.data.data.gigs);
+
+        if (selectedGigId) {
+          const findUpdatedGig = res.data.data.gigs.find(
+            (item: GigData) => item._id === selectedGigId
+          );
+          if (findUpdatedGig) setSelectedGig(findUpdatedGig);
+        }
+
         setTotalPages(res.data.data.totalPages);
 
-        const allStatusCounts = {...res.data.data.statusCounts, "All" : res.data.data.totalCount}
-        setGigStatusCounts(allStatusCounts)
+        const allStatusCounts = {
+          ...res.data.data.statusCounts,
+          All: res.data.data.totalCount,
+        };
+        setGigStatusCounts(allStatusCounts);
       }
     } catch (err) {
       console.error("Failed to fetch bid-placed gigs", err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, selectedGigId]);
 
   useEffect(() => {
-    fetchBidPlacedGigs(page);
-  }, [page]);
+    fetchBidPlacedGigs();
+  }, [fetchBidPlacedGigs]);
 
   const filteredGigs =
     activeTab === "All"
@@ -167,12 +180,12 @@ export default function Dashboard() {
             <div
               key={idx}
               onClick={() => {
-                  setSelectedGig(gig);
-                  setOpen(true);
-                }}
+                setSelectedGig(gig);
+                setOpen(true);
+              }}
               className="cursor-pointer bg-white border border-blue-100 rounded-xl px-6 py-5 shadow-sm hover:shadow-md transition"
             >
-              <div className="flex justify-between items-start"              >
+              <div className="flex justify-between items-start">
                 <h3 className="text-lg font-semibold text-gray-900">
                   {gig.title}
                 </h3>
@@ -227,6 +240,7 @@ export default function Dashboard() {
             setOpen(false);
             setSelectedGig(null);
           }}
+          fetchBidPlacedGigs={fetchBidPlacedGigs}
         />
       )}
     </Box>

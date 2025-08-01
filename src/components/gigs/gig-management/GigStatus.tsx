@@ -20,9 +20,10 @@ import { useUser } from "@/context/UserContext";
 
 interface StatusDropdownProps {
   data: GigData;
+  fetchBidPlacedGigs: () => void;
 }
 
-const StatusDropdown: React.FC<StatusDropdownProps> = ({ data }) => {
+const StatusDropdown: React.FC<StatusDropdownProps> = ({ data, fetchBidPlacedGigs }) => {
   const [selectedStatus, setSelectedStatus] = useState(data.status);
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
   const [description, setDescription] = useState("");
@@ -31,43 +32,59 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({ data }) => {
   const { user } = useUser();
   const role = user?.role;
 
-  const getStatusOptions = () => {
+  type StatusOption = {
+    label: string;
+    disabled: boolean;
+  };
+
+  const getStatusOptions = (): StatusOption[] => {
     const userStatuses = [
       "Open",
-      "Not-Assigned",
       "Assigned",
+      "Not-Assigned",
       "Approved",
       "Rejected",
     ];
     const providerStatuses = ["Requested", "In-Progress", "Completed"];
 
-    let options: string[] = [];
+    const allStatuses = [...userStatuses, ...providerStatuses];
 
-    if (role === "User") {
-      options = [...userStatuses];
+    const statusTransitions: Record<string, string[]> = {
+      Open: ["Requested"],
+      Requested: ["Assigned", "Not-Assigned"],
+      Assigned: ["In-Progress"],
+      "In-Progress": ["Completed"],
+      Completed: ["Approved", "Rejected"],
+      Approved: [],
+      Rejected: [],
+      "Not-Assigned": [],
+    };
 
-      // If the selectedStatus is not in user list but is part of provider list, include it
-      if (
-        selectedStatus &&
-        !options.includes(selectedStatus) &&
-        providerStatuses.includes(selectedStatus)
-      ) {
-        options.unshift(selectedStatus);
-      }
-    } else if (role === "Provider") {
-      options = [...providerStatuses];
+    const allowedNextStatuses = statusTransitions[selectedStatus || ""] || [];
 
-      // If the selectedStatus is not in provider list but is part of user list, include it
-      if (
-        selectedStatus &&
-        !options.includes(selectedStatus) &&
-        userStatuses.includes(selectedStatus)
-      ) {
-        options.unshift(selectedStatus);
-      }
+    let baseOptions: string[] =
+      role === "User" ? userStatuses : providerStatuses;
+
+    if (
+      selectedStatus &&
+      !baseOptions.includes(selectedStatus) &&
+      allStatuses.includes(selectedStatus)
+    ) {
+      baseOptions = [selectedStatus, ...baseOptions];
     }
 
-    return options;
+    const seen = new Set<string>();
+    return baseOptions
+      .filter((status) => {
+        if (seen.has(status)) return false;
+        seen.add(status);
+        return true;
+      })
+      .map((status) => ({
+        label: status,
+        disabled:
+          status !== selectedStatus && !allowedNextStatuses.includes(status),
+      }));
   };
 
   const handleDropdownChange = (
@@ -92,10 +109,12 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({ data }) => {
         }),
       });
       setSelectedStatus(pendingStatus);
-      if (res.message) {
-        toast.error(res.message);
+
+      if (res.success) {
+        toast.success(res?.data?.message);
+        fetchBidPlacedGigs()
       } else {
-        toast.success(`Status updated to ${pendingStatus}`);
+        toast.error(res?.data?.message || "Something went wrong");
       }
     } catch (err: unknown) {
       if (typeof err === "object" && err !== null && "message" in err) {
@@ -138,9 +157,14 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({ data }) => {
         <MenuItem value="" disabled>
           Select status
         </MenuItem>
-        {getStatusOptions().map((status) => (
-          <MenuItem key={status} value={status}>
-            {status}
+
+        {getStatusOptions().map((option) => (
+          <MenuItem
+            key={option.label}
+            value={option.label}
+            disabled={option.disabled}
+          >
+            {option.label}
           </MenuItem>
         ))}
       </CustomTextField>
