@@ -29,13 +29,13 @@ interface GigStatusDialogProps {
   open: boolean;
   onClose: () => void;
   data: GigData;
-  fetchBidPlacedGigs: () => void;
+  updateGigData: (data: GigData) => void;
 }
 export default function GigStatusDialog({
   open,
   onClose,
   data,
-  fetchBidPlacedGigs,
+  updateGigData,
 }: GigStatusDialogProps) {
   const router = useRouter();
 
@@ -89,7 +89,7 @@ export default function GigStatusDialog({
               Status History
             </h3>
             <div className="max-w-full overflow-x-auto">
-              <StatusDropdown data={data} fetchBidPlacedGigs={fetchBidPlacedGigs} />
+              <StatusDropdown data={data} updateGigData={updateGigData} />
             </div>
           </div>
 

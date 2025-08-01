@@ -20,10 +20,10 @@ import { useUser } from "@/context/UserContext";
 
 interface StatusDropdownProps {
   data: GigData;
-  fetchBidPlacedGigs: () => void;
+  updateGigData: (data: GigData) => void;
 }
 
-const StatusDropdown: React.FC<StatusDropdownProps> = ({ data, fetchBidPlacedGigs }) => {
+const StatusDropdown: React.FC<StatusDropdownProps> = ({ data, updateGigData }) => {
   const [selectedStatus, setSelectedStatus] = useState(data.status);
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
   const [description, setDescription] = useState("");
@@ -112,7 +112,7 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({ data, fetchBidPlacedGig
 
       if (res.success) {
         toast.success(res?.data?.message);
-        fetchBidPlacedGigs()
+        updateGigData(res.data.data.gig)
       } else {
         toast.error(res?.data?.message || "Something went wrong");
       }

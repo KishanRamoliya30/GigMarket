@@ -77,7 +77,6 @@ export default function Dashboard() {
     ...(role === "User" ? userStatuses : providerStatuses),
   ];
 
-  const selectedGigId = selectedGig?._id;
 
   const fetchBidPlacedGigs = useCallback(async () => {
     try {
@@ -91,14 +90,6 @@ export default function Dashboard() {
 
       if (res?.data) {
         setGigData(res.data.data.gigs);
-
-        if (selectedGigId) {
-          const findUpdatedGig = res.data.data.gigs.find(
-            (item: GigData) => item._id === selectedGigId
-          );
-          if (findUpdatedGig) setSelectedGig(findUpdatedGig);
-        }
-
         setTotalPages(res.data.data.totalPages);
 
         const allStatusCounts = {
@@ -112,11 +103,19 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  }, [page, selectedGigId]);
+  }, [page]);
 
   useEffect(() => {
     fetchBidPlacedGigs();
   }, [fetchBidPlacedGigs]);
+
+  const updateGigData = (newGig: GigData) => {
+    setSelectedGig(newGig);
+
+    setGigData((prev) =>
+      prev.map((gig) => (gig._id === newGig._id ? newGig : gig))
+    );
+  };
 
   const filteredGigs =
     activeTab === "All"
@@ -240,7 +239,7 @@ export default function Dashboard() {
             setOpen(false);
             setSelectedGig(null);
           }}
-          fetchBidPlacedGigs={fetchBidPlacedGigs}
+          updateGigData={updateGigData}
         />
       )}
     </Box>
