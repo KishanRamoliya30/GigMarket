@@ -52,6 +52,9 @@ export const PATCH = withApiHandler(
       throw new ApiError("You are not authorized to change this gig status", 403);
     }
 
+    if (["Open", "Requested"].includes(status) && role !== "Admin") {
+      throw new ApiError("Change valid status", 403);
+    }
     if (gigCreaterId === userId || role === "Admin") {
       if (status === "Assigned") {
         if (gig.status !== "Requested" && bid.status !== "Requested") {

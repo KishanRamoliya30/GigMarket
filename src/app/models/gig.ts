@@ -4,7 +4,7 @@ import { FileMeta } from '../utils/interfaces';
 
 export const statusList = ["Open", "Requested", "Assigned", "Not-Assigned", "In-Progress", "Completed", "Approved", "Rejected"]
 const prevStatusList = [...statusList, ""]
-type GigStatus = "Open" | "Requested" | "Assigned" | "Not-Assigned" | "In-Progress" | "Completed" | "Approved" |"Rejected";
+export type GigStatus = "Open" | "Requested" | "Assigned" | "Not-Assigned" | "In-Progress" | "Completed" | "Approved" |"Rejected";
 
 export interface StatusHistory {
   previousStatus: GigStatus;

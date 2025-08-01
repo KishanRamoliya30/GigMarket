@@ -55,11 +55,11 @@ export const GET = withApiHandler(async (req: NextRequest): Promise<NextResponse
     }
 
     baseQuery = {
-      _id: { $in: gigIds.map((id) => new Types.ObjectId(id)) },
+      _id: { $in: gigIds.map((id) => new Types.ObjectId(id as string)) },
     };
   } else if (role === "User") {
     baseQuery = {
-      createdBy: new Types.ObjectId(userDetails.userId),
+      createdBy: new Types.ObjectId(userDetails.userId as string),
     };
   } else {
     throw new ApiError("Invalid user", 400);
