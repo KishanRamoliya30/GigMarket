@@ -25,6 +25,7 @@ import {
   getStatusDotColor,
 } from "../../../../utils/constants";
 import { useRouter } from "next/navigation";
+import { useUser } from "@/context/UserContext";
 interface GigStatusDialogProps {
   open: boolean;
   onClose: () => void;
@@ -38,6 +39,19 @@ export default function GigStatusDialog({
   updateGigData,
 }: GigStatusDialogProps) {
   const router = useRouter();
+  const {user} = useUser();
+
+  const redirectToGigDetail = () => {
+  let route = "";
+
+  if (user?._id === data.createdBy) {
+    route = `/myGigs/${data._id}`;
+  } else {
+    route = `/gigs/${data._id}`;
+  }
+
+  router.push(route);
+};
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
@@ -48,7 +62,7 @@ export default function GigStatusDialog({
 
         <div className="flex gap-2 items-center">
           <button
-            onClick={() => router.push(`/${"myGigs"}/${data._id}`)}
+            onClick={redirectToGigDetail}
             className="cursor-pointer text-sm bg-[#2e7d32] text-white px-3 py-1 rounded hover:bg-[#2e7d32]"
           >
             View Gig
