@@ -15,7 +15,7 @@ export async function GET(
   const userDetails = await verifyToken(req);
 
   if (!userDetails?.userId || !userDetails?.role) {
-    throw new ApiError('Unauthorized request', 401);
+    throw new ApiError("Unauthorized request", 401);
   }
   const gigId = (await params).gigId;
   if (!gigId) {
@@ -35,7 +35,7 @@ export async function GET(
 
   const profile = await Profile.findOne({
     userId: gig.createdBy._id.toString(),
-  }).select("fullName pastEducation profilePicture userId");
+  }).select("fullName pastEducation profilePicture userId skills certifications");
 
   const bids = await Bid.countDocuments({
     gigId: gig._id,
