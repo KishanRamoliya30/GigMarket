@@ -84,6 +84,9 @@ export interface Gig extends Omit<GigDocument, "createdBy"> {
     _id: string;
     fullName: string;
     profilePicture: string;
+    skills?: string[];
+    userId?: string;
+    certifications?: { fileName: string; url: string; name: string }[];
   };
   bid: Bid | null;
   bids: number;
@@ -106,7 +109,7 @@ export interface Bid {
 
 export interface GigData {
   _id: string;
-  assignedToBid:string | null;
+  assignedToBid: string | null;
   title: string;
   description: string;
   tier: string;
@@ -122,6 +125,37 @@ export interface GigData {
     name: string;
     url: string;
   };
-  providerName:string;
-  statusHistory:[]
+  providerName: string;
+  statusHistory: [];
 }
+
+export interface Column {
+  id: number;
+  name: string;
+  type?: "boolean" | "link" | string;
+  href?: string;
+  class?: string;
+}
+
+export interface PaymentLog {
+  gigId: string;
+  payments: {
+    amount: number;
+    date: string; 
+    status: string;
+    stripeIntentId?: string;
+    createdBy: string;
+    providerId: string;
+  }[];
+  totalPaid: number;
+  gigTitle: string;
+  gigDescription: string;
+  gigStatus: string;
+  gigPrice: number;
+  createdAt: string; 
+  createdBy: {
+    fullName?: string;
+    profilePicture?: string;
+  };
+}
+

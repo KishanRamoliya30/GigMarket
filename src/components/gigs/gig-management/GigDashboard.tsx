@@ -1,6 +1,6 @@
 "use client";
 
-import { JSX, useEffect, useState } from "react";
+import { JSX, useCallback, useEffect, useState } from "react";
 import { Box, Pagination, Typography } from "@mui/material";
 import {
   AccessTime,
@@ -20,6 +20,7 @@ import { apiRequest } from "@/app/lib/apiCall";
 import { GigData } from "@/app/utils/interfaces";
 import Loader from "@/components/Loader";
 import { useUser } from "@/context/UserContext";
+import { GigStatus } from "@/app/models/gig";
 
 // Status arrays
 const userStatuses = [
@@ -49,6 +50,18 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("All");
   const [gigData, setGigData] = useState<GigData[]>([]);
   const [selectedGig, setSelectedGig] = useState<GigData | null>(null);
+  const [gigStatusCounts, setGigStatusCounts] = useState({
+    All: 0,
+    Open: 0,
+    Requested: 0,
+    Assigned: 0,
+    "Not-Assigned": 0,
+    "In-Progress": 0,
+    Completed: 0,
+    Approved: 0,
+    Rejected: 0,
+  });
+
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState(1);
@@ -64,7 +77,8 @@ export default function Dashboard() {
     ...(role === "User" ? userStatuses : providerStatuses),
   ];
 
-  const fetchBidPlacedGigs = async (page = 1) => {
+
+  const fetchBidPlacedGigs = useCallback(async () => {
     try {
       setLoading(true);
       const res = await apiRequest(
@@ -77,20 +91,31 @@ export default function Dashboard() {
       if (res?.data) {
         setGigData(res.data.data.gigs);
         setTotalPages(res.data.data.totalPages);
+
+        const allStatusCounts = {
+          ...res.data.data.statusCounts,
+          All: res.data.data.totalCount,
+        };
+        setGigStatusCounts(allStatusCounts);
       }
     } catch (err) {
       console.error("Failed to fetch bid-placed gigs", err);
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchBidPlacedGigs(page);
   }, [page]);
 
-  const getStatusCount = (status: string) =>
-    gigData?.filter((gig) => gig.status === status).length;
+  useEffect(() => {
+    fetchBidPlacedGigs();
+  }, [fetchBidPlacedGigs]);
+
+  const updateGigData = (newGig: GigData) => {
+    setSelectedGig(newGig);
+
+    setGigData((prev) =>
+      prev.map((gig) => (gig._id === newGig._id ? newGig : gig))
+    );
+  };
 
   const filteredGigs =
     activeTab === "All"
@@ -123,8 +148,8 @@ export default function Dashboard() {
             {statusIcons[status as keyof typeof statusIcons]}
             <p className="text-sm font-medium text-gray-500">{status}</p>
             <p className="text-xl font-semibold text-gray-800">
-              {getStatusCount(status)} gig
-              {getStatusCount(status) !== 1 ? "s" : ""}
+              {gigStatusCounts[status as GigStatus | "All"]} gig
+              {gigStatusCounts[status as GigStatus | "All"] > 1 ? "s" : ""}
             </p>
           </div>
         ))}
@@ -136,13 +161,13 @@ export default function Dashboard() {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 text-sm font-semibold rounded-md transition-all duration-200 ${
+            className={`cursor-pointer px-4 py-2 text-sm font-semibold rounded-md transition-all duration-200 ${
               activeTab === tab
                 ? "bg-white text-black shadow-sm"
                 : "text-gray-700 hover:bg-gray-100"
             }`}
           >
-            {tab} ({tab === "All" ? gigData?.length : getStatusCount(tab)})
+            {tab} ({gigStatusCounts[tab as GigStatus]})
           </button>
         ))}
       </div>
@@ -153,15 +178,13 @@ export default function Dashboard() {
           filteredGigs.map((gig, idx) => (
             <div
               key={idx}
-              className="bg-white border border-blue-100 rounded-xl px-6 py-5 shadow-sm hover:shadow-md transition"
+              onClick={() => {
+                setSelectedGig(gig);
+                setOpen(true);
+              }}
+              className="cursor-pointer bg-white border border-blue-100 rounded-xl px-6 py-5 shadow-sm hover:shadow-md transition"
             >
-              <div
-                className="cursor-pointer flex justify-between items-start"
-                onClick={() => {
-                  setSelectedGig(gig);
-                  setOpen(true);
-                }}
-              >
+              <div className="flex justify-between items-start">
                 <h3 className="text-lg font-semibold text-gray-900">
                   {gig.title}
                 </h3>
@@ -216,6 +239,7 @@ export default function Dashboard() {
             setOpen(false);
             setSelectedGig(null);
           }}
+          updateGigData={updateGigData}
         />
       )}
     </Box>

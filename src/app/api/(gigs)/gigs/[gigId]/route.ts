@@ -30,7 +30,9 @@ export async function GET(
 
   const profile = await Profile.findOne({
     userId: gig.createdBy._id.toString(),
-  }).select("fullName pastEducation profilePicture userId");
+  }).select(
+    "fullName pastEducation profilePicture userId skills certifications"
+  );
 
   const bids = await Bid.countDocuments({
     gigId: gig._id,
@@ -59,6 +61,8 @@ export async function GET(
           fullName: profile.fullName,
           pastEducation: profile.pastEducation,
           profilePicture: profile.profilePicture,
+          skills: profile.skills,
+          certifications: profile.certifications,
         }),
       },
     },
@@ -125,7 +129,10 @@ export const PATCH = withApiHandler(
     const gig = await Gig.findById(gigId);
     if (!gig) throw new ApiError("Gig not found", 404);
 
-    if (userDetails.role !== "Admin" && gig.createdBy.toString() !== userDetails.userId) {
+    if (
+      userDetails.role !== "Admin" &&
+      gig.createdBy.toString() !== userDetails.userId
+    ) {
       throw new ApiError("You are not authorized to update this gig", 403);
     }
 
@@ -137,18 +144,30 @@ export const PATCH = withApiHandler(
     const title = formData.get("title")?.toString();
     const description = formData.get("description")?.toString();
     const tier = formData.get("tier")?.toString();
-    const price = formData.get("price") ? Number(formData.get("price")) : undefined;
-    const time = formData.get("time") ? Number(formData.get("time")) : undefined;
+    const price = formData.get("price")
+      ? Number(formData.get("price"))
+      : undefined;
+    const time = formData.get("time")
+      ? Number(formData.get("time"))
+      : undefined;
 
-    const rating = formData.get("rating") ? Number(formData.get("rating")) : undefined;
-    const reviews = formData.get("reviews") ? Number(formData.get("reviews")) : undefined;
+    const rating = formData.get("rating")
+      ? Number(formData.get("rating"))
+      : undefined;
+    const reviews = formData.get("reviews")
+      ? Number(formData.get("reviews"))
+      : undefined;
 
     const keywords = JSON.parse((formData.get("keywords") as string) || "[]");
-    const releventSkills = JSON.parse((formData.get("releventSkills") as string) || "[]");
+    const releventSkills = JSON.parse(
+      (formData.get("releventSkills") as string) || "[]"
+    );
 
     let certificationFile = gig.certification;
     if (certification) {
-      const url = await uploadToCloudinary(certification, { folder: "gig_certifications" });
+      const url = await uploadToCloudinary(certification, {
+        folder: "gig_certifications",
+      });
       certificationFile = {
         url,
         name: certification.name,

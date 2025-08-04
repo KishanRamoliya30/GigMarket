@@ -91,6 +91,10 @@ const userSchema = new mongoose.Schema({
     type: Schema.Types.ObjectId,
     ref: "profiles",
   },
+  stripeConnectAccountId: {
+    type: String,
+    default: null
+  },
 });
 
 const User = mongoose.models.users || mongoose.model("users", userSchema);
