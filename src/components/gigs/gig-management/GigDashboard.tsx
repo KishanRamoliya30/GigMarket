@@ -175,7 +175,8 @@ export default function Dashboard() {
       {/* Gigs List */}
       <div className="space-y-6">
         {filteredGigs && filteredGigs.length > 0 ? (
-          filteredGigs.map((gig, idx) => (
+          filteredGigs.map((gig, idx) => {
+            return(
             <div
               key={idx}
               onClick={() => {
@@ -211,7 +212,7 @@ export default function Dashboard() {
                 </div>
               </div>
             </div>
-          ))
+          )})
         ) : (
           <div className="text-center text-gray-500 py-8">No gigs found.</div>
         )}

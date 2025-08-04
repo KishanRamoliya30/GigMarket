@@ -256,9 +256,9 @@ export const getStatusColor = (status: string) => {
     case "Assigned":
       return "bg-purple-100 text-purple-700"; 
     case "Not-Assigned":
-      return "oklch(37.3% 0.034 259.733)";
+      return "bg-violet-100 text-violet-700";
     case "In-Progress":
-      return "oklch(0.554 0.135 66.442)";
+      return "bg-yellow-100 text-yellow-700";
     case "Completed":
       return "bg-green-100 text-green-700"; 
     case "Approved":

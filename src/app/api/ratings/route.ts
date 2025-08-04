@@ -18,6 +18,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, message: "Missing required fields" }, { status: 400 });
   }
 
+  // Check if a review already exists from this user for this gig
+  const existingReview = await Rating.findOne({ gigId, createdBy });
+  if (existingReview) {
+    return NextResponse.json({
+      success: false,
+      message: "You have already submitted a review for this gig."
+    }, { status: 400 });
+  }
+
   interface NewRating {
     gigId: string;
     createdBy: string;
@@ -43,7 +52,6 @@ export async function POST(req: NextRequest) {
   };
 
   if (rating < 3) {
-    // Validate complaint structure
     if (
       !complaint ||
       !complaint.issue ||
@@ -69,6 +77,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      isReview: true, 
       message: "Rating submitted successfully.",
       data: savedRating
     });
