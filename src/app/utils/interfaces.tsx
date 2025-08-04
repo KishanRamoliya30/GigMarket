@@ -125,3 +125,26 @@ export interface GigData {
   providerName:string;
   statusHistory:[]
 }
+
+export interface PaymentLog {
+  gigId: string;
+  payments: {
+    amount: number;
+    date: string; 
+    status: string;
+    stripeIntentId?: string;
+    createdBy: string;
+    providerId: string;
+  }[];
+  totalPaid: number;
+  gigTitle: string;
+  gigDescription: string;
+  gigStatus: string;
+  gigPrice: number;
+  createdAt: string; 
+  createdBy: {
+    fullName?: string;
+    profilePicture?: string;
+  };
+}
+

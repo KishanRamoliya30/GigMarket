@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useUser } from "@/context/UserContext";
 
 import {
   Dashboard,
@@ -18,7 +19,7 @@ import {
 } from "@mui/icons-material";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 
-const menuItems = [
+let menuItems = [
   { icon: <Dashboard />, label: "Dashboard", path: "/dashboard" },
   { icon: <PersonOutline />, label: "Profile", path: "/myProfile" },
   { icon: <CreditCardIcon />, label: "Subscriptions", path: "/subscription" },
@@ -27,6 +28,7 @@ const menuItems = [
   { icon: <ChatBubbleOutline />, label: "Messages", path: "/dashboard" },
   { icon: <ListAlt />, label: "Orders", path: "/dashboard" },
   { icon: <AttachMoney />, label: "Earnings", path: "/dashboard" },
+  { icon: <AttachMoney />, label: "Payment History", path: "/paymentHistory" },
   { icon: <NotificationsNone />, label: "Notifications", path: "/dashboard" },
   { icon: <Settings />, label: "Settings", path: "/dashboard" },
 ];
@@ -35,7 +37,10 @@ const Sidebar = () => {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState("Dashboard");
   const router = useRouter();
+  const { user } = useUser();
 
+  menuItems = menuItems.filter(
+    (item) => user?.role === "User" ? item.label !== "Earnings" : item.label !== "Payment History")
   const handleToggle = () => setOpen(!open);
 
   const handleItemClick = (label: string, path: string, danger?: boolean) => {

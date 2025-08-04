@@ -17,6 +17,7 @@
     "@mui/material": "^7.1.1",
     "@react-email/components": "^0.1.0",
     "@react-email/render": "^1.1.2",
+    "@stripe/react-stripe-js": "^3.8.1",
     "@stripe/stripe-js": "^7.4.0",
     "@tinymce/tinymce-react": "^6.2.1",
     "@types/react-router-dom": "^5.3.3",
