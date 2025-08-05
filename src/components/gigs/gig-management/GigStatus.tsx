@@ -17,6 +17,7 @@ import React, { useState } from "react";
 import { toast } from "react-toastify";
 import CloseIcon from "@mui/icons-material/Close";
 import { useUser } from "@/context/UserContext";
+import PostGigReviewDialog from "./Ratings";
 
 interface StatusDropdownProps {
   data: GigData;
@@ -28,6 +29,7 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({ data, updateGigData }) 
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
   const [description, setDescription] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const { user } = useUser();
   const role = user?.role;
@@ -93,6 +95,11 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({ data, updateGigData }) 
     const newStatus = e.target.value;
     setPendingStatus(newStatus);
     setShowModal(true);
+
+    if (newStatus === "Approved" || newStatus === "Rejected") {
+    setOpen(true);
+    setShowModal(false)
+  }
   };
 
   const handleSubmit = async () => {
@@ -220,6 +227,12 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({ data, updateGigData }) 
           </DialogActions>
         </Dialog>
       )}
+      <PostGigReviewDialog
+        open={open}
+        onClose={() => setOpen(false)}
+        data={data}
+        pendingStatus={pendingStatus || ""}
+      />
     </div>
   );
 };
