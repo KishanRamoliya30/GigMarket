@@ -11,6 +11,7 @@ export async function POST(req: NextRequest) {
     createdBy,
     rating,
     review,
+    status,
     complaint
   } = body;
 
@@ -47,7 +48,7 @@ export async function POST(req: NextRequest) {
     createdBy,
     rating,
     review,
-    status: "Pending",
+    status,
     paymentWithheld: rating < 3,
   };
 

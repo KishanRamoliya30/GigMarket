@@ -231,7 +231,7 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({ data, updateGigData }) 
         open={open}
         onClose={() => setOpen(false)}
         data={data}
-        setShowModal={setShowModal}
+        pendingStatus={pendingStatus || ""}
       />
     </div>
   );

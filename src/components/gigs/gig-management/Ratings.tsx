@@ -18,23 +18,23 @@ import { apiRequest } from "@/app/lib/apiCall";
 import { useUser } from "@/context/UserContext";
 import { toast } from "react-toastify";
 import CloseIcon from "@mui/icons-material/Close";
-import { capitalizeFirstLetter } from "../../../../utils/constants";
 import CustomTextField from "@/components/customUi/CustomTextField";
+import { GigData } from "@/app/utils/interfaces";
 
 interface Props {
   open: boolean;
   onClose: () => void;
-  data: {
-    _id: string;
-    title: string;
-    providerName: string;
-  };
-  setShowModal: (value: boolean) => void;
+  data: GigData;
+  pendingStatus: string;
 }
 
-const PostGigReviewDialog: React.FC<Props> = ({ open, onClose, data, setShowModal  }) => {
+const PostGigReviewDialog: React.FC<Props> = ({
+  open,
+  onClose,
+  data,
+  pendingStatus,
+}) => {
   const { user } = useUser();
-
   const validationSchema = Yup.object().shape({
     rating: Yup.number()
       .required("Rating is required")
@@ -80,6 +80,7 @@ const PostGigReviewDialog: React.FC<Props> = ({ open, onClose, data, setShowModa
         createdBy: string | undefined;
         rating: number | null;
         review: string;
+        status: string;
         complaint?: {
           issue: string;
           improvementSuggestion: string;
@@ -92,6 +93,7 @@ const PostGigReviewDialog: React.FC<Props> = ({ open, onClose, data, setShowModa
         createdBy: user?._id,
         rating: values.rating,
         review: values.review,
+        status: pendingStatus,
       };
 
       if (values.rating !== null && values.rating < 3) {
@@ -111,7 +113,14 @@ const PostGigReviewDialog: React.FC<Props> = ({ open, onClose, data, setShowModa
         if (res.success) {
           toast.success("Review submitted successfully.");
           onClose();
-          setShowModal(true);
+          await apiRequest(`gigs/${data._id}/changeStatus`, {
+            method: "PATCH",
+            data: JSON.stringify({
+              status: pendingStatus,
+              bidId: data.assignedToBid,
+              description: values.review,
+            }),
+          });
         } else {
           toast.error(res.message || "Failed to submit review.");
         }
@@ -132,12 +141,7 @@ const PostGigReviewDialog: React.FC<Props> = ({ open, onClose, data, setShowModa
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle className="font-bold text-xl">
         <div className="flex gap-2 items-center justify-between p-[-8px]">
-          <div>
-            Leave a Review for&nbsp;
-            <span className="text-[#2e7d32]">
-              {capitalizeFirstLetter(data.providerName)}
-            </span>
-          </div>
+          <div>Leave a Review</div>
           <IconButton onClick={onClose}>
             <CloseIcon />
           </IconButton>
