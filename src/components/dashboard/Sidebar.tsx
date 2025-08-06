@@ -39,8 +39,11 @@ const Sidebar = () => {
   const router = useRouter();
   const { user } = useUser();
 
-  menuItems = menuItems.filter(
-    (item) => user?.role === "User" ? item.label !== "Earnings" : item.label !== "Payment History")
+  menuItems = menuItems.filter((item) =>
+    user?.role === "User"
+      ? item.label !== "Earnings"
+      : item.label !== "Payment History"
+  );
   const handleToggle = () => setOpen(!open);
 
   const handleItemClick = (label: string, path: string, danger?: boolean) => {
@@ -61,9 +64,9 @@ const Sidebar = () => {
 
       {/* Sidebar */}
       <aside
-  className={`fixed top-[64px] left-0 w-64 bg-white  z-[1100] transition-transform duration-300 ease-in-out
+        className={`fixed top-[64px] left-0 w-64 bg-white  z-[1100] transition-transform duration-300 ease-in-out
   ${open ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0 lg:static  flex flex-col`}
->
+      >
         <ul className="p-4 space-y-2 overflow-y-auto max-h-[calc(100vh-128px)]">
           {menuItems.map(({ icon, label, path }) => (
             <li

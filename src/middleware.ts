@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 import { LoginUser } from "./app/utils/interfaces";
+
+// JWT Secret
 const getSecret = () => new TextEncoder().encode(process.env.JWT_SECRET);
 
-const START_WITH_PUBLIC_PATHS = [
+// Public Routes
+const STARTS_WITH_PUBLIC_PATHS = new Set([
   "/verify-email",
   "/gigs",
-
   "/api/webhooks/stripe",
   "/api/forgot-password",
   "/api/reset-password",
@@ -20,17 +22,15 @@ const START_WITH_PUBLIC_PATHS = [
   "/admin/forgot-password",
   "/admin/reset-password",
   "/admin/verify-otp",
-
   "/api/profile/userProfile",
   "/api/profile/allProfile",
   "/api/admin/login",
-
   "/publicGigs",
   "/publicGigs/provider/",
   "/publicProfile/",
-];
+]);
 
-const FIX_PUBLIC_PATHS = [
+const EXACT_PUBLIC_PATHS = new Set([
   "/",
   "/dashboard",
   "/login",
@@ -41,149 +41,152 @@ const FIX_PUBLIC_PATHS = [
   "/forgot-password",
   "/reset-password",
   "/verify-otp",
-  "/forgot-password",
   "/providers",
-];
+]);
 
 const COMMON_PATHS = ["/dashboard", "/gigs", "/api/gigs", "/"];
 
+// Utility: Check if path is public
+const isPublicRoute = (pathname: string) => {
+  if (EXACT_PUBLIC_PATHS.has(pathname)) return true;
+
+  for (const route of STARTS_WITH_PUBLIC_PATHS) {
+    if (pathname.startsWith(route)) {
+      if (pathname === "/gigs/create") return false;
+      return true;
+    }
+  }
+
+  // Special case: /api/gigs/[id]
+  if (pathname.startsWith("/api/gigs")) {
+    const segments = pathname.split("/").filter(Boolean);
+    return segments.length === 3;
+  }
+
+  return false;
+};
+
+// Utility: Decode and validate JWT
+const decodeUserFromToken = async (token: string): Promise<LoginUser | null> => {
+  try {
+    const { payload } = await jwtVerify(token, getSecret());
+    return {
+      _id: payload.userId as string,
+      email: payload.email as string,
+      isAdmin: payload.role === "Admin",
+      role: payload.role?.toString() ?? "",
+      subscriptionCompleted: payload.subscriptionCompleted as boolean,
+      profileCompleted: payload.profileCompleted as boolean,
+    };
+  } catch {
+    return null;
+  }
+};
+
+// Main Middleware Function
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Skip static files and assets
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon.ico") ||
     pathname.startsWith("/images") ||
     pathname.startsWith("/uploads") ||
-    /\.(.*)$/.test(pathname)
+    /\.(\w+)$/.test(pathname)
   ) {
     return NextResponse.next();
   }
 
   const token = request.cookies.get("token")?.value;
-  let userData: LoginUser = {
-    _id: "",
-    email: "",
-    isAdmin: false,
-    role: "",
-    subscriptionCompleted: false,
-    profileCompleted: false,
-  };
-
-  if (token) {
-    const { payload } = await jwtVerify(token, getSecret());
-    userData = {
-      _id: payload.userId as string,
-      email: payload.email as string,
-      isAdmin: payload.role == "Admin",
-      role: payload.role?.toString() ?? "",
-      subscriptionCompleted: payload.subscriptionCompleted as boolean,
-      profileCompleted: payload.profileCompleted as boolean,
-    };
-  }
   const email = request.cookies.get("email")?.value;
   const isVerified = request.cookies.get("isVerified")?.value === "true";
-  let isPublicPath =
-    FIX_PUBLIC_PATHS.includes(pathname) ||
-    (START_WITH_PUBLIC_PATHS.some((route) => pathname.startsWith(route)) &&
-      pathname !== "/gigs/create");
+  const isApi = pathname.startsWith("/api");
+  const isPublicPath = isPublicRoute(pathname);
 
-  // if (pathname === "/") {
-  //   return NextResponse.redirect(new URL("/dashboard", request.url));
-  // }
+  const userData = token ? await decodeUserFromToken(token) : null;
 
-  //allow gigs/[id] path
-  if (pathname.startsWith("/api/gigs")) {
-    const segments = pathname.split("/").filter(Boolean);
-    isPublicPath = segments.length === 3;
+  // ----- API Routes -----
+  if (isApi) {
+    if (userData?._id) {
+      const response = NextResponse.next();
+      response.headers.set("x-user", JSON.stringify(userData));
+      return response;
+    }
+
+    if (!isPublicPath) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    return NextResponse.next();
   }
+
+  // ----- Public-Only Conditions -----
   if (pathname.startsWith("/verify-email") && !isVerified) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
+
   if (
-    ["/verify-otp", "/reset-password"].some((path) => pathname.startsWith(path))
+    ["/verify-otp", "/reset-password"].some((path) =>
+      pathname.startsWith(path)
+    ) && !email
   ) {
-    if (!email) {
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  if (pathname.startsWith("/api")) {
-    if (token && !!userData._id) {
-      try {
-        const response = NextResponse.next();
-        response.headers.set("x-user", JSON.stringify(userData));
-        return response;
-      } catch {
-        return NextResponse.next();
-      }
+  // ----- Authenticated Users -----
+  if (userData?._id) {
+    const { isAdmin, role, subscriptionCompleted, profileCompleted } = userData;
+
+    // Subscription flow
+    if (
+      !isAdmin &&
+      !subscriptionCompleted &&
+      !pathname.startsWith("/subscription") &&
+      !pathname.startsWith("/subscriptionSuccess")
+    ) {
+      return NextResponse.redirect(new URL("/subscription", request.url));
     }
-    //protected apis will return 401
-    else if (!isPublicPath && userData._id == "") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    // Profile flow
+    if (
+      !isAdmin &&
+      subscriptionCompleted &&
+      !profileCompleted &&
+      !pathname.startsWith("/add-profile") &&
+      !pathname.startsWith("/subscription")
+    ) {
+      return NextResponse.redirect(new URL("/add-profile", request.url));
+    }
+
+    // Admin restrictions
+    if (isAdmin && !pathname.startsWith("/admin")) {
+      return NextResponse.redirect(new URL("/admin", request.url));
+    }
+
+    if (!isAdmin && pathname.startsWith("/admin")) {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
+
+    // Role-based access
+    if (pathname.startsWith("/user") && role !== "User") {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
+
+    if (pathname.startsWith("/provider") && role !== "Provider") {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
+
+    // Public page while logged in
+    if (isPublicPath && !COMMON_PATHS.some((p) => pathname.startsWith(p))) {
+      const redirectTo = isAdmin ? "/admin" : "/dashboard";
+      return NextResponse.redirect(new URL(redirectTo, request.url));
     }
   } else {
-    if (!userData.isAdmin && !!userData._id) {
-      const isSubscriptionPage = pathname === "/subscription";
-      const isSubscriptionSuccessPage = pathname.startsWith(
-        "/subscriptionSuccess"
-      );
-      const isProfilePage = pathname === "/add-profile";
-
-      if (
-        !userData.subscriptionCompleted &&
-        !isSubscriptionPage &&
-        !isSubscriptionSuccessPage
-      ) {
-        return NextResponse.redirect(new URL("/subscription", request.url));
-      } else if (
-        userData.subscriptionCompleted &&
-        !userData.profileCompleted &&
-        !isProfilePage &&
-        !isSubscriptionPage &&
-        !isSubscriptionSuccessPage
-      ) {
-        return NextResponse.redirect(new URL("/add-profile", request.url));
-      }
-    } else if (!isPublicPath && userData._id != "") {
-      //REDIRECTS BASED ON SUBSCRIPTION / PROFILE FLOW
-
-      //admin can only access pages with path admin
-      if (userData.isAdmin && !pathname.includes("/admin")) {
-        return NextResponse.redirect(new URL("/admin", request.url));
-      }
-
-      //normal user can't access admin paths
-      else if (!userData.isAdmin && pathname.includes("/admin")) {
-        return NextResponse.redirect(new URL("/dashboard", request.url));
-      }
-
-      //pages with path in user can only be accessed by user role
-      else if (pathname.startsWith("/user") && userData.role != "User") {
-        return NextResponse.redirect(new URL("/dashboard", request.url));
-      }
-
-      //pages with path in provider can only be accessed by provider role
-      else if (
-        pathname.startsWith("/provider") &&
-        userData.role != "Provider"
-      ) {
-        return NextResponse.redirect(new URL("/dashboard", request.url));
-      }
-    }
-    // if logged in and try to access public page redirect to respective dashboard
-    else if (isPublicPath && userData._id != "") {
-      if (!COMMON_PATHS.some((path) => pathname.startsWith(path))) {
-        const redirectPath = userData.isAdmin ? "/admin" : "/dashboard";
-        return NextResponse.redirect(new URL(redirectPath, request.url));
-      }
-    }
-    // if not public path redirect to login page
-    else if (!isPublicPath && userData._id == "") {
-      const loginPath = pathname.startsWith("/admin")
-        ? "/admin/login"
-        : "/login";
-      return NextResponse.redirect(new URL(loginPath, request.url));
+    // ----- Unauthenticated Users -----
+    if (!isPublicPath) {
+      const loginRoute = pathname.startsWith("/admin") ? "/admin/login" : "/login";
+      return NextResponse.redirect(new URL(loginRoute, request.url));
     }
   }
 
@@ -191,11 +194,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/api/profile/:path*",
-    "/api/:path*",
-    "/admin/:path*",
-    // "/((?!_next/static|_next/image|favicon.ico|images|uploads|.*\\.[a-zA-Z0-9]+$).*)",
-    "/:path",
-  ],
+  matcher: ["/api/:path*", "/admin/:path*", "/:path*"],
 };

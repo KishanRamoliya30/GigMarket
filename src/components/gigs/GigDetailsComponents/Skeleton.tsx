@@ -1,5 +1,13 @@
-import React from 'react';
+import React from "react";
 
+export const TableSkeleton = () => (
+  <div className="animate-pulse">
+    <div className="h-12 bg-gray-200 rounded-t-lg mb-1"></div>
+    {[1, 2, 3, 4, 5].map((i) => (
+      <div key={i} className="h-16 bg-gray-100 mb-1"></div>
+    ))}
+  </div>
+);
 const Skeleton = () => {
   return (
     <div className="bg-white rounded-xl shadow-md border border-gray-100 p-4 sm:p-6 space-y-4 sm:space-y-6 w-full">

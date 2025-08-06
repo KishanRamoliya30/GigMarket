@@ -86,11 +86,11 @@ const UserCard = ({ gigDetails }: { gigDetails: Gig }) => {
 
         {gigDetails.createdByRole === "Provider" && (
           <button
-            className="w-full mt-4 bg-gradient-to-r shadow hover:shadow-md from-emerald-50 to-emerald-100 text-emerald-700 border border-emerald-100 hover:border-emerald-200 font-medium py-2 px-4 rounded-lg flex items-center justify-center space-x-3 transition-colors group cursor-pointer"
+            className="w-[75%] mr-auto ml-auto mt-4 bg-emerald-800 hover:bg-emerald-900 shadow hover:shadow-md text-white border border-emerald-100 hover:border-emerald-200 font-medium py-2 px-4 rounded-lg flex items-center justify-center space-x-3 transition-colors group cursor-pointer"
             onClick={() => router.push("/chat")}
           >
             <MessageSquare className="w-4 h-4 group-hover:scale-110 transition-transform" />
-            <span>Contact / Book Now</span>
+            <span>Contact</span>
           </button>
         )}
       </div>

@@ -38,8 +38,10 @@ export async function GET(
 
   const userHeader = req.headers.get("x-user");
   let userBids = null;
+  let userDetails = null;
   if (userHeader) {
-    const userDetails = JSON.parse(userHeader);
+    userDetails = JSON.parse(userHeader);
+    //find Bid for this gig by this user
     userBids = await Bid.findOne({
       gigId: gig._id,
       createdBy: userDetails._id,
@@ -71,6 +73,7 @@ export async function GET(
           profilePicture: profile.profilePicture,
           skills: profile.skills,
           certifications: profile.certifications,
+          userId: profile?.userId,
         }),
       },
     },
