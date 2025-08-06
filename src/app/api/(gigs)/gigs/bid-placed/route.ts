@@ -6,6 +6,7 @@ import { ApiError } from "@/app/lib/commonError";
 import { successResponse, withApiHandler } from "@/app/lib/commonHandlers";
 import { verifyToken } from "@/app/utils/jwt";
 import { Types } from "mongoose";
+import Rating from "@/app/models/ratings";
 
 type GigType = typeof Gig extends import("mongoose").Model<infer T> ? T : never;
 
@@ -83,9 +84,18 @@ export const GET = withApiHandler(async (req: NextRequest): Promise<NextResponse
   const enrichedGigs: EnrichedGig[] = await Promise.all(
     gigs.map(async (gig) => {
       const provider = await User.findById(gig.createdBy);
+      const ratings = await Rating.find({ gigId: gig._id });
+      const totalRatings = ratings.length;
+      const averageRating =
+        totalRatings > 0
+          ? ratings.reduce((sum, r) => sum + r.rating, 0) / totalRatings
+          : 0;
       return {
         ...gig,
         providerName: provider ? `${provider.firstName} ${provider.lastName}` : "",
+        rating: parseFloat(averageRating.toFixed(1)),
+        reviews: totalRatings,
+        
       };
     })
   );
