@@ -25,6 +25,7 @@ let menuItems = [
   { icon: <CreditCardIcon />, label: "Subscriptions", path: "/subscription" },
   { icon: <WorkOutline />, label: "My Gigs", path: "/myGigs" },
   { icon: <BarChart />, label: "Gig Management", path: "/gig-management" },
+  { icon: <BarChart />, label: "Dispute Management", path: "/dispute-management" },
   { icon: <ChatBubbleOutline />, label: "Messages", path: "/dashboard" },
   { icon: <ListAlt />, label: "Orders", path: "/dashboard" },
   { icon: <AttachMoney />, label: "Earnings", path: "/dashboard" },
