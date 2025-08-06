@@ -39,7 +39,6 @@ export async function sendOtpEmail({ to, otp, username = "User" }: SendOtpEmailO
   };
 
   const info = await transporter.sendMail(mailOptions);
-  console.log("OTP email sent:", info.messageId);
 
   return info;
 }

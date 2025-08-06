@@ -102,6 +102,7 @@ export interface Bid {
     fullName: string;
     profilePicture: string;
   };
+  bidAmountType?: "hourly" | "fixed";
   createdAt: Date;
   updatedAt: Date;
   status: string;
@@ -131,7 +132,8 @@ export interface GigData {
 
 export interface Column {
   id: number;
-  name: string;
+  label: string;
+  key: string;
   type?: "boolean" | "link" | string;
   href?: string;
   class?: string;
@@ -141,7 +143,7 @@ export interface PaymentLog {
   gigId: string;
   payments: {
     amount: number;
-    date: string; 
+    date: string;
     status: string;
     stripeIntentId?: string;
     createdBy: string;
@@ -152,10 +154,9 @@ export interface PaymentLog {
   gigDescription: string;
   gigStatus: string;
   gigPrice: number;
-  createdAt: string; 
+  createdAt: string;
   createdBy: {
     fullName?: string;
     profilePicture?: string;
   };
 }
-

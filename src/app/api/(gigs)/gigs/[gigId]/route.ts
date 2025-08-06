@@ -9,6 +9,7 @@ import { verifyToken } from "@/app/utils/jwt";
 import User from "@/app/models/user";
 import { uploadToCloudinary } from "@/lib/cloudinaryFileUpload";
 import { updateGigSchema } from "@/utils/beValidationSchema";
+import Rating from "@/app/models/ratings";
 
 export async function GET(
   req: NextRequest,
@@ -16,17 +17,16 @@ export async function GET(
 ): Promise<NextResponse> {
   await dbConnect();
   const gigId = (await params).gigId;
-  if (!gigId) {
-    throw new ApiError("Gig ID is required", 400);
-  }
+
+  if (!gigId) throw new ApiError("Gig ID is required", 400);
+
   const gig = await Gig.findById(gigId).populate({
     path: "createdBy",
     model: "users",
     select: "email",
   });
-  if (!gig) {
-    throw new ApiError("Gig not found", 404);
-  }
+
+  if (!gig) throw new ApiError("Gig not found", 404);
 
   const profile = await Profile.findOne({
     userId: gig.createdBy._id.toString(),
@@ -34,41 +34,53 @@ export async function GET(
     "fullName pastEducation profilePicture userId skills certifications"
   );
 
-  const bids = await Bid.countDocuments({
-    gigId: gig._id,
-  });
+  const bids = await Bid.countDocuments({ gigId: gig._id });
+
   const userHeader = req.headers.get("x-user");
   let userBids = null;
+  let userDetails = null;
   if (userHeader) {
-    const userDetails = JSON.parse(userHeader);
-    //find Bid for this gig by thi user
+    userDetails = JSON.parse(userHeader);
+    //find Bid for this gig by this user
     userBids = await Bid.findOne({
       gigId: gig._id,
       createdBy: userDetails._id,
     }).select("bidAmount description status createdAt");
   }
 
-  const createdBy = gig.createdBy;
+  const ratings = await Rating.find({ gigId: gig._id })
+    .lean();
+
+  const totalRatings = ratings.length;
+  const averageRating =
+    totalRatings > 0
+      ? ratings.reduce((sum, r) => sum + r.rating, 0) / totalRatings
+      : 0;
 
   return successResponse(
     {
       ...gig.toObject(),
       bids,
       bid: userBids ? userBids.toObject() : null,
+      rating: parseFloat(averageRating.toFixed(1)),
+      reviews: totalRatings,
+      ratings,
       createdBy: {
-        ...(createdBy?.toObject?.() ?? createdBy),
+        ...(gig.createdBy?.toObject?.() ?? gig.createdBy),
         ...(profile && {
           fullName: profile.fullName,
           pastEducation: profile.pastEducation,
           profilePicture: profile.profilePicture,
           skills: profile.skills,
           certifications: profile.certifications,
+          userId: profile?.userId,
         }),
       },
     },
     "Gig retrieved successfully"
   );
 }
+
 
 export async function DELETE(
   req: NextRequest,

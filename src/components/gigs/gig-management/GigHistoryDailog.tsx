@@ -109,7 +109,7 @@ export default function GigStatusDialog({
 
           <Timeline className="pl-0">
             {data?.statusHistory?.map((item, index) => {
-              const { previousStatus, currentStatus, changedByRole, description, changedAt } =
+              const { previousStatus, currentStatus, changedByName, description, changedAt } =
                 item;
 
               return (
@@ -149,7 +149,7 @@ export default function GigStatusDialog({
 
                     <p className="text-xs text-gray-500 mt-1">
                       {capitalizeFirstLetter(
-                        changedByRole
+                        changedByName
                       )}{" "}
                       • {moment(changedAt).format("MMM DD, YYYY, hh:mm A")}
                     </p>

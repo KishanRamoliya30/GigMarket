@@ -1,20 +1,21 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose, { Schema } from "mongoose";
 const BidSchema = new Schema(
-    {
-      bidAmount: { type: Number, required: true, min: 0 },
-      description: { type: String, required: true },
-      gigId: { type: Schema.Types.ObjectId, ref: 'gigs', required: true },
-      createdBy: { type: Schema.Types.ObjectId, ref: 'Users', required: true },
-      status: {
-        type: String,
-        enum: ["Requested", "Assigned", "Not-Assigned",],
-        default: 'Requested',
-      },
+  {
+    bidAmount: { type: Number, required: true, min: 0 },
+    description: { type: String, required: true },
+    gigId: { type: Schema.Types.ObjectId, ref: "gigs", required: true },
+    createdBy: { type: Schema.Types.ObjectId, ref: "Users", required: true },
+    bidAmountType: { type: String, default: "hourly" },
+    status: {
+      type: String,
+      enum: ["Requested", "Assigned", "Not-Assigned"],
+      default: "Requested",
     },
-    {
-      timestamps: true,
-    }
-  );
-  
-  const Bids = mongoose.models.bids || mongoose.model('bids', BidSchema);
-  export default Bids;
+  },
+  {
+    timestamps: true,
+  }
+);
+
+const Bids = mongoose.models.bids || mongoose.model("bids", BidSchema);
+export default Bids;

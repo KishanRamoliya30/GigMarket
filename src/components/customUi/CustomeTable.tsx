@@ -2,6 +2,8 @@ import { Column } from "@/app/utils/interfaces";
 import Link from "next/link";
 import React from "react";
 import { addEllipsis } from "../../../utils/common";
+import { useRouter } from "next/navigation";
+import { getStatusStyles } from "../../../utils/constants";
 
 interface Raw {
   _id: string | number;
@@ -11,18 +13,59 @@ interface Raw {
 interface CustomeTableProps {
   raws: Raw[] | any[];
   columns: Column[];
+  handleBidStatusChange?: (
+    id: string,
+    status: "Assigned" | "Not-Assigned"
+  ) => void;
 }
 
-const CustomeTable = ({ raws, columns }: CustomeTableProps) => {
-  const handleCellValue = (
-    value: string | boolean | number | undefined | [],
-    column: Column
-  ): React.ReactNode => {
+const CustomeTable = ({
+  raws,
+  columns,
+  handleBidStatusChange,
+}: CustomeTableProps) => {
+  const router = useRouter();
+  const handleCellValue = (raw: any, column: Column): React.ReactNode => {
+    const value = raw[column.key as keyof typeof raw];
     switch (column.type) {
+      case "user":
+        const { profilePicture, fullName, _id } = value;
+        return (
+          <div
+            className="flex items-center gap-2 cursor-pointer"
+            onClick={() => router.push("/publicProfile/" + _id)}
+          >
+            <img
+              src={profilePicture}
+              alt={fullName}
+              className="w-9 h-9 rounded-full object-cover"
+            />
+            <span className="text-sm sm:text-base font-medium cursor-pointer">
+              {fullName}
+            </span>
+          </div>
+        );
+
+      case "amount":
+        return (
+          <div className="font-extrabold text-gray-800">${value} / hr</div>
+        );
+
       case "boolean":
         return (
           <div className={value ? "text-green-400" : "text-red-400"}>
             {value ? "Yes" : "No"}
+          </div>
+        );
+
+      case "date":
+        return (
+          <div className="">
+            {new Date(value).toLocaleDateString("en-US", {
+              day: "2-digit",
+              month: "long",
+              year: "numeric",
+            })}
           </div>
         );
 
@@ -37,8 +80,45 @@ const CustomeTable = ({ raws, columns }: CustomeTableProps) => {
           </Link>
         );
 
+      case "bidStatus":
+        return value == "Requested" || !value ? (
+          <div className="flex flex-row items-center gap-2">
+            <button
+              className="px-2.5 py-1.5 hover:shadow text-[13px] border border-emerald-600 text-emerald-700 hover:bg-green-50 rounded-md transition-colors duration-200 cursor-pointer"
+              onClick={() =>
+                handleBidStatusChange &&
+                handleBidStatusChange(raw._id, "Assigned")
+              }
+            >
+              APPROVE
+            </button>
+            <button
+              className="px-2.5 py-1.5 hover:shadow text-[13px] border border-red-500 text-red-500 hover:bg-red-50 rounded-md transition-colors duration-200 cursor-pointer"
+              onClick={() =>
+                handleBidStatusChange &&
+                handleBidStatusChange(raw._id, "Not-Assigned")
+              }
+            >
+              REJECT
+            </button>
+          </div>
+        ) : (
+          <div
+            className={`inline-flex items-center shadow px-2.5 py-1 rounded-full text-xs sm:text-sm border ${
+              value === "Assigned"
+                ? "border-green-500 text-green-500 bg-green-50"
+                : value === "Not-Assigned"
+                  ? "border-red-500 text-red-500 bg-red-50"
+                  : "border-gray-500 text-gray-500 bg-gray-50"
+            }`}
+            style={getStatusStyles(value) as React.CSSProperties}
+          >
+            {value.charAt(0).toUpperCase() + value.slice(1)}
+          </div>
+        );
+
       default:
-        return typeof value === "string" ? addEllipsis(value, 30) : value;
+        return typeof value === "string" ? addEllipsis(value, 35) : value;
     }
   };
 
@@ -56,8 +136,8 @@ const CustomeTable = ({ raws, columns }: CustomeTableProps) => {
                       scope="col"
                       className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs sm:text-sm font-medium text-gray-800 dark:text-gray-300 tracking-wider"
                     >
-                      {column.name.charAt(0).toUpperCase() +
-                        column.name.slice(1).toLowerCase()}
+                      {column.label.charAt(0).toUpperCase() +
+                        column.label.slice(1).toLowerCase()}
                     </th>
                   );
                 })}
@@ -70,13 +150,12 @@ const CustomeTable = ({ raws, columns }: CustomeTableProps) => {
                   className="hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
                   {columns.map((column) => {
-                    const value = raw[column.name as keyof typeof raw];
                     return (
                       <td
                         key={column.id}
                         className="px-3 sm:px-4 md:px-6 py-2 sm:py-4 text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-100 break-words"
                       >
-                        {handleCellValue(value, column)}
+                        {handleCellValue(raw, column)}
                       </td>
                     );
                   })}

@@ -6,10 +6,10 @@ export const PRICE_RANGES = {
 };
 
 export const RATING_MAP = {
-  "5⭐": 5,
-  "4⭐ and above": 4,
-  "3⭐ and above": 3,
-  "2⭐ and above": 2,
+  "⭐⭐⭐⭐⭐": 5,
+  "⭐⭐⭐⭐ and above": 4,
+  "⭐⭐⭐ and above": 3,
+  "⭐⭐ and above": 2,
 };
 
 export const sortOptions = [
@@ -18,4 +18,12 @@ export const sortOptions = [
   "Rating: High to Low",
   "Rating: Low to High",
   "Recently Added",
+];
+
+export const bidColumns = [
+  { id: 1, label: "Reqester", key: "createdBy", type: "user" },
+  { id: 2, label: "Description", key: "description" },
+  { id: 3, label: "Amount", key: "bidAmount", type: "amount" },
+  { id: 4, label: "Date", key: "createdAt", type: "date" },
+  { id: 5, label: "Status", key: "status", type: "bidStatus" },
 ];
