@@ -56,7 +56,7 @@ export const Details = ({ gigDetails }: { gigDetails: Gig }) => {
             {gigDetails.keywords.map((word: string) => (
               <span
                 key={word}
-                className="px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm font-medium bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-700 rounded-full flex items-center gap-2 shadow-sm hover:shadow-md hover:scale-102 transition-all duration-300 cursor-pointer"
+                className="px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm font-medium bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-700 rounded-full flex items-center gap-2 shadow-sm hover:shadow-md hover:scale-102 transition-all duration-300"
               >
                 {word}
               </span>
@@ -75,7 +75,7 @@ export const Details = ({ gigDetails }: { gigDetails: Gig }) => {
             {gigDetails.releventSkills.map((word: string) => (
               <span
                 key={word}
-                className="px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm font-medium bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-700 rounded-full flex items-center gap-2 shadow-sm hover:shadow-md hover:scale-102 transition-all duration-300 cursor-pointer"
+                className="px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm font-medium bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-700 rounded-full flex items-center gap-2 shadow-sm hover:shadow-md hover:scale-102 transition-all duration-300"
               >
                 {word}
               </span>

@@ -12,6 +12,7 @@ interface FilterDropDownProps {
   setCustomMin?: (value: string) => void;
   setCustomMax?: (value: string) => void;
   isSelectTitle?: boolean;
+  wrappedStyle?: React.CSSProperties;
 }
 
 const FilterDropDown: React.FC<FilterDropDownProps> = ({
@@ -24,6 +25,7 @@ const FilterDropDown: React.FC<FilterDropDownProps> = ({
   customMax,
   setCustomMin,
   setCustomMax,
+  wrappedStyle,
   isSelectTitle,
 }) => {
   const [openMenu, setOpenMenu] = useState(Boolean);
@@ -62,10 +64,10 @@ const FilterDropDown: React.FC<FilterDropDownProps> = ({
       className="flex relative flex-wrap items-center gap-2"
     >
       <button
-        className="flex items-center px-4 py-[6px] hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-green-400 border-[1px] border-[#388E3C] rounded-lg text-[#388E3C] cursor-pointer"
+        className={`flex items-center px-[12px] py-[5px] shadow hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-[#388E3C] border-[1px] border-[#388E3C] rounded-lg text-[#388E3C] cursor-pointer ${isSelectTitle && "bg-emerald-50 border-0 outline-0 border-transparent"}`}
         onClick={() => handleValue(!openMenu)}
       >
-        <span className="mr-2">
+        <span className="mr-2 text-sm">
           {isSelectTitle ? selectedOption : title?.toUpperCase()}
         </span>
         <ExpandMoreOutlined
@@ -76,10 +78,14 @@ const FilterDropDown: React.FC<FilterDropDownProps> = ({
       {openMenu && (
         <div
           className="absolute z-50 mt-2 bg-white rounded-md shadow-lg"
-          style={{ top: "90%" }}
+          style={{ top: "90%", ...(wrappedStyle as React.CSSProperties) }}
         >
-          <div className="p-4 w-64 sm:w-72">
-            <h3 className="font-semibold text-gray-800 mb-3">Select {title}</h3>
+          <div className="p-4 w-max border border-gray-100">
+            {!isSelectTitle && (
+              <h3 className="font-semibold text-gray-800 mb-3">
+                Select {title}
+              </h3>
+            )}
             <div className="space-y-2">
               {options.map((opt) => (
                 <label
