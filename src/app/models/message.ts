@@ -19,7 +19,7 @@ export interface MessageDocument extends Document {
 const MessageSchema = new Schema({
     chatId: { type: Schema.Types.ObjectId, ref: 'Chat', required: true },
     senderId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    text: { type: String, required: true },
+    message: { type: String, required: true },
     seen: { type: Boolean, default: false },
     //   createdAt: { type: Date, default: Date.now },
 },

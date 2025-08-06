@@ -6,6 +6,7 @@ import { ApiError } from "@/app/lib/commonError";
 import { successResponse, withApiHandler } from "@/app/lib/commonHandlers";
 import { placeBidSchema } from "@/utils/beValidationSchema";
 import User from "@/app/models/user";
+import Chat from "@/app/models/chat";
 
 export const POST = withApiHandler(async (req: NextRequest, { params }: { params: Promise<{ gigId: string }> }): Promise<NextResponse> => {
   await dbConnect();
@@ -49,13 +50,12 @@ export const POST = withApiHandler(async (req: NextRequest, { params }: { params
   if (gig.createdBy.toString() === user._id.toString()) {
     throw new ApiError("You cannot bid on your own gig", 403);
   }
-  
+
   if(!["Open", "Requested"].includes(gig.status)) {
     throw new ApiError("Bidding is closed for this gig", 403);
   }
 
   const { bidAmount, description } = await req.json();
-
   if (!bidAmount || !description || isNaN(bidAmount)) {
     throw new ApiError("Missing or invalid required fields", 400);
   }
@@ -75,5 +75,19 @@ export const POST = withApiHandler(async (req: NextRequest, { params }: { params
     gig.status = "Requested";
     await gig.save();
   }
+
+  const existingChat = await Chat.findOne({
+    gigId: gig._id,
+    participants: { $all: [gig.createdBy, user._id] },
+  });
+
+  if (!existingChat) {
+    await Chat.create({
+      gigId: gig._id,
+      bidId: bid._id,
+      participants: [gig.createdBy, user._id],
+    });
+  }
+
   return successResponse(bid, "Bid placed successfully", 201);
 });
