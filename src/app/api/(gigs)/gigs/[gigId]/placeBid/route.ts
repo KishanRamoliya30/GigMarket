@@ -6,6 +6,7 @@ import { ApiError } from "@/app/lib/commonError";
 import { successResponse, withApiHandler } from "@/app/lib/commonHandlers";
 import { placeBidSchema } from "@/utils/beValidationSchema";
 import User from "@/app/models/user";
+import Chat from "@/app/models/chat";
 
 export const POST = withApiHandler(
   async (
@@ -29,6 +30,7 @@ export const POST = withApiHandler(
 
     const user = await User.findById(userDetails._id);
     if (!user) throw new ApiError("User not found", 404);
+
     const plan = user.subscription?.planName || "Free";
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -80,6 +82,20 @@ export const POST = withApiHandler(
       gig.status = "Requested";
       await gig.save();
     }
+
+    const existingChat = await Chat.findOne({
+      gigId,
+      participants: { $all: [gig.createdBy, user._id] },
+    });
+
+    if (!existingChat) {
+      await Chat.create({
+        gigId,
+        participants: [gig.createdBy, user._id],
+        createdBy: user._id,
+      });
+    }
+
     return successResponse(bid, "Bid placed successfully", 201);
   }
 );
