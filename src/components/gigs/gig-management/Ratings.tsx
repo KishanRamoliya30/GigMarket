@@ -112,7 +112,6 @@ const PostGigReviewDialog: React.FC<Props> = ({
 
         if (res.success) {
           toast.success("Review submitted successfully.");
-          onClose();
           await apiRequest(`gigs/${data._id}/changeStatus`, {
             method: "PATCH",
             data: JSON.stringify({
@@ -121,6 +120,7 @@ const PostGigReviewDialog: React.FC<Props> = ({
               description: values.review,
             }),
           });
+          onClose();
         } else {
           toast.error(res.message || "Failed to submit review.");
         }

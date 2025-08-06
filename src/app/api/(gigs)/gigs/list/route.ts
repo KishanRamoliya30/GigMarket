@@ -6,6 +6,7 @@ import { ServiceTier } from "../../../../../../utils/constants";
 import { FilterQuery } from "mongoose";
 import Profile from "@/app/models/profile";
 import { verifyToken } from "@/app/utils/jwt";
+import Rating from "@/app/models/ratings";
 
 export async function GET(req: NextRequest) {
   await dbConnect();
@@ -102,29 +103,43 @@ export async function GET(req: NextRequest) {
 
   const profileMap = new Map(profiles.map((p) => [p.userId.toString(), p]));
 
-  const gigs = gigsRaw.map((gigDoc) => {
-    const gig = gigDoc.toObject();
-    const createdBy = gig.createdBy;
+  // Use Promise.all to await inside map
+  const gigs = await Promise.all(
+    gigsRaw.map(async (gigDoc) => {
+      const gig = gigDoc.toObject();
+      const createdBy = gig.createdBy;
 
-    const userIdStr =
-      typeof createdBy?._id === "object"
-        ? createdBy._id.toString()
-        : createdBy?._id;
+      const userIdStr =
+        typeof createdBy?._id === "object"
+          ? createdBy._id.toString()
+          : createdBy?._id;
 
-    const profile = profileMap.get(userIdStr);
+      const profile = profileMap.get(userIdStr);
 
-    return {
-      ...gig,
-      createdBy: {
-        ...createdBy,
-        ...(profile && {
-          fullName: profile.fullName,
-          pastEducation: profile.pastEducation,
-          profilePicture: profile.profilePicture,
-        }),
-      },
-    };
-  });
+    const ratings = await Rating.find({ gigId: gig._id })
+      .lean();
+      const totalRatings = ratings.length;
+      const averageRating =
+        totalRatings > 0
+          ? ratings.reduce((sum, r) => sum + r.rating, 0) / totalRatings
+          : 0;
+
+      return {
+        ...gig,
+        rating: parseFloat(averageRating.toFixed(1)),
+        reviews: totalRatings,
+        ratings,
+        createdBy: {
+          ...createdBy,
+          ...(profile && {
+            fullName: profile.fullName,
+            pastEducation: profile.pastEducation,
+            profilePicture: profile.profilePicture,
+          }),
+        },
+      };
+    })
+  );
 
   return successResponse(gigs, "Gigs fetched successfully", 200, {
     total,
