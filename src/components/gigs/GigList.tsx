@@ -17,7 +17,6 @@ import {
   Radio,
   RadioGroup,
   Skeleton,
-  Avatar,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -27,7 +26,11 @@ import CustomTextField from "@/components/customUi/CustomTextField";
 import { styled } from "@mui/system";
 import { useState, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { ExpandMoreOutlined, Check as CheckIcon } from "@mui/icons-material";
+import {
+  ExpandMoreOutlined,
+  Check as CheckIcon,
+  FavoriteBorderOutlined,
+} from "@mui/icons-material";
 import { ArrowLeft } from "lucide-react";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
 import EditIcon from "@mui/icons-material/EditNote";
@@ -35,6 +38,7 @@ import { apiRequest } from "@/app/lib/apiCall";
 import { Gig } from "@/app/utils/interfaces";
 import { ServiceTier } from "../../../utils/constants";
 import { useUser } from "@/context/UserContext";
+import Image from "next/image";
 const tiers = [ServiceTier.BASIC, ServiceTier.EXPERT, ServiceTier.ADVANCED];
 
 export default function GigListing(props?: { self?: boolean }) {
@@ -666,102 +670,95 @@ export default function GigListing(props?: { self?: boolean }) {
                 size={{ xs: 12, sm: 6, md: 4, lg: 3 }}
                 key={`${ind}-${gig.id}`}
               >
-                <Card className="gigCard">
-                  <CardContent>
-                    <Box
-                      display="flex"
-                      justifyContent="space-between"
-                      alignItems="flex-start"
-                    >
-                      <Typography
-                        variant="h6"
-                        fontWeight={600}
-                        gutterBottom
-                        className="descClamp"
-                      >
+                <div
+                  key={ind}
+                  className="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:-translate-y-2 hover:cursor-pointer"
+                  onClick={() =>
+                    router.push(`/${isSelf ? "myGigs" : "gigs"}/${gig._id}`)
+                  }
+                >
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-black/10 to-transparent transition-opacity duration-300">
+                    <div className="absolute top-0 left-0 right-0 z-10 p-4 flex justify-between items-start">
+                      <h3 className="text-lg font-semibold text-white line-clamp-2 drop-shadow-lg">
                         {gig.title}
-                      </Typography>
+                      </h3>
                       {gig.createdBy?._id === user?._id && (
-                        <Box>
-                          <EditIcon
-                            sx={{
-                              color: "#666",
-                              cursor: "pointer",
-                              "&:hover": {
-                                color: "#1DBF73",
-                              },
+                        <div className="flex gap-2">
+                          <button
+                            className="bg-white/90 backdrop-blur-sm rounded-full p-1 shadow-lg hover:bg-white transition-colors z-10 group-hover:scale-110"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              router.push(`/gigs/edit/${gig._id}`);
                             }}
-                            onClick={() => router.push(`/gigs/edit/${gig._id}`)}
-                          />
-                          <DeleteOutlineOutlinedIcon
-                            sx={{
-                              color: "#666",
-                              cursor: "pointer",
-                              "&:hover": {
-                                color: "#d32f2f",
-                              },
+                          >
+                            <EditIcon className="w-5 h-5 text-gray-700 hover:text-green-400 cursor-pointer transition-colors" />
+                          </button>
+                          <button
+                            className="bg-white/90 backdrop-blur-sm rounded-full p-1 shadow-lg hover:bg-white transition-colors z-10 group-hover:scale-110"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteModalClick(gig?._id);
                             }}
-                            onClick={() => handleDeleteModalClick(gig?._id)}
-                          />
-                        </Box>
+                          >
+                            <DeleteOutlineOutlinedIcon className="w-5 h-5 text-gray-700 hover:text-red-400 cursor-pointer transition-colors" />
+                          </button>
+                          <button className="bg-white/90 backdrop-blur-sm rounded-full p-1 shadow-lg hover:bg-white transition-colors z-10 group-hover:scale-110">
+                            <FavoriteBorderOutlined className="w-5 h-5 text-gray-700" />
+                          </button>
+                        </div>
                       )}
-                    </Box>
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      className="descClamp"
-                      mb={"12px"}
-                    >
-                      {gig.description}
-                    </Typography>
-                    <Box mb={1}>
-                      <Chip
-                        label={gig.tier}
-                        size="small"
-                        className="chipBlack"
-                      />
-                    </Box>
-                    <Typography variant="subtitle1" fontWeight={600}>
-                      $ {gig.price}
-                    </Typography>
-                  </CardContent>
+                    </div>
+                  </div>
 
-                  <CardActions
-                    sx={{ px: 2, pb: 2, justifyContent: "space-between" }}
-                  >
-                    <Box display="flex" alignItems="center" gap={1}>
-                      <Avatar
-                        src={gig.createdBy.profilePicture}
-                        alt={gig.createdBy.fullName}
-                      />
-                      {/* <Typography variant="body2">{!isProvider?gig.provider.name:gig.user.name}</Typography> */}
-                      <Typography variant="body2">
-                        {gig.createdBy.fullName}
-                      </Typography>
-                      {/* <Box>
-                    <Box display="flex" alignItems="center" gap={0.5}>
-                      <Rating
-                        value={gig.rating}
-                        precision={0.5}
-                        readOnly
-                        size="small"
-                      />
-                      <Typography variant="caption">({gig.reviews})</Typography>
-                    </Box>
-                  </Box> */}
-                    </Box>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      className="viewBtn"
-                      onClick={() =>
-                        router.push(`/${isSelf ? "myGigs" : "gigs"}/${gig._id}`)
-                      }
-                    >
-                      View
-                    </Button>
-                  </CardActions>
-                </Card>
+                  {/* Image */}
+                  <div className="aspect-[4/3] overflow-hidden">
+                    <Image
+                      src={gig.gigImage?.url || "/noImageFound.png"}
+                      alt={gig.title}
+                      width={400}
+                      height={300}
+                      className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500"
+                    />
+                  </div>
+
+                  {/* Hover overlay with text */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent transition-opacity duration-300">
+                    <div className="absolute bottom-6 left-6 right-6">
+                      <p className="text-sm text-gray-200 line-clamp-2 mb-3">
+                        {gig.description}
+                      </p>
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <span className="px-3 py-1 text-xs font-medium text-green-600 bg-green-100 rounded-full">
+                            {gig.tier}
+                          </span>
+                          <span className="text-white font-semibold">
+                            ${gig.price}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full overflow-hidden">
+                            <Image
+                              src={
+                                gig.createdBy.profilePicture ||
+                                "/default-avatar.png"
+                              }
+                              alt={gig.createdBy.fullName}
+                              width={32}
+                              height={32}
+                              className="object-cover w-full h-full"
+                            />
+                          </div>
+                          <span className="text-sm text-gray-200">
+                            {gig.createdBy.fullName}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </Grid>
             ))}
         <Dialog
@@ -902,6 +899,9 @@ const StyledWrapper = styled(Box)(({ theme }) => ({
     "&:hover": {
       transform: "translateY(-4px)",
       boxShadow: 6,
+      "&::before": {
+        backgroundColor: "rgba(255, 255, 255, 0.8)",
+      },
     },
   },
   ".descClamp": {

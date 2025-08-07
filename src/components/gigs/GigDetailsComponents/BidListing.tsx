@@ -11,7 +11,7 @@ import CustomNotFound from "@/components/notFoundModals/CustomNotFound";
 import { TableSkeleton } from "./Skeleton";
 import TagList, { TagItem } from "./Taglist";
 
-const BidListing = () => {
+const BidListing = ({ createdByRole }: { createdByRole: string }) => {
   const [gigBids, setGigBids] = useState<Bid[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [pagination, setPagination] = useState({
@@ -76,8 +76,12 @@ const BidListing = () => {
     bidId: string,
     status: "Assigned" | "Not-Assigned"
   ) => {
+    const endPoint =
+      createdByRole === "Provider"
+        ? `gigs/${gigId}/reverseChangeStatus`
+        : `gigs/${gigId}/changeStatus`;
     const res = await apiRequest(
-      `gigs/${gigId}/changeStatus`,
+      endPoint,
       {
         method: "PATCH",
         data: { status, bidId },
@@ -136,7 +140,7 @@ const BidListing = () => {
   return (
     <div>
       <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 flex-1 mb-4">
-        All Bids
+        {createdByRole === "Provider" ? "All Requests" : "All Bids"}
       </h1>
       {renderFilterSection()}
       <TagList
@@ -196,8 +200,8 @@ const BidListing = () => {
           }
           desc={
             !selectedBudget && !selectedRating
-              ? "No bids have been placed for this gig yet."
-              : "No bids found matching the selected filters."
+              ? `No ${createdByRole === "Provider" ? "requests" : "bids"} have been placed for this gig yet.`
+              : `No ${createdByRole === "Provider" ? "requests" : "bids"} found matching the selected filters.`
           }
         />
       )}

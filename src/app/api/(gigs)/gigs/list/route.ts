@@ -24,6 +24,7 @@ export async function GET(req: NextRequest) {
   const limit = parseInt(searchParams.get("limit") || "10");
   const sort = searchParams.get("sort") || "";
   const userId = searchParams.get("userId");
+  const createdByRole = searchParams.get("createdByRole");
 
   const sortMap: Record<string, Record<string, 1 | -1>> = {
     "Pricing: High to Low": { price: -1 },
@@ -38,16 +39,22 @@ export async function GET(req: NextRequest) {
 
   const query: FilterQuery<GigDocument> = {};
 
-  if (userDetails?.role && ["user", "provider"].includes(userDetails?.role.toLowerCase())) {
-    query.createdByRole = userDetails?.role.toLowerCase() === 'user' ? 'Provider' : 'User';
+  if (
+    userDetails?.role &&
+    ["user", "provider"].includes(userDetails?.role.toLowerCase())
+  ) {
+    query.$or = [
+      {
+        createdByRole:
+          userDetails?.role.toLowerCase() === "user" ? "Provider" : "User",
+      },
+      { createdBy: userDetails.userId },
+    ];
   }
 
   if (userId) {
     query.createdBy = userId;
-  } else {
-    if (userDetails?.userId && userDetails?.role) {
-      query.createdBy = { $ne: userDetails.userId };
-    }
+    query.createdByRole = createdByRole;
   }
 
   if (tierParams.length > 0) {
@@ -81,7 +88,7 @@ export async function GET(req: NextRequest) {
     query.reviews = { $gte: Number(minReviews) };
   }
 
-  query.status = "Open";
+  query.status = { $in: ["Open", "Requested"] };
   const skip = (page - 1) * limit;
 
   const [gigsRaw, total] = await Promise.all([
@@ -116,8 +123,7 @@ export async function GET(req: NextRequest) {
 
       const profile = profileMap.get(userIdStr);
 
-    const ratings = await Rating.find({ gigId: gig._id })
-      .lean();
+      const ratings = await Rating.find({ gigId: gig._id }).lean();
       const totalRatings = ratings.length;
       const averageRating =
         totalRatings > 0
