@@ -5,6 +5,7 @@ import Gigs from "@/app/models/gig";
 import mongoose from "mongoose";
 import { verifyToken } from "@/app/utils/jwt";
 import { successResponse, withApiHandler } from "@/app/lib/commonHandlers";
+import { ApiError } from "@/app/lib/commonError";
 
 export const GET = withApiHandler(async (req: NextRequest): Promise<NextResponse> => {
   await dbConnect();
@@ -13,7 +14,7 @@ export const GET = withApiHandler(async (req: NextRequest): Promise<NextResponse
   const userId = String(userDetails.userId);
 
   if (!mongoose.Types.ObjectId.isValid(userId)) {
-    throw new Error("Invalid user ID");
+    throw new ApiError("Invalid user ID");
   }
 
   const userObjectId = new mongoose.Types.ObjectId(userId);

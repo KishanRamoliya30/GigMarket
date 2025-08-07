@@ -18,7 +18,7 @@ import { styled } from "@mui/material/styles";
 
 const menuItems = [
   { label: "Dashboard", icon: <DashboardIcon />, path: "/admin" },
-  { label: "Manage Posts", icon: <PostAddIcon />, path: "/admin/manage-posts" },
+  { label: "Manage Gigs", icon: <PostAddIcon />, path: "/admin/manage-posts" },
   { label: "User Ban", icon: <BlockIcon />, path: "/admin/user-ban" },
   {
     label: "User Management",
