@@ -95,6 +95,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: null
   },
+  stripeConnectAccountStatus:{
+    type: String,
+    default: null
+  }
 });
 
 const User = mongoose.models.users || mongoose.model("users", userSchema);
