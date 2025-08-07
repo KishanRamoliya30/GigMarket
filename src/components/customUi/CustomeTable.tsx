@@ -4,6 +4,8 @@ import React from "react";
 import { addEllipsis } from "../../../utils/common";
 import { useRouter } from "next/navigation";
 import { getStatusStyles } from "../../../utils/constants";
+import { IconButton } from "@mui/material";
+import ChatIcon from "@mui/icons-material/Chat";
 
 interface Raw {
   _id: string | number;
@@ -17,14 +19,17 @@ interface CustomeTableProps {
     id: string,
     status: "Assigned" | "Not-Assigned"
   ) => void;
+  openChatModal?: (userId: string) => void;
 }
 
 const CustomeTable = ({
   raws,
   columns,
   handleBidStatusChange,
+  openChatModal
 }: CustomeTableProps) => {
   const router = useRouter();
+
   const handleCellValue = (raw: any, column: Column): React.ReactNode => {
     const value = raw[column.key as keyof typeof raw];
     switch (column.type) {
@@ -117,6 +122,13 @@ const CustomeTable = ({
           </div>
         );
 
+      case "chat":
+        return (
+          <IconButton aria-label="chat" onClick={() => openChatModal?.(raw.createdBy._id)}>
+            <ChatIcon />
+          </IconButton>
+        );
+
       default:
         return typeof value === "string" ? addEllipsis(value, 35) : value;
     }
@@ -147,13 +159,13 @@ const CustomeTable = ({
               {raws.map((raw) => (
                 <tr
                   key={raw._id}
-                  className="hover:bg-gray-100 dark:hover:bg-gray-700"
+                  className="hover:bg-gray-600 dark:hover:bg-gray-700"
                 >
                   {columns.map((column) => {
                     return (
                       <td
                         key={column.id}
-                        className="px-3 sm:px-4 md:px-6 py-2 sm:py-4 text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-100 break-words"
+                        className="px-3 sm:px-4 md:px-6 py-2 sm:py-4 text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-600 break-words"
                       >
                         {handleCellValue(raw, column)}
                       </td>

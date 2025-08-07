@@ -25,5 +25,6 @@ export const bidColumns = [
   { id: 2, label: "Description", key: "description" },
   { id: 3, label: "Amount", key: "bidAmount", type: "amount" },
   { id: 4, label: "Date", key: "createdAt", type: "date" },
-  { id: 5, label: "Status", key: "status", type: "bidStatus" },
+  { id: 5, label: "Chat", key: "_id", type: "chat" },
+  { id: 6, label: "Status", key: "status", type: "bidStatus" },
 ];

@@ -1,3 +1,5 @@
+"use client";
+
 import { apiRequest } from "@/app/lib/apiCall";
 import { Bid } from "@/app/utils/interfaces";
 import CustomeTable from "@/components/customUi/CustomeTable";
@@ -10,24 +12,33 @@ import CustomPagination from "@/components/cardList/Pagination";
 import CustomNotFound from "@/components/notFoundModals/CustomNotFound";
 import { TableSkeleton } from "./Skeleton";
 import TagList, { TagItem } from "./Taglist";
+import { ChatModal } from "@/app/(protected)/chatModal/page";
+import { useUser } from "@/context/UserContext";
 
 const BidListing = () => {
   const [gigBids, setGigBids] = useState<Bid[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+
   const [pagination, setPagination] = useState({
     total: 0,
     page: 1,
     limit: 5,
     totalPages: 0,
   });
+
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState("Recently Added");
   const [selectedRating, setSelectedRating] = useState("");
   const [selectedBudget, setSelectedBudget] = useState("");
   const [customMin, setCustomMin] = useState("");
   const [customMax, setCustomMax] = useState("");
+
   const params = useParams();
   const { gigId } = params;
+
+  const {user} = useUser();
 
   useEffect(() => {
     getGigBids();
@@ -98,8 +109,17 @@ const BidListing = () => {
     setPage(1);
   };
 
-  const renderFilterSection = () => {
-    return (
+  const openChatWithUser = (userId: string) => {
+    setSelectedUserId(userId);
+    setIsChatOpen(true);
+  };
+
+  return (
+    <div>
+      <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 flex-1 mb-4">
+        All Bids
+      </h1>
+
       <div className="flex flex-raw items-center gap-3 mb-4">
         <FilterDropDown
           title="Rating"
@@ -118,7 +138,6 @@ const BidListing = () => {
           setCustomMin={setCustomMin}
           setCustomMax={setCustomMax}
         />
-
         <div className="flex flex-raw items-center ml-auto">
           <p className="mr-2 font-semibold text-gray-800">Sort by:</p>
           <FilterDropDown
@@ -131,14 +150,8 @@ const BidListing = () => {
           />
         </div>
       </div>
-    );
-  };
-  return (
-    <div>
-      <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 flex-1 mb-4">
-        All Bids
-      </h1>
-      {renderFilterSection()}
+
+      {/* Active Filter Tags */}
       <TagList
         tags={
           [
@@ -180,6 +193,7 @@ const BidListing = () => {
           raws={gigBids}
           columns={bidColumns}
           handleBidStatusChange={handleBidStatusChange}
+          openChatModal={(userId: string) => openChatWithUser(userId)}
         />
       ) : (
         <CustomNotFound
@@ -209,6 +223,16 @@ const BidListing = () => {
             onPageChange={setPage}
           />
         </div>
+      )}
+      
+      {selectedUserId && user?._id && (
+        <ChatModal
+          open={isChatOpen}
+          onClose={() => setIsChatOpen(false)}
+          gigId={gigId as string}
+          user1Id={user._id}
+          user2Id={selectedUserId}
+        />
       )}
     </div>
   );

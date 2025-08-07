@@ -16,9 +16,7 @@ export const POST = withApiHandler(
     await dbConnect();
 
     const gigId = (await params).gigId;
-    if (!gigId) {
-      throw new ApiError("Gig ID is required", 400);
-    }
+    if (!gigId) throw new ApiError("Gig ID is required", 400);
 
     const userHeader = req.headers.get("x-user");
     if (!userHeader) throw new ApiError("Unauthorized request", 401);
@@ -66,13 +64,27 @@ export const POST = withApiHandler(
       throw new ApiError("Missing or invalid required fields", 400);
     }
 
+    let chat = await Chat.findOne({
+      gigId,
+      participants: { $all: [gig.createdBy, user._id] },
+    });
+
+    if (!chat) {
+      chat = await Chat.create({
+        gigId,
+        participants: [gig.createdBy, user._id],
+        createdBy: user._id,
+      });
+    }
+
     const data = {
       gigId: gigId,
       createdBy: user._id,
       bidAmount: Number(bidAmount),
       description: description.trim(),
       status: "Requested",
-      bidAmountType: bidAmountType,
+      bidAmountType,
+      chatId: chat._id,
     };
 
     placeBidSchema.parse(data);
@@ -81,19 +93,6 @@ export const POST = withApiHandler(
     if (gig.status === "Open") {
       gig.status = "Requested";
       await gig.save();
-    }
-
-    const existingChat = await Chat.findOne({
-      gigId,
-      participants: { $all: [gig.createdBy, user._id] },
-    });
-
-    if (!existingChat) {
-      await Chat.create({
-        gigId,
-        participants: [gig.createdBy, user._id],
-        createdBy: user._id,
-      });
     }
 
     return successResponse(bid, "Bid placed successfully", 201);

@@ -68,7 +68,6 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/react-slick": "^0.23.13",
-    "@types/socket.io-client": "^1.4.36",
     "@types/stripe": "^8.0.416",
     "@types/swagger-jsdoc": "^6.0.4",
     "eslint": "^9",

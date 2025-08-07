@@ -35,9 +35,14 @@ app.prepare().then(async () => {
       console.log(`Socket ${socket.id} joined chat ${chatId}`);
     });
 
-    socket.on("message", async ({ chatId, senderId, text }) => {
+    socket.on("leave", (chatId) => {
+      socket.leave(chatId);
+      console.log(`Socket ${socket.id} left chat ${chatId}`);
+    });
+
+    socket.on("message", async ({ chatId, sender, message }) => {
       try {
-        const newMessage = await Message.create({ chatId, senderId, text });
+        const newMessage = await Message.create({ chatId, sender, message });
 
         await Chat.findByIdAndUpdate(chatId, {
           lastMessage: newMessage._id,
@@ -47,6 +52,20 @@ app.prepare().then(async () => {
         io.to(chatId).emit("newMessage", newMessage);
       } catch (err) {
         console.error("Message send error:", err);
+      }
+    });
+
+    socket.on("mark-seen", async ({ chatId, userId }) => {
+      try {
+        const unseenMessages = await Message.find({ chatId, seenBy: { $ne: userId } });
+
+        for (const msg of unseenMessages) {
+          msg.seenBy.push(userId);
+          await msg.save();
+          io.to(chatId).emit("seen-update", { messageId: msg._id, userId });
+        }
+      } catch (err) {
+        console.error("Seen update error:", err);
       }
     });
 

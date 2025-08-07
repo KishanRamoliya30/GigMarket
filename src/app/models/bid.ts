@@ -11,6 +11,10 @@ const BidSchema = new Schema(
       enum: ["Requested", "Assigned", "Not-Assigned"],
       default: "Requested",
     },
+    chatId: {
+      type: Schema.Types.ObjectId,
+      ref: "Chat",
+    }
   },
   {
     timestamps: true,
