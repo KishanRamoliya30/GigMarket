@@ -78,6 +78,7 @@ const PostGigReviewDialog: React.FC<Props> = ({
       interface Payload {
         gigId: string;
         createdBy: string | undefined;
+        providerId: string | undefined;
         rating: number | null;
         review: string;
         status: string;
@@ -90,7 +91,8 @@ const PostGigReviewDialog: React.FC<Props> = ({
 
       const payload: Payload = {
         gigId: data._id,
-        createdBy: user?._id,
+        createdBy: data.userId,
+        providerId: user?._id,
         rating: values.rating,
         review: values.review,
         status: pendingStatus,

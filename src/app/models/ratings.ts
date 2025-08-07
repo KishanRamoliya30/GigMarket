@@ -23,6 +23,11 @@ const ratingSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
+  providerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
   rating: {
     type: Number,
     min: 1,
