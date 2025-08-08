@@ -1,5 +1,3 @@
-"use client";
-
 import { apiRequest } from "@/app/lib/apiCall";
 import { Bid } from "@/app/utils/interfaces";
 import CustomeTable from "@/components/customUi/CustomeTable";
@@ -130,12 +128,8 @@ const BidListing = ({ createdByRole }: { createdByRole: string }) => {
     setIsChatOpen(true);
   };
 
-  return (
-    <div>
-      <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 flex-1 mb-4">
-        All Bids
-      </h1>
-
+  const renderFilterSection = () => {
+    return (
       <div className="flex flex-raw items-center gap-3 mb-4">
         <FilterDropDown
           title="Rating"
@@ -154,6 +148,7 @@ const BidListing = ({ createdByRole }: { createdByRole: string }) => {
           setCustomMin={setCustomMin}
           setCustomMax={setCustomMax}
         />
+
         <div className="flex flex-raw items-center ml-auto">
           <p className="mr-2 font-semibold text-gray-800">Sort by:</p>
           <FilterDropDown
@@ -166,8 +161,14 @@ const BidListing = ({ createdByRole }: { createdByRole: string }) => {
           />
         </div>
       </div>
-
-      {/* Active Filter Tags */}
+    );
+  };
+  return (
+    <div>
+      <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 flex-1 mb-4">
+        {createdByRole === "Provider" ? "All Requests" : "All Bids"}
+      </h1>
+      {renderFilterSection()}
       <TagList
         tags={
           [
