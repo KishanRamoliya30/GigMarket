@@ -40,22 +40,36 @@ app.prepare().then(async () => {
       console.log(`Socket ${socket.id} left chat ${chatId}`);
     });
 
-    socket.on("message", async ({ chatId, sender, message }) => {
-      try {
-        console.log("#####68")
-        const newMessage = await Message.create({ chatId, sender, message });
+    // socket.on("message", async ({ chatId, sender, message }) => {
+    //   try {
+    //     const newMessage = await Message.create({ chatId, sender, message });
 
-        await Chat.findByIdAndUpdate(chatId, {
-          lastMessage: newMessage._id,
-          updatedAt: Date.now(),
-        });
+    //     await Chat.findByIdAndUpdate(chatId, {
+    //       lastMessage: newMessage._id,
+    //       updatedAt: Date.now(),
+    //     });
 
-        io.to(chatId).emit("newMessage", newMessage);
-      } catch (err) {
-        console.error("Message send error:", err);
-      }
+    //     io.to(chatId).emit("newMessage", newMessage);
+    //   } catch (err) {
+    //     console.error("Message send error:", err);
+    //   }
+    // });
+
+
+    socket.on("message", async ({ chatId, message }) => {
+      io.to(chatId).emit("newMessage", message);
+      // try {
+      //   const newMessage = await Message.create({ chatId, sender, message });
+
+      //   await Chat.findByIdAndUpdate(chatId, {
+      //     lastMessage: newMessage._id,
+      //     updatedAt: Date.now(),
+      //   });
+
+      // } catch (err) {
+      //   console.error("Message send error:", err);
+      // }
     });
-
     socket.on("mark-seen", async ({ chatId, userId }) => {
       try {
         const unseenMessages = await Message.find({ chatId, seenBy: { $ne: userId } });

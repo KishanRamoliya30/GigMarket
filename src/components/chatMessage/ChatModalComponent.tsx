@@ -16,9 +16,18 @@ import { useUser } from "@/context/UserContext";
 import { ChatModalProps } from "@/app/(protected)/chatModal/page";
 import CustomTextField from "../customUi/CustomTextField";
 
-interface Message {
+interface UserProfile {
   _id: string;
-  sender: string;
+  email: string;
+  profile: {
+    fullName: string;
+    profilePicture: string;
+  };
+}
+
+export interface Message {
+  _id: string;
+  sender: UserProfile; 
   chatId: string;
   message: string;
   seenBy: string[];
@@ -49,7 +58,6 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
 
       if (res.success) {
         const chat = res.data.data.chat;
-        console.log("######65", chat, res)
         setChatId(chat._id);
         setMessages(res.data.data.messages);
 
@@ -62,14 +70,7 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
   };
 
   const sendMessage = async () => {
-    // if (!newMessage.trim()) return;
-
-        console.log("######66", {
-          chatId,
-          sender: currentUserId,
-          message: newMessage,
-        })
-
+    if (!newMessage.trim()) return;
     try {
       const res = await apiRequest("message", {
         method: "POST",
@@ -81,8 +82,13 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
       });
 
       if (res.success) {
-        socket.emit("message", res.data.data.message);
-        setMessages((prev) => [...prev, res.data.message]);
+        const messageData = res.data.data;
+        socket.emit("message", {
+          chatId: messageData.chatId,
+          message: messageData,
+        });
+        // socket.emit("message", res.data.data.message);
+        // setMessages((prev) => [...prev, res.data.data]);
         setNewMessage("");
       }
     } catch (error) {
@@ -102,7 +108,6 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
     socket.on("newMessage", (message: Message) => {
       if (message.chatId === chatId) {
         setMessages((prev) => [...prev, message]);
-        console.log("######67", JSON.stringify({ chatId: message.chatId, userId: user1Id }))
         socket.emit("mark-seen", { chatId: message.chatId, userId: user1Id });
       }
     });
@@ -134,31 +139,66 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
           <CloseIcon />
         </IconButton>
       </DialogTitle>
-
       <DialogContent className="h-96 overflow-y-auto space-y-3">
-        {messages.length === 0 ? (
-          <p className="text-gray-500 text-center mt-10">No messages yet</p>
-        ) : (
-          messages.map((msg) => (
+  {messages.length === 0 ? (
+    <p className="text-gray-500 text-center mt-10">No messages yet</p>
+  ) : (
+    messages.map((msg) => {
+      const isCurrentUser = msg.sender._id === currentUserId;
+
+      return (
+        <div
+          key={msg._id}
+          className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
+        >
+          {!isCurrentUser && (
+            <img
+              src={
+                msg.sender.profile?.profilePicture || "/default-avatar.png"
+              }
+              alt={msg.sender.profile?.fullName || "Sender"}
+              className="w-8 h-8 rounded-full mr-2 self-end"
+            />
+          )}
+          <div>
+            {!isCurrentUser && (
+              <div className="text-sm text-gray-600 font-medium mb-1">
+                {msg.sender.profile?.fullName}
+              </div>
+            )}
             <div
-              key={msg._id}
-              className={`p-2 rounded-md max-w-xs ${
-                msg.sender === user1Id
-                  ? "bg-blue-100 self-end ml-auto"
-                  : "bg-gray-200"
+              className={`p-2 rounded-md max-w-xs break-words ${
+                isCurrentUser
+                  ? "bg-blue-100 text-right ml-auto"
+                  : "bg-gray-200 text-left"
               }`}
             >
               <p>{msg.message}</p>
-              <span className="text-xs text-gray-500">
-                {new Date(msg.createdAt).toLocaleTimeString()}
-                {msg.sender === user1Id &&
-                  msg.seenBy.includes(currentUserId) &&
-                  " ✓✓"}
-              </span>
+              <div className="text-xs text-gray-500 mt-1 flex items-center gap-1 justify-end">
+                {new Date(msg.createdAt).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+                {isCurrentUser &&
+                  msg.seenBy?.length > 1 && ( // seen by someone else too
+                    <span className="text-blue-500">✓✓</span>
+                  )}
+              </div>
             </div>
-          ))
-        )}
-      </DialogContent>
+          </div>
+          {isCurrentUser && (
+            <img
+              src={user?.profile?.profilePicture || "/default-avatar.png"}
+              alt="You"
+              className="w-8 h-8 rounded-full ml-2 self-end"
+            />
+          )}
+        </div>
+      );
+    })
+  )}
+</DialogContent>
+
 
       <div className="p-4 flex items-center gap-2">
         <Box style={{ width: "100%", marginBottom: "-16px" }}>

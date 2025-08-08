@@ -2,16 +2,13 @@ import { apiRequest } from "@/app/lib/apiCall";
 import { Bid, Gig } from "@/app/utils/interfaces";
 import CustomTextField from "@/components/customUi/CustomTextField";
 import { useUser } from "@/context/UserContext";
-import {
-  Circle,
-  DollarSign,
-  FileText,
-  Gavel,
-  Loader2,
-} from "lucide-react";
+import { Circle, DollarSign, FileText, Gavel, Loader2 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { getStatusColor } from "../../../../utils/constants";
+import { IconButton } from "@mui/material";
+import ChatIcon from "@mui/icons-material/Chat";
+import ChatModal from "@/app/(protected)/chatModal/page";
 
 const SubmitBid = ({
   gigDetails,
@@ -29,6 +26,7 @@ const SubmitBid = ({
   const pathname = usePathname();
   const router = useRouter();
   const [error, setError] = useState({ bidAmount: "", bidComment: "" });
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   useEffect(() => {
     setError((prev) => ({
@@ -43,6 +41,10 @@ const SubmitBid = ({
       bidComment: "",
     }));
   }, [bidComment]);
+
+  const openChatModal = () => {
+    setIsChatOpen(true);
+  };
 
   function showPlacedBid() {
     return (
@@ -77,6 +79,12 @@ const SubmitBid = ({
                 <span className="text-sm font-medium ml-1">/ hour</span>
               )}
             </span>
+            <IconButton
+              aria-label="chat"
+              onClick={() => openChatModal()}
+            >
+              <ChatIcon />
+            </IconButton>
           </div>
         </div>
         <div className="bg-gray-50 rounded-lg p-4">
@@ -123,9 +131,7 @@ const SubmitBid = ({
         >
           <Gavel className="w-6 h-6 z-10 group-hover:animate-bounce" />
           <span className="relative z-10 text-md">
-            {gigDetails?.createdByRole === "Provider"
-              ? "Request"
-              : "Place Bid"}
+            {gigDetails?.createdByRole === "Provider" ? "Request" : "Place Bid"}
           </span>
         </button>
         <style jsx>{`
@@ -316,7 +322,17 @@ const SubmitBid = ({
     });
   }
 
-  return <div>{getBidBox()}</div>;
+  return (
+    <div>
+      {getBidBox()}
+      <ChatModal
+        open={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        gigId={gigDetails?._id as string}
+        user1Id={gigDetails?.createdBy?._id as string}
+      />
+    </div>
+  );
 };
 
 export default SubmitBid;
