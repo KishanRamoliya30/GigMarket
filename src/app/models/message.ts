@@ -11,15 +11,15 @@ export interface MessageDocument extends Document {
 
 const MessageSchema = new Schema<MessageDocument>(
   {
-    chatId: { type: Schema.Types.ObjectId, ref: "Chat", required: true },
-    sender: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    chatId: { type: Schema.Types.ObjectId, ref: "chats", required: true },
+    sender: { type: Schema.Types.ObjectId, ref: "users", required: true },
     message: { type: String, required: true },
-    seenBy: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    seenBy: [{ type: Schema.Types.ObjectId, ref: "users" }],
   },
   { timestamps: true }
 );
 
 const Message =
-  models.Message || model<MessageDocument>("Message", MessageSchema);
+  models.messages || model<MessageDocument>("messages", MessageSchema);
 
 export default Message;

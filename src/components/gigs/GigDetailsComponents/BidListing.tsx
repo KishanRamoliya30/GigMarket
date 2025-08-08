@@ -12,8 +12,7 @@ import CustomPagination from "@/components/cardList/Pagination";
 import CustomNotFound from "@/components/notFoundModals/CustomNotFound";
 import { TableSkeleton } from "./Skeleton";
 import TagList, { TagItem } from "./Taglist";
-import { ChatModal } from "@/app/(protected)/chatModal/page";
-import { useUser } from "@/context/UserContext";
+import ChatModal from "@/app/(protected)/chatModal/page";
 
 const BidListing = () => {
   const [gigBids, setGigBids] = useState<Bid[]>([]);
@@ -37,8 +36,6 @@ const BidListing = () => {
 
   const params = useParams();
   const { gigId } = params;
-
-  const {user} = useUser();
 
   useEffect(() => {
     getGigBids();
@@ -224,14 +221,13 @@ const BidListing = () => {
           />
         </div>
       )}
-      
-      {selectedUserId && user?._id && (
+
+      {selectedUserId && (
         <ChatModal
           open={isChatOpen}
           onClose={() => setIsChatOpen(false)}
           gigId={gigId as string}
-          user1Id={user._id}
-          user2Id={selectedUserId}
+          user1Id={selectedUserId}
         />
       )}
     </div>

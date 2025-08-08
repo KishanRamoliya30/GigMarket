@@ -42,6 +42,7 @@ app.prepare().then(async () => {
 
     socket.on("message", async ({ chatId, sender, message }) => {
       try {
+        console.log("#####68")
         const newMessage = await Message.create({ chatId, sender, message });
 
         await Chat.findByIdAndUpdate(chatId, {

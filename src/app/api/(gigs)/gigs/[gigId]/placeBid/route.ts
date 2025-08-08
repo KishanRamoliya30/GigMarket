@@ -6,7 +6,6 @@ import { ApiError } from "@/app/lib/commonError";
 import { successResponse, withApiHandler } from "@/app/lib/commonHandlers";
 import { placeBidSchema } from "@/utils/beValidationSchema";
 import User from "@/app/models/user";
-import Chat from "@/app/models/chat";
 
 export const POST = withApiHandler(
   async (
@@ -64,19 +63,6 @@ export const POST = withApiHandler(
       throw new ApiError("Missing or invalid required fields", 400);
     }
 
-    let chat = await Chat.findOne({
-      gigId,
-      participants: { $all: [gig.createdBy, user._id] },
-    });
-
-    if (!chat) {
-      chat = await Chat.create({
-        gigId,
-        participants: [gig.createdBy, user._id],
-        createdBy: user._id,
-      });
-    }
-
     const data = {
       gigId: gigId,
       createdBy: user._id,
@@ -84,7 +70,6 @@ export const POST = withApiHandler(
       description: description.trim(),
       status: "Requested",
       bidAmountType,
-      chatId: chat._id,
     };
 
     placeBidSchema.parse(data);

@@ -10,11 +10,11 @@ export interface ChatDocument extends Document {
 
 const ChatSchema = new Schema<ChatDocument>(
   {
-    gigId: { type: Schema.Types.ObjectId, ref: "Gig", required: true },
+    gigId: { type: Schema.Types.ObjectId, ref: "gigs", required: true },
     participants: [
-      { type: Schema.Types.ObjectId, ref: "User", required: true },
+      { type: Schema.Types.ObjectId, ref: "users", required: true },
     ],
-    lastMessage: { type: Schema.Types.ObjectId, ref: "Message" },
+    lastMessage: { type: Schema.Types.ObjectId, ref: "messages", default: null },
   },
   { timestamps: true }
 );
