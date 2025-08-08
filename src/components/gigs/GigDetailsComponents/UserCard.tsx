@@ -86,11 +86,11 @@ const UserCard = ({ gigDetails }: { gigDetails: Gig }) => {
 
         {gigDetails.createdByRole === "Provider" && (
           <button
-            className="w-[75%] mr-auto ml-auto mt-4 bg-emerald-800 hover:bg-emerald-900 shadow hover:shadow-md text-white border border-emerald-100 hover:border-emerald-200 font-medium py-2 px-4 rounded-lg flex items-center justify-center space-x-3 transition-colors group cursor-pointer"
+           className="group relative w-fit flex items-center justify-center gap-2 px-8 py-2.5 bg-gradient-to-br from-emerald-600 to-emerald-800 hover:from-emerald-700 hover:to-emerald-900 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-[1.02] hover:shadow-xl active:scale-[0.98] before:absolute before:inset-0 before:bg-white/10 before:rounded-xl before:opacity-0 before:transition hover:before:opacity-100 overflow-hidden cursor-pointer ml-auto mr-auto"
             onClick={() => router.push("/chat")}
           >
-            <MessageSquare className="w-4 h-4 group-hover:scale-110 transition-transform" />
-            <span>Contact</span>
+            <MessageSquare className="w-4 h-4 group-hover:animate-ping " />
+            <span className="animate-draw">Contact</span>
           </button>
         )}
       </div>

@@ -14,7 +14,7 @@ export default function PaymentPage() {
   return (
     <StyledWrapper>
       <Elements stripe={stripePromise}>
-        <PaymentForm amount={1000} gigId={"688f4d976f375ae32d5fcfd1"} userId={user?._id ?? ""} refId={"6878eac0e9071cc473f1c91f"} gigTitle={"Test"} gigDescription={"Test"}/>
+        <PaymentForm amount={125.25} gigId={"6893153df91c9998340e8c1b"} userId={user?._id ?? ""} refId={"6878eac0e9071cc473f1c91f"} gigTitle={"Test"} gigDescription={"Test"}/>
       </Elements>
     </StyledWrapper>
   );

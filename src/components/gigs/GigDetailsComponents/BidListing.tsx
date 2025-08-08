@@ -14,7 +14,7 @@ import { TableSkeleton } from "./Skeleton";
 import TagList, { TagItem } from "./Taglist";
 import ChatModal from "@/app/(protected)/chatModal/page";
 
-const BidListing = () => {
+const BidListing = ({ createdByRole }: { createdByRole: string }) => {
   const [gigBids, setGigBids] = useState<Bid[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -84,11 +84,30 @@ const BidListing = () => {
     bidId: string,
     status: "Assigned" | "Not-Assigned"
   ) => {
+    const endPoint =
+      createdByRole === "Provider"
+        ? `gigs/${gigId}/reverseChangeStatus`
+        : `gigs/${gigId}/changeStatus`;
+    let data: {
+      status: "Assigned" | "Not-Assigned";
+      bidId: string;
+      clientId?: string;
+    } = { status, bidId };
+    if (createdByRole === "Provider") {
+      data = {
+        status,
+        bidId,
+        clientId:
+          gigBids.length > 0
+            ? gigBids.find((bid) => bid._id === bidId)?.createdBy?._id
+            : "",
+      };
+    }
     const res = await apiRequest(
-      `gigs/${gigId}/changeStatus`,
+      endPoint,
       {
         method: "PATCH",
-        data: { status, bidId },
+        data: data,
       },
       true
     );
@@ -188,7 +207,21 @@ const BidListing = () => {
       ) : gigBids.length > 0 ? (
         <CustomeTable
           raws={gigBids}
-          columns={bidColumns}
+          columns={[
+            ...bidColumns,
+            ...(createdByRole === "Provider"
+              ? [
+                  {
+                    id: 10,
+                    label: "Associated Gig",
+                    key: "associatedOtherGig",
+                    type: "link",
+                    href: "/gigs/",
+                    class: "text-emerald-600 text-md text-underline",
+                  },
+                ]
+              : []),
+          ]}
           handleBidStatusChange={handleBidStatusChange}
           openChatModal={(userId: string) => openChatWithUser(userId)}
         />
@@ -207,8 +240,8 @@ const BidListing = () => {
           }
           desc={
             !selectedBudget && !selectedRating
-              ? "No bids have been placed for this gig yet."
-              : "No bids found matching the selected filters."
+              ? `No ${createdByRole === "Provider" ? "requests" : "bids"} have been placed for this gig yet.`
+              : `No ${createdByRole === "Provider" ? "requests" : "bids"} found matching the selected filters.`
           }
         />
       )}

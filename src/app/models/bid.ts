@@ -11,10 +11,11 @@ const BidSchema = new Schema(
       enum: ["Requested", "Assigned", "Not-Assigned"],
       default: "Requested",
     },
-    chatId: {
+    associatedOtherGig: {
       type: Schema.Types.ObjectId,
-      ref: "Chat",
-    }
+      ref: "Gig",
+      default: null,
+    },
   },
   {
     timestamps: true,
