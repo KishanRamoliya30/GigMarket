@@ -678,35 +678,37 @@ export default function GigListing(props?: { self?: boolean }) {
                   }
                 >
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-black/10 to-transparent transition-opacity duration-300">
-                    <div className="absolute top-0 left-0 right-0 z-10 p-4 flex justify-between items-start">
-                      <h3 className="text-lg font-semibold text-white line-clamp-2 drop-shadow-lg">
+                    <div className="absolute top-0 left-0 right-0 z-10 p-2 sm:p-4 flex justify-between items-start">
+                      <h3 className="text-sm sm:text-base md:text-lg font-semibold text-white line-clamp-2 drop-shadow-lg max-w-[70%]">
                         {gig.title}
                       </h3>
-                      {gig.createdBy?._id === user?._id && (
-                        <div className="flex gap-2">
+                      <div className="flex gap-1 sm:gap-2 shrink-0">
+                        {gig.createdBy?._id === user?._id && (
                           <button
-                            className="bg-white/90 backdrop-blur-sm rounded-full p-1 shadow-lg hover:bg-white transition-colors z-10 group-hover:scale-110"
+                            className="bg-white/90 backdrop-blur-sm rounded-full p-0.5 sm:p-1 shadow-lg hover:bg-white transition-colors z-10 group-hover:scale-110"
                             onClick={(e) => {
                               e.stopPropagation();
                               router.push(`/gigs/edit/${gig._id}`);
                             }}
                           >
-                            <EditIcon className="w-5 h-5 text-gray-700 hover:text-green-400 cursor-pointer transition-colors" />
+                            <EditIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-700 hover:text-green-400 cursor-pointer transition-colors" />
                           </button>
+                        )}
+                        {gig.createdBy?._id === user?._id && (
                           <button
-                            className="bg-white/90 backdrop-blur-sm rounded-full p-1 shadow-lg hover:bg-white transition-colors z-10 group-hover:scale-110"
+                            className="bg-white/90 backdrop-blur-sm rounded-full p-0.5 sm:p-1 shadow-lg hover:bg-white transition-colors z-10 group-hover:scale-110"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDeleteModalClick(gig?._id);
                             }}
                           >
-                            <DeleteOutlineOutlinedIcon className="w-5 h-5 text-gray-700 hover:text-red-400 cursor-pointer transition-colors" />
+                            <DeleteOutlineOutlinedIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-700 hover:text-red-400 cursor-pointer transition-colors" />
                           </button>
-                          <button className="bg-white/90 backdrop-blur-sm rounded-full p-1 shadow-lg hover:bg-white transition-colors z-10 group-hover:scale-110">
-                            <FavoriteBorderOutlined className="w-5 h-5 text-gray-700" />
-                          </button>
-                        </div>
-                      )}
+                        )}
+                        <button className="bg-white/90 backdrop-blur-sm rounded-full p-0.5 sm:p-1 shadow-lg hover:bg-white transition-colors z-10 group-hover:scale-110">
+                          <FavoriteBorderOutlined className="w-4 h-4 sm:w-5 sm:h-5 text-gray-700" />
+                        </button>
+                      </div>
                     </div>
                   </div>
 
@@ -723,23 +725,22 @@ export default function GigListing(props?: { self?: boolean }) {
 
                   {/* Hover overlay with text */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent transition-opacity duration-300">
-                    <div className="absolute bottom-6 left-6 right-6">
-                      <p className="text-sm text-gray-200 line-clamp-2 mb-3">
+                    <div className="absolute bottom-2 sm:bottom-4 md:bottom-6 left-2 sm:left-4 md:left-6 right-2 sm:right-4 md:right-6">
+                      <p className="text-xs sm:text-sm text-gray-200 line-clamp-2 mb-2 sm:mb-3">
                         {gig.description}
                       </p>
 
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <span className="px-3 py-1 text-xs font-medium text-green-600 bg-green-100 rounded-full">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <span className="px-2 py-0.5 sm:px-3 sm:py-1 text-xs font-medium text-green-600 bg-green-100 rounded-full truncate max-w-[100px]">
                             {gig.tier}
                           </span>
-                          <span className="text-white font-semibold">
+                          <span className="text-sm sm:text-base text-white font-semibold">
                             ${gig.price}
                           </span>
                         </div>
-
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full overflow-hidden">
+                        <div className="flex items-center gap-1 sm:gap-2">
+                          <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full overflow-hidden shrink-0">
                             <Image
                               src={
                                 gig.createdBy.profilePicture ||
@@ -751,7 +752,7 @@ export default function GigListing(props?: { self?: boolean }) {
                               className="object-cover w-full h-full"
                             />
                           </div>
-                          <span className="text-sm text-gray-200">
+                          <span className="text-xs sm:text-sm text-gray-200 truncate max-w-[120px]">
                             {gig.createdBy.fullName}
                           </span>
                         </div>

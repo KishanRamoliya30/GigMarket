@@ -2,7 +2,13 @@ import { apiRequest } from "@/app/lib/apiCall";
 import { Bid, Gig } from "@/app/utils/interfaces";
 import CustomTextField from "@/components/customUi/CustomTextField";
 import { useUser } from "@/context/UserContext";
-import { Circle, DollarSign, FileText, Gavel, Loader2 } from "lucide-react";
+import {
+  Circle,
+  DollarSign,
+  FileText,
+  Gavel,
+  Loader2,
+} from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { getStatusColor } from "../../../../utils/constants";
@@ -95,12 +101,79 @@ const SubmitBid = ({
     return gigDetails?.bid ? (
       showPlacedBid()
     ) : !showPlaceBid ? (
-      <button
-        onClick={placebid}
-        className="w-fit bg-emerald-800 hover:bg-emerald-900 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg cursor-pointer"
-      >
-        {gigDetails?.createdByRole === "Provider" ? "Request" : "Place Bid"}
-      </button>
+      <div className="flex flex-col items-center gap-8 bg-gradient-to-br from-emerald-50 to-white p-8 rounded-2xl">
+        <div className="text-center space-y-4">
+          <div className="inline-block p-4 bg-emerald-100 rounded-full mb-4 animate-bounce-slow">
+            <Gavel className="w-8 h-8 text-emerald-600" />
+          </div>
+          <h4 className="text-2xl font-bold text-gray-800 mb-2 animate-slideDown">
+            {gigDetails?.createdByRole === "Provider"
+              ? "Ready to Make Your Request?"
+              : "Ready to Place Your Bid?"}
+          </h4>
+          <p className="text-gray-600 max-w-lg leading-relaxed animate-fadeIn">
+            {gigDetails?.createdByRole === "Provider"
+              ? "Share your requirements and budget to find the perfect provider for your requirements."
+              : "Stand out from other providers by submitting a competitive bid and highlighting your expertise."}
+          </p>
+        </div>
+        <button
+          onClick={placebid}
+          className="group relative w-fit flex items-center justify-center gap-2 px-6 py-2.5 bg-gradient-to-br from-emerald-600 to-emerald-800 hover:from-emerald-700 hover:to-emerald-900 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-[1.02] hover:shadow-xl active:scale-[0.98] cursor-pointer ml-auto mr-auto"
+        >
+          <Gavel className="w-6 h-6 z-10 group-hover:animate-bounce" />
+          <span className="relative z-10 text-md">
+            {gigDetails?.createdByRole === "Provider"
+              ? "Request"
+              : "Place Bid"}
+          </span>
+        </button>
+        <style jsx>{`
+          @keyframes bounce-slow {
+            0%,
+            100% {
+              transform: translateY(0);
+            }
+            50% {
+              transform: translateY(-10px);
+            }
+          }
+          @keyframes wiggle {
+            0%,
+            100% {
+              transform: rotate(0deg);
+            }
+            25% {
+              transform: rotate(-10deg);
+            }
+            75% {
+              transform: rotate(10deg);
+            }
+          }
+          @keyframes slideDown {
+            from {
+              transform: translateY(-20px);
+              opacity: 0;
+            }
+            to {
+              transform: translateY(0);
+              opacity: 1;
+            }
+          }
+          .animate-bounce-slow {
+            animation: bounce-slow 3s infinite;
+          }
+          .animate-wiggle {
+            animation: wiggle 0.3s ease-in-out;
+          }
+          .animate-slideDown {
+            animation: slideDown 0.5s ease-out;
+          }
+          .animate-fadeIn {
+            animation: fadeIn 0.8s ease-out;
+          }
+        `}</style>
+      </div>
     ) : (
       <div className="w-full md:w-[72%] flex flex-col">
         <h2 className="text-xl font-semibold text-gray-800 mb-6">
@@ -183,7 +256,7 @@ const SubmitBid = ({
         <button
           onClick={handleBidSubmit}
           disabled={submitting}
-          className="w-full max-w-[200px] ml-auto mt-1 bg-emerald-800 hover:bg-emerald-900 text-white font-semibold py-3 px-6 cursor-pointer rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          className="group relative w-fit flex items-center justify-center gap-2 px-8 py-3 bg-gradient-to-br from-emerald-600 to-emerald-800 hover:from-emerald-700 hover:to-emerald-900 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-[1.02] hover:shadow-xl active:scale-[0.98] before:absolute before:inset-0 before:bg-white/10 before:rounded-xl before:opacity-0 before:transition hover:before:opacity-100 overflow-hidden cursor-pointer disabled:cursor-not-allowed ml-auto"
         >
           {submitting ? (
             <span className="flex items-center justify-center gap-2">

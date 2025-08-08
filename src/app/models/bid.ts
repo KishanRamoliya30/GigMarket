@@ -11,6 +11,11 @@ const BidSchema = new Schema(
       enum: ["Requested", "Assigned", "Not-Assigned"],
       default: "Requested",
     },
+    associatedOtherGig: {
+      type: Schema.Types.ObjectId,
+      ref: "Gig",
+      default: null,
+    },
   },
   {
     timestamps: true,

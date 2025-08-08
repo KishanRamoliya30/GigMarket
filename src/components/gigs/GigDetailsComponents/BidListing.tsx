@@ -80,11 +80,26 @@ const BidListing = ({ createdByRole }: { createdByRole: string }) => {
       createdByRole === "Provider"
         ? `gigs/${gigId}/reverseChangeStatus`
         : `gigs/${gigId}/changeStatus`;
+    let data: {
+      status: "Assigned" | "Not-Assigned";
+      bidId: string;
+      clientId?: string;
+    } = { status, bidId };
+    if (createdByRole === "Provider") {
+      data = {
+        status,
+        bidId,
+        clientId:
+          gigBids.length > 0
+            ? gigBids.find((bid) => bid._id === bidId)?.createdBy?._id
+            : "",
+      };
+    }
     const res = await apiRequest(
       endPoint,
       {
         method: "PATCH",
-        data: { status, bidId },
+        data: data,
       },
       true
     );
@@ -182,7 +197,21 @@ const BidListing = ({ createdByRole }: { createdByRole: string }) => {
       ) : gigBids.length > 0 ? (
         <CustomeTable
           raws={gigBids}
-          columns={bidColumns}
+          columns={[
+            ...bidColumns,
+            ...(createdByRole === "Provider"
+              ? [
+                  {
+                    id: 10,
+                    label: "Associated Gig",
+                    key: "associatedOtherGig",
+                    type: "link",
+                    href: "/gigs/",
+                    class: "text-emerald-600 text-md text-underline",
+                  },
+                ]
+              : []),
+          ]}
           handleBidStatusChange={handleBidStatusChange}
         />
       ) : (
