@@ -90,16 +90,21 @@ const FilterDropDown: React.FC<FilterDropDownProps> = ({
               {options.map((opt) => (
                 <label
                   key={opt}
-                  className="flex items-center space-x-3 cursor-pointer"
+                  className="flex items-center space-x-2 cursor-pointer"
                 >
                   <input
                     type="radio"
                     value={opt}
                     checked={selectedOption === opt}
                     onChange={(e) => handleOptionChange(e.target.value)}
-                    className="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500 accent-green-600"
+                    className="peer hidden"
                   />
-                  <span className="text-gray-700 font-medium">{opt}</span>
+                  <div className="w-4 h-4 rounded-full border-2 border-green-700 peer-checked:border-green-700 relative">
+                    <div
+                      className={`w-2 h-2 bg-green-700 rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${selectedOption === opt ? "scale-100" : "scale-0"} transition-transform duration-150 ease-in-out`}
+                    ></div>
+                  </div>
+                  <span className="text-sm text-gray-800">{opt}</span>
                 </label>
               ))}
               {rangeOption && selectedOption === rangeOption && (
@@ -108,7 +113,7 @@ const FilterDropDown: React.FC<FilterDropDownProps> = ({
                     {setCustomMin && (
                       <input
                         type="number"
-                        className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                        className="w-full px-3 py-2 text-sm border border-green-700 rounded-md focus:outline-none focus:ring-2 focus:ring-green-700"
                         value={customMin}
                         onChange={(e) => setCustomMin(String(e.target.value))}
                         placeholder="Min ₹"

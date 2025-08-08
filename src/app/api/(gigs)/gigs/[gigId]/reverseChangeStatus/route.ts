@@ -36,7 +36,7 @@ export const PATCH = withApiHandler(
     // check status
     if (status === "Assigned") {
       const plan = client.subscription?.planName || "Free";
-      const clientName = client?.fullName || "Client";
+      const clientName = client?.profile?.fullName || "Client";
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       if (plan === "Free") {
@@ -61,11 +61,12 @@ export const PATCH = withApiHandler(
       }
 
       // check bid description
-      const desc = `Provider(${providerGig.createdBy.fullName}): ${providerGig.description}. \n\n Client(${clientName}): ${clientRequest.description}`;
+      const desc = `Provider(${providerGig.createdBy.firstName + " " + providerGig.createdBy.lastName}): ${providerGig.description}\nClient(${clientName}): ${clientRequest.description}`;
+      const title = `${providerGig.title} - ${clientName}`;
 
       // Create new providerGig from client side
       const clientGigData = {
-        title: providerGig.title,
+        title: title,
         description: desc,
         tier: providerGig.tier,
         price: clientRequest.bidAmount,
@@ -74,7 +75,7 @@ export const PATCH = withApiHandler(
         releventSkills: providerGig.releventSkills,
         certification: providerGig.certification,
         gigImage: providerGig.gigImage,
-        createdByRole: "Client",
+        createdByRole: "User",
         createdBy: client._id,
         status: "Assigned",
         isPublic: false,
@@ -84,9 +85,8 @@ export const PATCH = withApiHandler(
             previousStatus: "",
             currentStatus: "Assigned",
             changedBy: client._id,
-            changedByName:
-              client.profile?.fullName || client.fullName || "Client",
-            changedByRole: "Client",
+            changedByName: clientName || "Client",
+            changedByRole: "User",
             description: "Gig assigned to provider",
             changedAt: new Date(),
           },
@@ -108,12 +108,13 @@ export const PATCH = withApiHandler(
 
       if (clientGig && providerBid) {
         clientRequest.status = status;
+        clientRequest.associatedOtherGig = clientGig._id;
         await clientRequest.save();
       }
 
       return successResponse(
         clientRequest,
-        `Request accepted and new user's gig created with bid assigned to you`
+        `Successfully accepted ${clientName}'s request and created a new gig with bid assigned to you`
       );
     }
 
@@ -130,7 +131,7 @@ interface UserDetails {
 }
 
 const validateUser = async (req: NextRequest): Promise<void> => {
-  const userDetails = await verifyToken(req) as UserDetails;
+  const userDetails = (await verifyToken(req)) as UserDetails;
   if (!userDetails?.userId || !userDetails?.role) {
     throw new ApiError("Unauthorized request", 401);
   }
@@ -141,14 +142,19 @@ const validateProviderGig = async (gigId: string) => {
     throw new ApiError("Gig id not found", 404);
   }
 
-  const gig = await Gig.findById(gigId).exec();
+  const gig = await Gig.findById(gigId)
+    .populate({
+      path: "createdBy",
+      model: "users",
+    })
+    .exec();
+
   if (!gig) {
     throw new ApiError("Gig not found", 404);
   }
 
   return gig;
 };
-
 
 const validateClientWithBid = async (bidId: string, clientId: string) => {
   if (!clientId?.trim()) {
@@ -165,7 +171,7 @@ const validateClientWithBid = async (bidId: string, clientId: string) => {
         model: "profiles",
       })
       .exec(),
-    Bid.findById(bidId).exec()
+    Bid.findById(bidId).exec(),
   ]);
 
   if (!client) {
