@@ -5,7 +5,7 @@ import 'dotenv/config';
 import dbConnect from './src/app/lib/dbConnect';
 
 import Message from './src/app/models/message';
-import Chat from './src/app/models/chat';
+// import Chat from './src/app/models/chat';
 
 const dev = process.env.NODE_ENV !== 'production';
 const hostname = process.env.HOST || 'localhost';
