@@ -10,22 +10,28 @@ import CustomPagination from "@/components/cardList/Pagination";
 import CustomNotFound from "@/components/notFoundModals/CustomNotFound";
 import { TableSkeleton } from "./Skeleton";
 import TagList, { TagItem } from "./Taglist";
+import ChatModal from "@/app/(protected)/chatModal/page";
 
 const BidListing = ({ createdByRole }: { createdByRole: string }) => {
   const [gigBids, setGigBids] = useState<Bid[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+
   const [pagination, setPagination] = useState({
     total: 0,
     page: 1,
     limit: 5,
     totalPages: 0,
   });
+
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState("Recently Added");
   const [selectedRating, setSelectedRating] = useState("");
   const [selectedBudget, setSelectedBudget] = useState("");
   const [customMin, setCustomMin] = useState("");
   const [customMax, setCustomMax] = useState("");
+
   const params = useParams();
   const { gigId } = params;
 
@@ -115,6 +121,11 @@ const BidListing = ({ createdByRole }: { createdByRole: string }) => {
     setCustomMin("");
     setCustomMax("");
     setPage(1);
+  };
+
+  const openChatWithUser = (userId: string) => {
+    setSelectedUserId(userId);
+    setIsChatOpen(true);
   };
 
   const renderFilterSection = () => {
@@ -213,6 +224,7 @@ const BidListing = ({ createdByRole }: { createdByRole: string }) => {
               : []),
           ]}
           handleBidStatusChange={handleBidStatusChange}
+          openChatModal={(userId: string) => openChatWithUser(userId)}
         />
       ) : (
         <CustomNotFound
@@ -242,6 +254,15 @@ const BidListing = ({ createdByRole }: { createdByRole: string }) => {
             onPageChange={setPage}
           />
         </div>
+      )}
+
+      {selectedUserId && (
+        <ChatModal
+          open={isChatOpen}
+          onClose={() => setIsChatOpen(false)}
+          gigId={gigId as string}
+          user1Id={selectedUserId}
+        />
       )}
     </div>
   );
