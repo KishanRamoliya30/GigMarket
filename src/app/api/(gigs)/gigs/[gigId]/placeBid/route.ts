@@ -15,9 +15,7 @@ export const POST = withApiHandler(
     await dbConnect();
 
     const gigId = (await params).gigId;
-    if (!gigId) {
-      throw new ApiError("Gig ID is required", 400);
-    }
+    if (!gigId) throw new ApiError("Gig ID is required", 400);
 
     const userHeader = req.headers.get("x-user");
     if (!userHeader) throw new ApiError("Unauthorized request", 401);
@@ -29,6 +27,7 @@ export const POST = withApiHandler(
 
     const user = await User.findById(userDetails._id);
     if (!user) throw new ApiError("User not found", 404);
+
     const plan = user.subscription?.planName || "Free";
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -70,7 +69,7 @@ export const POST = withApiHandler(
       bidAmount: Number(bidAmount),
       description: description.trim(),
       status: "Requested",
-      bidAmountType: bidAmountType,
+      bidAmountType,
     };
 
     placeBidSchema.parse(data);
@@ -80,6 +79,7 @@ export const POST = withApiHandler(
       gig.status = "Requested";
       await gig.save();
     }
+
     return successResponse(bid, "Bid placed successfully", 201);
   }
 );
