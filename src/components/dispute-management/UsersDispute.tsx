@@ -4,6 +4,8 @@ import React, { useEffect, useState } from "react";
 import { apiRequest } from "@/app/lib/apiCall";
 import { useUser } from "@/context/UserContext";
 import Loader from "@/components/Loader";
+import { Tooltip } from "@mui/material";
+import { Star, StarBorder } from "@mui/icons-material";
 
 type Complaint = {
   issue: string;
@@ -14,7 +16,13 @@ type Complaint = {
 
 type Dispute = {
   _id: string;
-  gigId: string;
+  gigId: {
+    _id: string;
+    title: string;
+    gigImage?: {
+      url: string;
+    };
+  };
   createdBy: string;
   rating: number;
   review: string;
@@ -48,7 +56,7 @@ const UsersDispute: React.FC = () => {
 
     fetchDisputes();
   }, [userId]);
-
+  console.log("Disputes Data:", disputes); // Debugging line to check disputes data
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <h2 className="text-3xl font-bold text-gray-800 mb-6">
@@ -66,56 +74,83 @@ const UsersDispute: React.FC = () => {
           {disputes.map((dispute) => (
             <div
               key={dispute._id}
-              className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 p-5 border border-gray-200"
+              className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 overflow-hidden"
             >
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <p className="text-sm text-gray-500">
-                    <span className="font-medium text-gray-700">Gig ID:</span>{" "}
-                    {dispute.gigId}
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    {new Date(dispute.createdAt).toLocaleString()}
-                  </p>
+              <div className="p-5 flex flex-col h-full">
+                {/* Header */}
+                <div className="flex justify-between items-start mb-3">
+                  <h3 className="text-lg font-semibold text-gray-800 leading-tight">
+                    {dispute.gigId?.title?.length > 40 ? (
+                      <Tooltip
+                        title={dispute.gigId.title}
+                        placement="top"
+                        arrow
+                      >
+                        <span>{dispute.gigId.title.slice(0, 40) + "..."}</span>
+                      </Tooltip>
+                    ) : (
+                      dispute.gigId?.title
+                    )}
+                  </h3>
+                  <span
+                    className={`px-3 py-1 text-xs font-semibold rounded-full shadow-sm ${
+                      dispute.status === "Pending"
+                        ? "bg-yellow-100 text-yellow-700"
+                        : dispute.status === "Approved"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-red-100 text-red-700"
+                    }`}
+                  >
+                    {dispute.status}
+                  </span>
                 </div>
-                <span
-                  className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                    dispute.status === "Pending"
-                      ? "bg-yellow-100 text-yellow-700"
-                      : dispute.status === "Approved"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
-                  }`}
-                >
-                  {dispute.status}
-                </span>
-              </div>
 
-              <div className="space-y-2 text-sm text-gray-700">
-                <p>
-                  <span className="font-bold">Ratings:</span> {dispute.rating} ⭐
+                {/* Date */}
+                <p className="text-xs text-gray-400 mb-3">
+                  {new Date(dispute.createdAt).toLocaleString()}
                 </p>
-                <p>
-                  <span className="font-bold">Review:</span> {dispute.review}
-                </p>
-                <p>
-                  <span className="font-bold">Issue:</span>{" "}
-                  {dispute.complaint.issue}
-                </p>
-                <p>
-                  <span className="font-bold">Suggested Improvement:</span>{" "}
-                  {dispute.complaint.improvementSuggestion}
-                </p>
-                <p>
-                  <span className="font-bold">Sincerity Agreement:</span>{" "}
-                  {dispute.complaint.sincerityAgreement ? "✔️ Yes" : "❌ No"}
-                </p>
-                {dispute.complaint.providerResponse && (
+
+                {/* Ratings */}
+                <div className="flex items-center gap-1 mb-3">
+                  <span className="font-semibold text-gray-700">Rating:</span>
+                  {[...Array(5)].map((_, i) => (
+                    <span key={i}>
+                      {i < dispute.rating ? (
+                        <Star className="text-yellow-500" fontSize="small" />
+                      ) : (
+                        <StarBorder
+                          className="text-yellow-500"
+                          fontSize="small"
+                        />
+                      )}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Review Info */}
+                <div className="space-y-1 text-sm text-gray-700 flex-1">
                   <p>
-                    <span className="font-bold">Provider Response:</span>{" "}
-                    {dispute.complaint.providerResponse}
+                    <span className="font-bold">Review:</span> {dispute.review}
                   </p>
-                )}
+                  <p>
+                    <span className="font-bold">Issue:</span>{" "}
+                    {dispute.complaint.issue}
+                  </p>
+                  <p>
+                    <span className="font-bold">Improvement:</span>{" "}
+                    {dispute.complaint.improvementSuggestion}
+                  </p>
+                  <p>
+                    <span className="font-bold">Sincerity Agreement:</span>{" "}
+                    {dispute.complaint.sincerityAgreement ? "✔️ Yes" : "❌ No"}
+                  </p>
+                  {dispute.complaint.providerResponse && (
+                    <p>
+                      <span className="font-bold">Provider Response:</span>{" "}
+                      {dispute.complaint.providerResponse}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           ))}

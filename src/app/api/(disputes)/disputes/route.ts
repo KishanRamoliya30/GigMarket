@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/app/lib/dbConnect";
 import Rating from "@/app/models/ratings";
 import mongoose from "mongoose";
-import "@/app/models/gig";
+import Gig from "@/app/models/gig";
 
 export async function GET(req: NextRequest) {
   await dbConnect();
@@ -23,7 +23,13 @@ export async function GET(req: NextRequest) {
     const disputedRatings = await Rating.find({
       createdBy: objectUserId,
       complaint: { $ne: null },
-    }).sort({ createdAt: -1 });
+    })
+      .populate({
+        path: "gigId",
+        model: Gig,
+        select: "title description price category images", 
+      })
+      .sort({ createdAt: -1 });
 
     return NextResponse.json({
       success: true,
