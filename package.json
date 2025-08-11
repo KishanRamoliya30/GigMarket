@@ -29,6 +29,7 @@
     "cloudinary": "^2.7.0",
     "dompurify": "^3.2.6",
     "dotenv": "^17.2.1",
+    "emoji-picker-react": "^4.13.2",
     "formik": "^2.4.6",
     "framer-motion": "^12.23.6",
     "jose": "^6.0.11",

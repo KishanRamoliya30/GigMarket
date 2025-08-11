@@ -1,22 +1,26 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Dialog,
   DialogTitle,
   DialogContent,
   IconButton,
   Box,
+  Skeleton,
+  Tooltip,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import SendIcon from "@mui/icons-material/Send";
+import InsertEmoticonIcon from "@mui/icons-material/InsertEmoticon";
+import AttachFileIcon from "@mui/icons-material/AttachFile";
 import socket from "../../../utils/socket";
 import { apiRequest } from "@/app/lib/apiCall";
 import { useUser } from "@/context/UserContext";
 import { ChatModalProps } from "@/app/(protected)/chatModal/page";
 import CustomTextField from "../customUi/CustomTextField";
 import Image from "next/image";
-import { Skeleton } from "@mui/material";
+import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 
 interface UserProfile {
   _id: string;
@@ -32,6 +36,7 @@ export interface Message {
   sender: UserProfile;
   chatId: string;
   message: string;
+  mediaUrl?: string;
   seenBy: string[];
   createdAt: string;
 }
@@ -46,9 +51,15 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
   const [chatId, setChatId] = useState<string>("");
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const { user } = useUser();
   const currentUserId = user?._id ?? "";
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const fetchChat = async () => {
     setLoading(true);
@@ -73,15 +84,56 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
     }
   };
 
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollTop = messagesEndRef.current.scrollHeight;
+    }
+  };
+
+  const handleEmojiClick = (emojiData: EmojiClickData) => {
+    setNewMessage((prev) => prev + emojiData.emoji);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0]);
+      setPreviewUrl(URL.createObjectURL(e.target.files[0]));
+    }
+  };
+
+  const uploadFile = async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await apiRequest("upload", {
+      method: "POST",
+      data: formData,
+      // isFormData: true,
+    });
+
+    if (res.success) {
+      return res.data.url; // Assuming backend returns { url: "uploadedFileURL" }
+    }
+    return null;
+  };
+
   const sendMessage = async () => {
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() && !selectedFile) return;
+
     try {
+      let mediaUrl: string | undefined;
+
+      if (selectedFile) {
+        mediaUrl = await uploadFile(selectedFile);
+      }
+
       const res = await apiRequest("message", {
         method: "POST",
         data: JSON.stringify({
           chatId,
           sender: currentUserId,
           message: newMessage,
+          mediaUrl,
         }),
       });
 
@@ -91,20 +143,13 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
           chatId: messageData.chatId,
           message: messageData,
         });
-        // socket.emit("message", res.data.data.message);
-        // setMessages((prev) => [...prev, res.data.data]);
         setNewMessage("");
+        setShowEmojiPicker(false);
+        setSelectedFile(null);
+        setPreviewUrl(null);
       }
     } catch (error) {
       console.error("Failed to send message:", error);
-    }
-  };
-
-  const messagesEndRef = React.useRef<HTMLDivElement | null>(null);
-
-  const scrollToBottom = () => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollTop = messagesEndRef.current.scrollHeight;
     }
   };
 
@@ -150,20 +195,21 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
   }, [chatId]);
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="lg">
+    <Dialog open={open} fullWidth maxWidth="lg">
       <DialogTitle className="flex justify-between items-center">
         Chat
         <IconButton onClick={onClose}>
           <CloseIcon />
         </IconButton>
       </DialogTitle>
+
       <DialogContent
         className="h-96 overflow-y-auto space-y-3"
         ref={messagesEndRef}
       >
         {loading ? (
           Array.from({ length: 6 }).map((_, index) => {
-            const isCurrentUser = index % 2 === 1; // Alternate sender/receiver
+            const isCurrentUser = index % 2 === 1;
             return (
               <div
                 key={index}
@@ -177,7 +223,6 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
                     className="self-end mr-2"
                   />
                 )}
-
                 <div>
                   {!isCurrentUser && (
                     <Skeleton
@@ -194,7 +239,6 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
                     className="rounded-md"
                   />
                 </div>
-
                 {isCurrentUser && (
                   <Skeleton
                     variant="circular"
@@ -223,8 +267,8 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
                       "/default-avatar.png"
                     }
                     alt={msg.sender.profile?.fullName || "Sender"}
-                    width={16}
-                    height={16}
+                    width={32}
+                    height={32}
                     className="w-8 h-8 rounded-full mr-2 self-end"
                   />
                 )}
@@ -241,7 +285,33 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
                         : "bg-gray-200 text-left"
                     }`}
                   >
-                    <p>{msg.message}</p>
+                    {msg.mediaUrl ? (
+                      msg.mediaUrl.match(/\.(jpeg|jpg|png|gif)$/i) ? (
+                        <Image
+                          src={msg.mediaUrl}
+                          alt="Sent media"
+                          width={200}
+                          height={200}
+                          className="rounded-md"
+                        />
+                      ) : msg.mediaUrl.match(/\.(mp4|webm)$/i) ? (
+                        <video
+                          src={msg.mediaUrl}
+                          controls
+                          className="rounded-md w-full max-w-xs"
+                        />
+                      ) : (
+                        <a
+                          href={msg.mediaUrl}
+                          target="_blank"
+                          className="text-blue-600 underline"
+                        >
+                          Download File
+                        </a>
+                      )
+                    ) : (
+                      <p>{msg.message}</p>
+                    )}
                     <div className="text-xs text-gray-500 mt-1 flex items-center gap-1 justify-end">
                       {new Date(msg.createdAt).toLocaleTimeString([], {
                         hour: "2-digit",
@@ -260,10 +330,9 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
                   <Image
                     src={user?.profile?.profilePicture || "/default-avatar.png"}
                     alt="User avatar"
-                    width={50}
-                    height={50}
+                    width={32}
+                    height={32}
                     className="w-8 h-8 rounded-full ml-2 self-end"
-                    priority
                   />
                 )}
               </div>
@@ -272,7 +341,62 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
         )}
       </DialogContent>
 
+      {previewUrl && (
+        <div className="px-4 pb-2">
+          <div className="relative inline-block group">
+            {selectedFile?.type.startsWith("image/") ? (
+              <Image
+                src={previewUrl}
+                alt="Preview"
+                width={120}
+                height={120}
+                className="rounded-lg border border-gray-200 shadow-sm object-cover"
+              />
+            ) : selectedFile?.type.startsWith("video/") ? (
+              <video
+                src={previewUrl}
+                controls
+                className="rounded-lg border border-gray-200 shadow-sm w-32 h-auto"
+              />
+            ) : (
+              <div className="flex items-center gap-2 rounded-lg border border-gray-200 shadow-sm px-3 py-2 bg-gray-50">
+                📄
+                <span className="text-sm text-gray-700 truncate max-w-[150px]">
+                  {selectedFile?.name || "File ready to send"}
+                </span>
+              </div>
+            )}
+
+            <button
+              className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center shadow-md transition-all"
+              onClick={() => {
+                setSelectedFile(null);
+                setPreviewUrl(null);
+              }}
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="p-4 flex items-center gap-2">
+        <Tooltip title="Emoji">
+          <IconButton onClick={() => setShowEmojiPicker((prev) => !prev)}>
+            <InsertEmoticonIcon />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Attach File">
+          <IconButton onClick={() => fileInputRef.current?.click()}>
+            <AttachFileIcon />
+          </IconButton>
+        </Tooltip>
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileSelect}
+          style={{ display: "none" }}
+        />
         <Box style={{ width: "100%", marginBottom: "-16px" }}>
           <CustomTextField
             multiline
@@ -289,6 +413,12 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
           <SendIcon />
         </IconButton>
       </div>
+
+      {showEmojiPicker && (
+        <div className="absolute bottom-20 left-4 z-50">
+          <EmojiPicker onEmojiClick={handleEmojiClick} />
+        </div>
+      )}
     </Dialog>
   );
 };
