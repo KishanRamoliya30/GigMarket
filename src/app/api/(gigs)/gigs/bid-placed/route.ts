@@ -83,8 +83,8 @@ export const GET = withApiHandler(async (req: NextRequest): Promise<NextResponse
 
   const enrichedGigs: EnrichedGig[] = await Promise.all(
     gigs.map(async (gig) => {
-      const provider = await User.findById(gig.createdBy);
-      const ratings = await Rating.find({ gigId: gig._id });
+      const userName = await User.findById(gig.createdBy);
+      const ratings = await Rating.find({ gigId: gig._id }).lean();
       const totalRatings = ratings.length;
       const averageRating =
         totalRatings > 0
@@ -92,10 +92,11 @@ export const GET = withApiHandler(async (req: NextRequest): Promise<NextResponse
           : 0;
       return {
         ...gig,
-        providerName: provider ? `${provider.firstName} ${provider.lastName}` : "",
+        userId: userName?._id,
+        userName: userName ? `${userName.firstName} ${userName.lastName}` : "",
         rating: parseFloat(averageRating.toFixed(1)),
         reviews: totalRatings,
-        
+        ratings
       };
     })
   );

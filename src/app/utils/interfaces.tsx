@@ -126,7 +126,8 @@ export interface GigData {
     name: string;
     url: string;
   };
-  providerName: string;
+  userName: string;
+  userId: string;
   statusHistory: [];
 }
 
