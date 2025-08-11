@@ -40,7 +40,7 @@ export default function GigDetailPage() {
 
   const renderDynamicContent = () => {
     return isUserMatch ? (
-      <BidListing />
+      <BidListing createdByRole={gigDetails?.createdByRole ?? "User"} />
     ) : (
       <SubmitBid gigDetails={gigDetails} setGigDetails={setGigDetails} />
     );

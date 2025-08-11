@@ -38,6 +38,9 @@ const ProfileViewCard: React.FC = () => {
   const [open, setOpen] = useState<boolean>(false);
   const [isEdit, setIsEdit] = useState<boolean>(false);
   const [profileData, setProfileData] = useState<Profile | null>(null);
+  const [stripeData, setStripeData] = useState<{stripeConnectAccountId:string,
+stripeConnectAccountStatus:string
+  } | null>({ stripeConnectAccountId: "", stripeConnectAccountStatus: "" });
   const [loading, setLoading] = useState<boolean>(true);
   const { user } = useUser();
   const userId = user?._id;
@@ -47,13 +50,48 @@ const ProfileViewCard: React.FC = () => {
     setIsEdit(true);
   };
 
+  const createStripeConnectAccount = async () => {
+    const res = await apiRequest("payment/create-stripe-connect-profile", {
+      method: "POST",
+    })
+    if (res.ok) {
+      window.open(res.data.data.url, '_blank');
+    } else {
+      console.error("Failed to create Stripe Connect account:", res.message);
+    }
+  }
+   
+  const loginStripe = async () => {
+    const res = await apiRequest("payment/create-login-link", {
+      method: "POST",
+    });
+    if (res.ok) {
+      window.open(res.data.data.url, '_blank');
+    } else {
+      console.error("Failed to create Stripe login link:", res.message);
+    }
+  }
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await apiRequest(`profile?userId=${userId}`, {
-          method: "GET",
-        });
+        const [res1, res2] = await Promise.all([
+          apiRequest(`profile?userId=${userId}`, {
+            method: "GET",
+          }),
+          apiRequest(`payment/get-stripe-connect-details`, {
+            method: "GET",
+          }),
+        ]);
+        const [res, resConnect] = await Promise.all([res1, res2]);
         setProfileData(res.data?.profile);
+        if (resConnect.ok) {
+          const { stripeConnectAccountId, stripeConnectAccountStatus } =
+            resConnect.data.data;
+          setStripeData({
+            stripeConnectAccountId,
+            stripeConnectAccountStatus,
+          });
+        }
       } catch (error) {
         console.error("Failed to fetch profile:", error);
       } finally {
@@ -134,6 +172,56 @@ const ProfileViewCard: React.FC = () => {
           onUpdate={handleProfileUpdate}
         />
       )}
+
+      <SectionCard title="Stripe Connect">
+        <div className="bg-white border border-gray-200 p-5 rounded-xl space-y-4">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+            <div className="flex items-center gap-2 text-sm text-gray-700 break-all">
+              <span className="font-medium">Account ID:</span>
+              <span className="text-gray-800 font-semibold">
+                {stripeData?.stripeConnectAccountId}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 text-sm">
+              <span className="font-medium text-gray-500">Status:</span>
+              <span
+                className={`inline-block px-3 py-1 rounded-full font-semibold text-xs ${
+                  stripeData?.stripeConnectAccountStatus === "ACTIVE"
+                    ? "bg-green-100 text-green-700"
+                    : "bg-yellow-100 text-yellow-700"
+                }`}
+              >
+                {stripeData?.stripeConnectAccountStatus ?? "PENDING"}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap sm:flex-nowrap sm:items-center sm:justify-between gap-3 pt-2">
+            {["PENDING", "NEEDS_ONBOARDING"].includes(
+              stripeData?.stripeConnectAccountStatus ?? "PENDING"
+            ) && (
+              <button
+                onClick={createStripeConnectAccount}
+                className="px-4 py-2 rounded-md text-sm font-semibold text-gray-700 border border-gray-300 hover:bg-gray-100 transition-all shadow hover:shadow-md cursor-pointer"
+              >
+                Complete Onboarding
+              </button>
+            )}
+
+            {stripeData?.stripeConnectAccountStatus == "ACTIVE" && (
+              <div className="sm:ml-auto">
+                <button
+                  onClick={loginStripe}
+                  className="px-4 py-2 rounded-md text-sm font-semibold text-gray-700 border border-gray-300 hover:bg-gray-100 transition-all shadow hover:shadow-md cursor-pointer"
+                >
+                  Login to Stripe Dashboard
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </SectionCard>
 
       {/* Summary */}
       <SectionCard title="Professional Summary">

@@ -10,6 +10,7 @@ const STARTS_WITH_PUBLIC_PATHS = new Set([
   "/verify-email",
   "/gigs",
   "/api/webhooks/stripe",
+  "/api/webhooks/stripeConnect",
   "/api/forgot-password",
   "/api/reset-password",
   "/api/login",

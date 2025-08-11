@@ -4,6 +4,7 @@ import React from "react";
 import { addEllipsis } from "../../../utils/common";
 import { useRouter } from "next/navigation";
 import { getStatusStyles } from "../../../utils/constants";
+import { ArrowRight } from "lucide-react";
 
 interface Raw {
   _id: string | number;
@@ -70,13 +71,19 @@ const CustomeTable = ({
         );
 
       case "link":
-        if (!column.href) return value;
+        if (!column.href || !value) return value;
         return (
           <Link
             href={`${column.href}${value}`}
             className={`${column.class} p-[5px] m-[-5px]`}
           >
-            {value}
+            <div className="w-fit px-4 py-2 flex items-center justify-center gap-1 rounded-2xl bg-emerald-50 shadow-sm cursor-pointer hover:scale-[1.02] transition-all duration-300 group">
+              <span className="text-sm tracking-wide">View</span>
+              <ArrowRight
+                className="transition-transform duration-300 group-hover:translate-x-1"
+                size={16}
+              />
+            </div>
           </Link>
         );
 
