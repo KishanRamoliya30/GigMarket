@@ -9,6 +9,7 @@ import {
   Box,
   Skeleton,
   Tooltip,
+  Paper,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import SendIcon from "@mui/icons-material/Send";
@@ -21,6 +22,7 @@ import { ChatModalProps } from "@/app/(protected)/chatModal/page";
 import CustomTextField from "../customUi/CustomTextField";
 import Image from "next/image";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
+import { MediaFile } from "@/app/models/message";
 
 interface UserProfile {
   _id: string;
@@ -32,6 +34,7 @@ interface UserProfile {
 }
 
 export interface Message {
+  mediaFiles: MediaFile[];
   _id: string;
   sender: UserProfile;
   chatId: string;
@@ -52,8 +55,9 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   const { user } = useUser();
   const currentUserId = user?._id ?? "";
@@ -95,46 +99,38 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setSelectedFile(e.target.files[0]);
-      setPreviewUrl(URL.createObjectURL(e.target.files[0]));
+    if (e.target.files && e.target.files.length > 0) {
+      const filesArray = Array.from(e.target.files);
+      setSelectedFiles((prev) => [...prev, ...filesArray]);
+      setPreviewUrls((prev) => [
+        ...prev,
+        ...filesArray.map((file) => URL.createObjectURL(file)),
+      ]);
     }
   };
 
-  const uploadFile = async (file: File) => {
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const res = await apiRequest("upload", {
-      method: "POST",
-      data: formData,
-      // isFormData: true,
-    });
-
-    if (res.success) {
-      return res.data.url; // Assuming backend returns { url: "uploadedFileURL" }
-    }
-    return null;
+  const removeFile = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+    setPreviewUrls((prev) => prev.filter((_, i) => i !== index));
   };
 
   const sendMessage = async () => {
-    if (!newMessage.trim() && !selectedFile) return;
+    if (!newMessage.trim() && selectedFiles.length === 0) return;
 
     try {
-      let mediaUrl: string | undefined;
+      const formData = new FormData();
+      formData.append("chatId", chatId);
+      formData.append("sender", currentUserId);
+      formData.append("message", newMessage);
 
-      if (selectedFile) {
-        mediaUrl = await uploadFile(selectedFile);
-      }
+      selectedFiles.forEach((file) => {
+        formData.append("files", file);
+      });
 
       const res = await apiRequest("message", {
         method: "POST",
-        data: JSON.stringify({
-          chatId,
-          sender: currentUserId,
-          message: newMessage,
-          mediaUrl,
-        }),
+        data: formData,
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
       if (res.success) {
@@ -145,8 +141,8 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
         });
         setNewMessage("");
         setShowEmojiPicker(false);
-        setSelectedFile(null);
-        setPreviewUrl(null);
+        setSelectedFiles([]);
+        setPreviewUrls([]);
       }
     } catch (error) {
       console.error("Failed to send message:", error);
@@ -253,6 +249,8 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
         ) : messages.length === 0 ? (
           <p className="text-gray-500 text-center mt-10">No messages yet</p>
         ) : (
+          // Inside messages.map((msg) => { ... })
+
           messages.map((msg) => {
             const isCurrentUser = msg.sender._id === currentUserId;
             return (
@@ -278,40 +276,57 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
                       {msg.sender.profile?.fullName}
                     </div>
                   )}
+
                   <div
-                    className={`p-2 rounded-md max-w-xs break-words ${
+                    className={`p-2 rounded-md max-w-xs break-words space-y-2 ${
                       isCurrentUser
                         ? "bg-blue-100 text-right ml-auto"
                         : "bg-gray-200 text-left"
                     }`}
                   >
-                    {msg.mediaUrl ? (
-                      msg.mediaUrl.match(/\.(jpeg|jpg|png|gif)$/i) ? (
-                        <Image
-                          src={msg.mediaUrl}
-                          alt="Sent media"
-                          width={200}
-                          height={200}
-                          className="rounded-md"
-                        />
-                      ) : msg.mediaUrl.match(/\.(mp4|webm)$/i) ? (
-                        <video
-                          src={msg.mediaUrl}
-                          controls
-                          className="rounded-md w-full max-w-xs"
-                        />
-                      ) : (
-                        <a
-                          href={msg.mediaUrl}
-                          target="_blank"
-                          className="text-blue-600 underline"
-                        >
-                          Download File
-                        </a>
-                      )
-                    ) : (
-                      <p>{msg.message}</p>
-                    )}
+                    {msg.message && <p>{msg.message}</p>}
+
+                    {msg.mediaFiles.length > 0 &&
+                      msg.mediaFiles.map((file, index) => {
+                        const isImage = file.type.startsWith("image/");
+                        const isVideo = file.type.startsWith("video/");
+                        const isOther = !isImage && !isVideo;
+
+                        return (
+                          <div key={index}>
+                            {isImage && (
+                              <Image
+                                src={file.url}
+                                alt={file.name}
+                                width={200}
+                                height={200}
+                                className="rounded-md cursor-pointer"
+                                onClick={() => setLightboxUrl(file.url)}
+                              />
+                            )}
+
+                            {isVideo && (
+                              <video
+                                src={file.url}
+                                controls
+                                className="rounded-md w-full max-w-xs"
+                              />
+                            )}
+
+                            {isOther && (
+                              <a
+                                href={file.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block bg-white border border-blue-300 rounded-lg px-3 py-2 shadow-sm hover:shadow-md transition text-sm font-medium text-blue-800"
+                              >
+                                📄 {file.name}
+                              </a>
+                            )}
+                          </div>
+                        );
+                      })}
+
                     <div className="text-xs text-gray-500 mt-1 flex items-center gap-1 justify-end">
                       {new Date(msg.createdAt).toLocaleTimeString([], {
                         hour: "2-digit",
@@ -326,6 +341,7 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
                     </div>
                   </div>
                 </div>
+
                 {isCurrentUser && (
                   <Image
                     src={user?.profile?.profilePicture || "/default-avatar.png"}
@@ -341,42 +357,64 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
         )}
       </DialogContent>
 
-      {previewUrl && (
-        <div className="px-4 pb-2">
-          <div className="relative inline-block group">
-            {selectedFile?.type.startsWith("image/") ? (
-              <Image
-                src={previewUrl}
-                alt="Preview"
-                width={120}
-                height={120}
-                className="rounded-lg border border-gray-200 shadow-sm object-cover"
-              />
-            ) : selectedFile?.type.startsWith("video/") ? (
-              <video
-                src={previewUrl}
-                controls
-                className="rounded-lg border border-gray-200 shadow-sm w-32 h-auto"
-              />
-            ) : (
-              <div className="flex items-center gap-2 rounded-lg border border-gray-200 shadow-sm px-3 py-2 bg-gray-50">
-                📄
-                <span className="text-sm text-gray-700 truncate max-w-[150px]">
-                  {selectedFile?.name || "File ready to send"}
-                </span>
-              </div>
-            )}
+      {previewUrls.length > 0 && (
+        <Paper
+          className="items-end p-4 flex gap-4 overflow-x-auto mx-[50px] rounded-lg shadow-lg 
+               bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-dashed border-blue-400"
+          elevation={0}
+        >
+          {previewUrls.map((url, index) => {
+            const file = selectedFiles[index];
+            return (
+              <div key={index} className="relative flex-shrink-0">
+                {file.type.startsWith("image/") ? (
+                  <Image
+                    src={url}
+                    alt="Preview"
+                    width={150}
+                    height={150}
+                    className="rounded-lg cursor-pointer object-cover border border-blue-300 shadow-sm hover:shadow-md transition"
+                    onClick={() => setLightboxUrl(url)}
+                  />
+                ) : file.type.startsWith("video/") ? (
+                  <video
+                    src={url}
+                    controls
+                    className="rounded-lg w-40 cursor-pointer border border-blue-300 shadow-sm hover:shadow-md transition"
+                  />
+                ) : (
+                  <div className="bg-white border border-blue-300 rounded-lg px-3 py-2 shadow-sm hover:shadow-md transition">
+                    <p className="text-sm font-medium text-blue-800">
+                      📄 {file.name}
+                    </p>
+                  </div>
+                )}
 
-            <button
-              className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center shadow-md transition-all"
-              onClick={() => {
-                setSelectedFile(null);
-                setPreviewUrl(null);
-              }}
-            >
-              ×
-            </button>
-          </div>
+                <button
+                  className="cursor-pointer absolute -top-2 -right-2 bg-red-500 text-white rounded-full 
+                       w-6 h-6 flex items-center justify-center shadow-md hover:bg-red-600 transition"
+                  onClick={() => removeFile(index)}
+                >
+                  ×
+                </button>
+              </div>
+            );
+          })}
+        </Paper>
+      )}
+
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50"
+          onClick={() => setLightboxUrl(null)}
+        >
+          <Image
+            src={lightboxUrl}
+            alt="Full View"
+            width={800}
+            height={800}
+            className="max-h-[90vh] max-w-[90vw] object-contain"
+          />
         </div>
       )}
 
@@ -395,6 +433,7 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
           type="file"
           ref={fileInputRef}
           onChange={handleFileSelect}
+          multiple
           style={{ display: "none" }}
         />
         <Box style={{ width: "100%", marginBottom: "-16px" }}>
