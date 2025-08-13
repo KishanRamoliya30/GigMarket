@@ -54,32 +54,59 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
   const [chatId, setChatId] = useState<string>("");
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
+  const [isSending, setIsSending] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
+  const limit = 20;
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    total: 0,
+    page: 1,
+    limit,
+    totalPages: 0,
+  });
+
   const { user } = useUser();
   const currentUserId = user?._id ?? "";
 
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const fetchChat = async () => {
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollTop = messagesEndRef.current.scrollHeight;
+    }
+  };
+
+  const fetchChat = async (pageToFetch: number) => {
     setLoading(true);
     try {
       const res = await apiRequest(
-        `gig-chat?gigId=${gigId}&user1=${user1Id}&user2=${currentUserId}`,
+        `gig-chat?gigId=${gigId}&user1=${user1Id}&user2=${currentUserId}&page=${pageToFetch}&limit=${limit}`,
         { method: "GET" }
       );
 
       if (res.success) {
         const chat = res.data.data.chat;
         setChatId(chat._id);
-        setMessages(res.data.data.messages);
 
+        const fetchedMessages: Message[] = res.data.data.messages;
         socket.emit("join", chat._id);
         socket.emit("mark-seen", { chatId: chat._id, userId: user1Id });
+
+        setPagination(res.data.pagination);
+        const ordered = fetchedMessages.reverse();
+
+        if (pageToFetch === 1) {
+          setMessages(ordered);
+          setTimeout(scrollToBottom, 300);
+        } else {
+          setMessages((prev) => [...ordered, ...prev]);
+        }
       }
     } catch (error) {
       console.error("Error fetching chat:", error);
@@ -88,9 +115,20 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
     }
   };
 
-  const scrollToBottom = () => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollTop = messagesEndRef.current.scrollHeight;
+  const handleScroll = () => {
+    if (!containerRef.current || loading || isSending) return;
+    if (containerRef.current.scrollTop < 50 && page < pagination.totalPages) {
+      const oldHeight = containerRef.current.scrollHeight;
+      const nextPage = page + 1;
+      setPage(nextPage);
+      fetchChat(nextPage).then(() => {
+        setTimeout(() => {
+          if (containerRef.current) {
+            const newHeight = containerRef.current.scrollHeight;
+            containerRef.current.scrollTop = newHeight - oldHeight;
+          }
+        }, 50);
+      });
     }
   };
 
@@ -110,6 +148,7 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
   };
 
   const removeFile = (index: number) => {
+    if (isSending) return;
     setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
     setPreviewUrls((prev) => prev.filter((_, i) => i !== index));
   };
@@ -117,6 +156,7 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
   const sendMessage = async () => {
     if (!newMessage.trim() && selectedFiles.length === 0) return;
 
+    setIsSending(true);
     try {
       const formData = new FormData();
       formData.append("chatId", chatId);
@@ -146,17 +186,15 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
       }
     } catch (error) {
       console.error("Failed to send message:", error);
+    } finally {
+      setIsSending(false);
     }
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  useEffect(() => {
     if (open) {
-      fetchChat();
-      setTimeout(scrollToBottom, 300);
+      setPage(1);
+      fetchChat(1);
     }
     return () => {
       if (chatId) socket.emit("leave", chatId);
@@ -168,6 +206,7 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
       if (message.chatId === chatId) {
         setMessages((prev) => [...prev, message]);
         socket.emit("mark-seen", { chatId: message.chatId, userId: user1Id });
+        setTimeout(scrollToBottom, 100);
       }
     });
 
@@ -194,14 +233,18 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
     <Dialog open={open} fullWidth maxWidth="lg">
       <DialogTitle className="flex justify-between items-center">
         Chat
-        <IconButton onClick={onClose}>
+        <IconButton onClick={onClose} disabled={isSending}>
           <CloseIcon />
         </IconButton>
       </DialogTitle>
 
       <DialogContent
         className="h-96 overflow-y-auto space-y-3"
-        ref={messagesEndRef}
+        ref={(el: HTMLDivElement | null) => {
+          messagesEndRef.current = el;
+          containerRef.current = el;
+        }}
+        onScroll={handleScroll}
       >
         {loading ? (
           Array.from({ length: 6 }).map((_, index) => {
@@ -249,8 +292,6 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
         ) : messages.length === 0 ? (
           <p className="text-gray-500 text-center mt-10">No messages yet</p>
         ) : (
-          // Inside messages.map((msg) => { ... })
-
           messages.map((msg) => {
             const isCurrentUser = msg.sender._id === currentUserId;
             return (
@@ -284,8 +325,6 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
                         : "bg-gray-200 text-left"
                     }`}
                   >
-                    {msg.message && <p>{msg.message}</p>}
-
                     {msg.mediaFiles.length > 0 &&
                       msg.mediaFiles.map((file, index) => {
                         const isImage = file.type.startsWith("image/");
@@ -327,6 +366,8 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
                         );
                       })}
 
+                    {msg.message && <p>{msg.message}</p>}
+
                     <div className="text-xs text-gray-500 mt-1 flex items-center gap-1 justify-end">
                       {new Date(msg.createdAt).toLocaleTimeString([], {
                         hour: "2-digit",
@@ -359,8 +400,8 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
 
       {previewUrls.length > 0 && (
         <Paper
-          className="items-end p-4 flex gap-4 overflow-x-auto mx-[50px] rounded-lg shadow-lg 
-               bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-dashed border-blue-400"
+          className={`items-end p-4 flex gap-4 overflow-x-auto mr-[66px] ml-[113px] rounded-lg shadow-lg 
+            bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-dashed border-blue-400 ${isSending ? "opacity-60 cursor-not-allowed" : ""}`}
           elevation={0}
         >
           {previewUrls.map((url, index) => {
@@ -374,7 +415,7 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
                     width={150}
                     height={150}
                     className="rounded-lg cursor-pointer object-cover border border-blue-300 shadow-sm hover:shadow-md transition"
-                    onClick={() => setLightboxUrl(url)}
+                    onClick={() => !isSending && setLightboxUrl(url)}
                   />
                 ) : file.type.startsWith("video/") ? (
                   <video
@@ -391,8 +432,9 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
                 )}
 
                 <button
-                  className="cursor-pointer absolute -top-2 -right-2 bg-red-500 text-white rounded-full 
-                       w-6 h-6 flex items-center justify-center shadow-md hover:bg-red-600 transition"
+                  disabled={isSending}
+                  className={`cursor-pointer absolute -top-2 -right-2 bg-red-500 text-white rounded-full 
+                    w-6 h-6 flex items-center justify-center shadow-md hover:bg-red-600 transition ${isSending ? "opacity-50 cursor-not-allowed" : ""}`}
                   onClick={() => removeFile(index)}
                 >
                   ×
@@ -418,16 +460,28 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
         </div>
       )}
 
-      <div className="p-4 flex items-center gap-2">
+      <div
+        className={`p-4 flex items-center gap-2 ${isSending ? "opacity-60 cursor-not-allowed" : ""}`}
+      >
         <Tooltip title="Emoji">
-          <IconButton onClick={() => setShowEmojiPicker((prev) => !prev)}>
-            <InsertEmoticonIcon />
-          </IconButton>
+          <span>
+            <IconButton
+              onClick={() => setShowEmojiPicker((prev) => !prev)}
+              disabled={isSending}
+            >
+              <InsertEmoticonIcon />
+            </IconButton>
+          </span>
         </Tooltip>
         <Tooltip title="Attach File">
-          <IconButton onClick={() => fileInputRef.current?.click()}>
-            <AttachFileIcon />
-          </IconButton>
+          <span>
+            <IconButton
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isSending}
+            >
+              <AttachFileIcon />
+            </IconButton>
+          </span>
         </Tooltip>
         <input
           type="file"
@@ -435,6 +489,7 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
           onChange={handleFileSelect}
           multiple
           style={{ display: "none" }}
+          disabled={isSending}
         />
         <Box style={{ width: "100%", marginBottom: "-16px" }}>
           <CustomTextField
@@ -446,14 +501,15 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
             placeholder="Type a message..."
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
+            disabled={isSending}
           />
         </Box>
-        <IconButton color="primary" onClick={sendMessage}>
+        <IconButton color="primary" onClick={sendMessage} disabled={isSending}>
           <SendIcon />
         </IconButton>
       </div>
 
-      {showEmojiPicker && (
+      {showEmojiPicker && !isSending && (
         <div className="absolute bottom-20 left-4 z-50">
           <EmojiPicker onEmojiClick={handleEmojiClick} />
         </div>

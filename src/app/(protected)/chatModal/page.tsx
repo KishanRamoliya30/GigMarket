@@ -21,6 +21,7 @@ const ChatModal: React.FC<ChatModalProps> = ({
         onClose={onClose}
         gigId={gigId}
         user1Id={user1Id}
+        key={open + user1Id}
       />
     </div>
   );
