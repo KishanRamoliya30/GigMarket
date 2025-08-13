@@ -1,19 +1,7 @@
 import ChatModalComponent from "@/components/chatMessage/ChatModalComponent";
 
-export interface ChatModalProps {
-  open: boolean;
-  onClose: () => void;
-  gigId: string;
-  user1Id: string;
-}
 
-const ChatModal: React.FC<ChatModalProps> = ({
-  open,
-  onClose,
-  gigId,
-  user1Id,
-}) => {
-
+export default function ChatModal({ open, onClose, gigId, user1Id }: any) {
   return (
     <div>
       <ChatModalComponent
@@ -26,5 +14,3 @@ const ChatModal: React.FC<ChatModalProps> = ({
     </div>
   );
 }
-
-export default ChatModal;
