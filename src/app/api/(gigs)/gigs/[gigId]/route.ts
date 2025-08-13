@@ -36,15 +36,14 @@ export async function GET(
 
   const bids = await Bid.countDocuments({ gigId: gig._id });
 
-  const userHeader = req.headers.get("x-user");
+  const tokenUser = await verifyToken(req);
+
   let userBids = null;
-  let userDetails = null;
-  if (userHeader) {
-    userDetails = JSON.parse(userHeader);
+  if (tokenUser) {
     //find Bid for this gig by this user
     userBids = await Bid.findOne({
       gigId: gig._id,
-      createdBy: userDetails._id,
+      createdBy: tokenUser?.userId,
     }).select("bidAmount description status createdAt");
   }
 
