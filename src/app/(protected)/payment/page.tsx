@@ -8,21 +8,27 @@ import { useUser } from "@/context/UserContext";
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY!);
 
 export default function PaymentPage() {
-    //get user id from context
-    const { user } = useUser();
-    
+  //get user id from context
+  const { user, paymentInfo } = useUser();
+  const { gigId, gigTitle, gigDescription, amount, refId } = paymentInfo;
   return (
     <StyledWrapper>
       <Elements stripe={stripePromise}>
-        <PaymentForm amount={125.25} gigId={"6893153df91c9998340e8c1b"} userId={user?._id ?? ""} refId={"6878eac0e9071cc473f1c91f"} gigTitle={"Test"} gigDescription={"Test"}/>
+        <PaymentForm
+          amount={amount}
+          gigId={gigId}
+          userId={user?._id ?? ""}
+          refId={refId}
+          gigTitle={gigTitle}
+          gigDescription={gigDescription}
+        />
       </Elements>
     </StyledWrapper>
   );
 }
 
-
 const StyledWrapper = styled(Box)(({ theme }) => ({
-    padding: theme.spacing(2),
-    // paddingTop: "100px !important",
-    [theme.breakpoints.up("md")]: { padding: theme.spacing(4) },
-  }));
+  padding: theme.spacing(2),
+  // paddingTop: "100px !important",
+  [theme.breakpoints.up("md")]: { padding: theme.spacing(4) },
+}));

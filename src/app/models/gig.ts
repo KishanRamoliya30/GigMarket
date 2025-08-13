@@ -35,6 +35,7 @@ export interface GigDocument extends Document {
   statusHistory: StatusHistory[];
   createdAt: Date;
   updatedAt: Date;
+  paymentStatus: 'Completed' | 'Failed' | null;
 }
 
 const StatusHistorySchema = new Schema<StatusHistory>(
@@ -103,6 +104,11 @@ const GigSchema = new Schema<GigDocument>(
     statusHistory: { type: [StatusHistorySchema], default: [] },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     assignedToBid: { type: Schema.Types.ObjectId, ref: 'bids', default: null },
+    paymentStatus: {
+      type: String,
+      enum: ['Completed', 'Failed', null],
+      default: null
+    }
   },
   {
     timestamps: true,
