@@ -39,7 +39,7 @@ export default function GigStatusDialog({
   updateGigData,
 }: GigStatusDialogProps) {
   const router = useRouter();
-  const {user} = useUser();
+  const {user,setPaymentInfo} = useUser();
 
   const redirectToGigDetail = () => {
   let route = "";
@@ -52,6 +52,17 @@ export default function GigStatusDialog({
 
   router.push(route);
 };
+
+const redirectToPayment = () => {
+  setPaymentInfo({
+    gigId: data._id,
+    gigTitle: data.title,
+    gigDescription: data.description,
+    amount: data.assignedToBid?.bidAmount || 0,
+    refId: data.assignedToBid?.createdBy || "",
+  });
+  router.push(`/payment`);
+}
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
@@ -67,6 +78,14 @@ export default function GigStatusDialog({
           >
             View Gig
           </button>
+          {["Assigned", "In-Progress" , "Completed" , "Approved"].includes(data.status) && 
+          <button
+            onClick={redirectToPayment}
+            className="cursor-pointer text-sm bg-[#fff] text-[#2e7d32] border-1 border-[#2e7d32] px-3 py-1 rounded hover:bg-[#2e7d32] hover:text-white"
+          >
+            Pay
+          </button>
+          }
           <IconButton onClick={onClose}>
             <CloseIcon />
           </IconButton>

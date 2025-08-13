@@ -43,6 +43,7 @@ const EXACT_PUBLIC_PATHS = new Set([
   "/reset-password",
   "/verify-otp",
   "/providers",
+  "/stripe-connect-success"
 ]);
 
 const COMMON_PATHS = ["/dashboard", "/gigs", "/api/gigs", "/"];

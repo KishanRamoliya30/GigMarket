@@ -110,7 +110,12 @@ export interface Bid {
 
 export interface GigData {
   _id: string;
-  assignedToBid: string | null;
+  assignedToBid: {
+    _id: string;
+    bidAmount: number;
+    description: string;
+    createdBy : string;
+  } | null;
   title: string;
   description: string;
   tier: string;

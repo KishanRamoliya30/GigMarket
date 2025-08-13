@@ -70,7 +70,7 @@ export const GET = withApiHandler(async (req: NextRequest): Promise<NextResponse
   if (filterStatus) query.status = filterStatus;
 
   totalCount = await Gig.countDocuments(query);
-  gigs = await Gig.find(query).skip(skip).limit(limit).lean();
+  gigs = await Gig.find(query).populate('assignedToBid').skip(skip).limit(limit).lean();
 
   const statusCounts: Record<StatusType, number> = Object.fromEntries(
     await Promise.all(
@@ -83,21 +83,31 @@ export const GET = withApiHandler(async (req: NextRequest): Promise<NextResponse
 
   const enrichedGigs: EnrichedGig[] = await Promise.all(
     gigs.map(async (gig) => {
-      const userName = await User.findById(gig.createdBy);
-      const ratings = await Rating.find({ gigId: gig._id }).lean();
-      const totalRatings = ratings.length;
-      const averageRating =
-        totalRatings > 0
-          ? ratings.reduce((sum, r) => sum + r.rating, 0) / totalRatings
-          : 0;
-      return {
-        ...gig,
-        userId: userName?._id,
-        userName: userName ? `${userName.firstName} ${userName.lastName}` : "",
-        rating: parseFloat(averageRating.toFixed(1)),
-        reviews: totalRatings,
-        ratings
-      };
+      if(gig.assignedToBid?.createdBy){
+        const provider = await User.findById(gig.assignedToBid?.createdBy);
+        const ratings = await Rating.find({ gigId: gig._id });
+        const totalRatings = ratings.length;
+        const averageRating =
+          totalRatings > 0
+            ? ratings.reduce((sum, r) => sum + r.rating, 0) / totalRatings
+            : 0;
+        return {
+          ...gig,
+          providerName: provider ? `${provider.firstName} ${provider.lastName}` : "",
+          rating: parseFloat(averageRating.toFixed(1)),
+          reviews: totalRatings,
+          
+        };
+      }
+      else{
+        return {
+          ...gig,
+          providerName: "",
+          rating: 0,
+          reviews: 0,
+        }
+      }
+      
     })
   );
 
