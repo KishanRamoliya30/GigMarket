@@ -18,6 +18,9 @@ export const GET = async (req: NextRequest) => {
         const gigId = searchParams.get("gigId");
         const user1Id = searchParams.get("user1");
         const user2Id = searchParams.get("user2");
+        const page = parseInt(searchParams.get("page") || "1", 10);
+        const limit = parseInt(searchParams.get("limit") || "20", 10);
+        const skip = (page - 1) * limit;
 
         if (!gigId || !user1Id || !user2Id) {
             throw new ApiError("Missing required parameters", 400);
@@ -30,14 +33,14 @@ export const GET = async (req: NextRequest) => {
         })
             .populate({
                 path: "gigId",
-                model: 'gigs',
+                model: "gigs",
                 select: "title description createdBy"
             })
             .populate({
                 path: "participants",
                 populate: {
                     path: "profile",
-                    model: 'profiles',
+                    model: "profiles",
                     select: "fullName profilePicture",
                 },
                 select: "email"
@@ -62,18 +65,37 @@ export const GET = async (req: NextRequest) => {
             });
         }
 
-        const messages = await Message.find({ chatId: chat._id })
-            .populate({
-                path: "sender",
-                populate: {
-                    path: "profile",
-                    select: "fullName profilePicture",
-                },
-                select: "email"
-            })
-            .sort({ createdAt: 1 });
+        const [messages, total] = await Promise.all([
+            Message.find({ chatId: chat._id })
+                .populate({
+                    path: "sender",
+                    populate: {
+                        path: "profile",
+                        select: "fullName profilePicture",
+                    },
+                    select: "email"
+                })
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit),
+            Message.countDocuments({ chatId: chat._id }),
+        ]);
 
-        return successResponse({ chat, messages }, "Chat fetched successfully", 200);
+        const totalPages = Math.ceil(total / limit);
+
+        return successResponse(
+            {
+                chat,
+                messages,
+            },
+            "Chat fetched successfully",
+            200,
+            {
+                total,
+                page,
+                limit,
+                totalPages,
+            });
     } catch (error) {
         return errorResponse(error, 500);
     }
