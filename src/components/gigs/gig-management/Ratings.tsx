@@ -15,7 +15,6 @@ import CustomButton from "@/components/customUi/CustomButton";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { apiRequest } from "@/app/lib/apiCall";
-import { useUser } from "@/context/UserContext";
 import { toast } from "react-toastify";
 import CloseIcon from "@mui/icons-material/Close";
 import CustomTextField from "@/components/customUi/CustomTextField";
@@ -34,7 +33,6 @@ const PostGigReviewDialog: React.FC<Props> = ({
   data,
   pendingStatus,
 }) => {
-  const { user } = useUser();
   const validationSchema = Yup.object().shape({
     rating: Yup.number()
       .required("Rating is required")
@@ -78,7 +76,6 @@ const PostGigReviewDialog: React.FC<Props> = ({
       interface Payload {
         gigId: string;
         createdBy: string | undefined;
-        providerId: string | undefined;
         rating: number | null;
         review: string;
         status: string;
@@ -91,8 +88,7 @@ const PostGigReviewDialog: React.FC<Props> = ({
 
       const payload: Payload = {
         gigId: data._id,
-        createdBy: data.userId,
-        providerId: user?._id,
+        createdBy: data.createdBy,
         rating: values.rating,
         review: values.review,
         status: pendingStatus,
