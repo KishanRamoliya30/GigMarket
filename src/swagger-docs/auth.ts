@@ -23,7 +23,7 @@
  *       400:
  *         description: Missing email or password
  *       401:
- *         description:  "error": "Invalid credentials. Please try again."
+ *         description: Invalid credentials. Please try again
  *       500:
  *         description: Server error
  */

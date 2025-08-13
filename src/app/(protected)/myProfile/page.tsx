@@ -37,6 +37,7 @@ const SectionCard: React.FC<SectionCardProps> = ({ title, icon, children }) => (
 const ProfileViewCard: React.FC = () => {
   const [open, setOpen] = useState<boolean>(false);
   const [isEdit, setIsEdit] = useState<boolean>(false);
+  const [stripeLoading, setStripeLoading] = useState<boolean>(false);
   const [profileData, setProfileData] = useState<Profile | null>(null);
   const [stripeData, setStripeData] = useState<{stripeConnectAccountId:string,
 stripeConnectAccountStatus:string
@@ -51,9 +52,11 @@ stripeConnectAccountStatus:string
   };
 
   const createStripeConnectAccount = async () => {
+    setStripeLoading(true);
     const res = await apiRequest("payment/create-stripe-connect-profile", {
       method: "POST",
     })
+    setStripeLoading(false);
     if (res.ok) {
       window.open(res.data.data.url, '_blank');
     } else {
@@ -62,9 +65,11 @@ stripeConnectAccountStatus:string
   }
    
   const loginStripe = async () => {
+    setStripeLoading(true);
     const res = await apiRequest("payment/create-login-link", {
       method: "POST",
     });
+    setStripeLoading(false);
     if (res.ok) {
       window.open(res.data.data.url, '_blank');
     } else {
@@ -139,7 +144,7 @@ stripeConnectAccountStatus:string
   } = profileData;
 
   return (
-   <div className="relative bg-[#fafaf5] min-h-screen p-6">
+    <div className="relative bg-[#fafaf5] min-h-screen p-6">
       {/* Profile Header */}
       <div className="bg-white p-6 rounded-xl shadow-sm mb-6">
         <button
@@ -176,13 +181,6 @@ stripeConnectAccountStatus:string
       <SectionCard title="Stripe Connect">
         <div className="bg-white border border-gray-200 p-5 rounded-xl space-y-4">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-            <div className="flex items-center gap-2 text-sm text-gray-700 break-all">
-              <span className="font-medium">Account ID:</span>
-              <span className="text-gray-800 font-semibold">
-                {stripeData?.stripeConnectAccountId}
-              </span>
-            </div>
-
             <div className="flex items-center gap-2 text-sm">
               <span className="font-medium text-gray-500">Status:</span>
               <span
@@ -198,14 +196,13 @@ stripeConnectAccountStatus:string
           </div>
 
           <div className="flex flex-wrap sm:flex-nowrap sm:items-center sm:justify-between gap-3 pt-2">
-            {["PENDING", "NEEDS_ONBOARDING"].includes(
-              stripeData?.stripeConnectAccountStatus ?? "PENDING"
-            ) && (
+            {["NEEDS_ONBOARDING","PENDING"].includes(stripeData?.stripeConnectAccountStatus ?? "PENDING") && (             
               <button
                 onClick={createStripeConnectAccount}
-                className="px-4 py-2 rounded-md text-sm font-semibold text-gray-700 border border-gray-300 hover:bg-gray-100 transition-all shadow hover:shadow-md cursor-pointer"
+                disabled={stripeLoading}
+                className={`px-4 py-2 rounded-md text-sm font-semibold text-gray-700 border border-gray-300 hover:bg-gray-100 transition-all shadow hover:shadow-md cursor-pointer ${stripeLoading ? "opacity-50 cursor-not-allowed" : ""}`}
               >
-                Complete Onboarding
+                {(stripeData?.stripeConnectAccountStatus ?? "PENDING")=="PENDING"?"Create Stripe Connect Account": "Complete Onboarding"}
               </button>
             )}
 
@@ -213,7 +210,8 @@ stripeConnectAccountStatus:string
               <div className="sm:ml-auto">
                 <button
                   onClick={loginStripe}
-                  className="px-4 py-2 rounded-md text-sm font-semibold text-gray-700 border border-gray-300 hover:bg-gray-100 transition-all shadow hover:shadow-md cursor-pointer"
+                  disabled={stripeLoading}
+                className={`px-4 py-2 rounded-md text-sm font-semibold text-gray-700 border border-gray-300 hover:bg-gray-100 transition-all shadow hover:shadow-md cursor-pointer ${stripeLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                 >
                   Login to Stripe Dashboard
                 </button>
@@ -274,7 +272,10 @@ stripeConnectAccountStatus:string
       </div>
 
       {/* Education */}
-      <SectionCard title="Education" icon={<SchoolOutlined className="text-blue-500" />}>
+      <SectionCard
+        title="Education"
+        icon={<SchoolOutlined className="text-blue-500" />}
+      >
         <div className="bg-blue-50 p-4 rounded-lg mb-2">
           <p className="font-semibold">
             {degreeType} in {major}
@@ -304,12 +305,18 @@ stripeConnectAccountStatus:string
       </SectionCard>
 
       {/* Extracurricular */}
-      <SectionCard title="Extracurricular Activities" icon={<EmojiEventsOutlined className="text-blue-500" />}>
+      <SectionCard
+        title="Extracurricular Activities"
+        icon={<EmojiEventsOutlined className="text-blue-500" />}
+      >
         <p className="text-gray-700">{extracurricularActivities}</p>
       </SectionCard>
 
       {/* Certifications */}
-      <SectionCard title="Certifications" icon={<Verified className="text-blue-500" />}>
+      <SectionCard
+        title="Certifications"
+        icon={<Verified className="text-blue-500" />}
+      >
         {certifications?.length > 0 ? (
           <div className="flex flex-col gap-2">
             {certifications?.map((cert, idx) => (

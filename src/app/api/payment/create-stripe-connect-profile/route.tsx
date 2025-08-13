@@ -40,8 +40,8 @@ export const POST = withApiHandler(async (req: NextRequest): Promise<NextRespons
   
     const accountLink = await stripe.accountLinks.create({
       account: accountId,
-      refresh_url: `${process.env.NEXT_PUBLIC_APP_URL}/myProfile/stripe-connect-success`,
-      return_url: `${process.env.NEXT_PUBLIC_APP_URL}/myProfile/stripe-connect-success`,
+      refresh_url: `${process.env.NEXT_PUBLIC_APP_URL}/stripe-connect-success`,
+      return_url: `${process.env.NEXT_PUBLIC_APP_URL}/stripe-connect-success`,
       type: "account_onboarding",
     });
 

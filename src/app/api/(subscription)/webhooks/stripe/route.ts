@@ -158,6 +158,15 @@ export async function POST(req: NextRequest) {
 
       break;
     }
+
+    // Handle transfer events to connect accounts
+    // case 'transfer.updated':
+    // case 'transfer.created':
+    // case 'transfer.reversed':
+    // case 'treasury.outbound_transfer.canceled':
+    //   const transfer = data as Stripe.Transfer;
+    //   console.log('Transfer updated:', transfer,event.type);
+    //   break;
   }
 
   const response = new NextResponse('Subscription has been done successfully', { status: 200 });

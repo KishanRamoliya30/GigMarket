@@ -8,8 +8,18 @@ import {
   useState,
 } from "react";
 
+interface PaymentInfo {
+  gigId: string;
+  gigTitle: string;
+  gigDescription: string;
+  amount: number;
+  refId: string;
+}
+
 interface UserContextType {
   user: UserType | null;
+  paymentInfo: PaymentInfo;
+  setPaymentInfo: (info: PaymentInfo) => void;
   redirectUrl: string;
   setRedirectUrl: (url: string) => void;
   setUser: (user: UserType | null) => void;
@@ -36,6 +46,13 @@ export const UserProvider = ({
   currentUser: UserType | null;
 }) => {
   const [user, setUserState] = useState<UserType | null>(currentUser);
+  const [paymentInfo, setPaymentState] = useState<PaymentInfo>({
+    gigId: "",
+    gigTitle: "",
+    gigDescription: "",
+    amount: 0,
+    refId: "",
+  })
   const [redirectUrl, setRedirectUrl] = useState<string>("");
   const setUser = (newUser: UserType | null) => setUserState({ ...user, ...(newUser as UserType) });
   const setUserProfile = (newProfile: UserProfile) => {
@@ -50,6 +67,10 @@ export const UserProvider = ({
     setUserState((prev) => (prev ? { ...prev, role } : prev));
   };
 
+  const setPaymentInfo = (info: PaymentInfo) => {
+    setPaymentState(info);
+  }
+
   const resetUser = () => setUserState(null);
 
   return (
@@ -57,6 +78,8 @@ export const UserProvider = ({
       value={{
         user,
         setUser,
+        paymentInfo,
+        setPaymentInfo,
         setRole,
         resetUser,
         redirectUrl,

@@ -22,6 +22,8 @@ import {
 } from "@mui/material";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
+
 interface PaymentProps {
   amount: number;
   userId: string;
@@ -40,6 +42,7 @@ export default function PaymentForm(payment: PaymentProps) {
   const [savedMethods, setSavedMethods] = useState<any[]>([]);
   const [selectedMethod, setSelectedMethod] = useState<string>("new");
   const [tab, setTab] = useState<string>("new");
+  const router = useRouter();
 
   useEffect(() => {
     const fetchClientSecret = async () => {
@@ -101,7 +104,6 @@ export default function PaymentForm(payment: PaymentProps) {
     });
 
     setLoading(false);
-
     if (result.error) {
        toast.error(result.error.message);
        savepaymentInfo("Failed",false);
@@ -111,6 +113,8 @@ export default function PaymentForm(payment: PaymentProps) {
       savepaymentInfo(result.paymentIntent.id,true);
       console.log("Payment successful:", result);
     }
+    router.back();
+
   };
 
   return (

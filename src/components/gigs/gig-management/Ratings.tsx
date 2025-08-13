@@ -114,7 +114,7 @@ const PostGigReviewDialog: React.FC<Props> = ({
             method: "PATCH",
             data: JSON.stringify({
               status: pendingStatus,
-              bidId: data.assignedToBid,
+              bidId: data.assignedToBid?._id,
               description: values.review,
             }),
           });
