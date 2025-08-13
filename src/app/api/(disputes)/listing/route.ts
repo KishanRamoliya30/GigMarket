@@ -29,7 +29,7 @@ export const GET = withApiHandler(async (req: NextRequest): Promise<NextResponse
     gigIds = [...new Set(userBids.map((bid) => bid.gigId))].map(id => new Types.ObjectId(id));
   } else if (role === "User") {
     const userGigs = await Gig.find({ createdBy: userDetails.userId }).lean();
-    gigIds = userGigs.map((gig) => gig._id);
+    gigIds = userGigs.map((gig) => gig._id as Types.ObjectId);
   } else {
     throw new ApiError("Invalid user role", 400);
   }

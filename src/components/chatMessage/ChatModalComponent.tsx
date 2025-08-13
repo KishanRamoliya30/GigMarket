@@ -18,7 +18,6 @@ import AttachFileIcon from "@mui/icons-material/AttachFile";
 import socket from "../../../utils/socket";
 import { apiRequest } from "@/app/lib/apiCall";
 import { useUser } from "@/context/UserContext";
-import { ChatModalProps } from "@/app/(protected)/chatModal/page";
 import CustomTextField from "../customUi/CustomTextField";
 import Image from "next/image";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
@@ -42,6 +41,14 @@ export interface Message {
   mediaUrl?: string;
   seenBy: string[];
   createdAt: string;
+}
+
+interface ChatModalProps {
+  open: boolean;
+  onClose: () => void;
+  gigId: string;
+  user1Id: string;
+  key?: string;
 }
 
 const ChatModalComponent: React.FC<ChatModalProps> = ({
