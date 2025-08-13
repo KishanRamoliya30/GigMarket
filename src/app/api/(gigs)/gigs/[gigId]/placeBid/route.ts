@@ -6,6 +6,7 @@ import { ApiError } from "@/app/lib/commonError";
 import { successResponse, withApiHandler } from "@/app/lib/commonHandlers";
 import { placeBidSchema } from "@/utils/beValidationSchema";
 import User from "@/app/models/user";
+import { verifyToken } from "@/app/utils/jwt";
 
 export const POST = withApiHandler(
   async (
@@ -17,15 +18,15 @@ export const POST = withApiHandler(
     const gigId = (await params).gigId;
     if (!gigId) throw new ApiError("Gig ID is required", 400);
 
-    const userHeader = req.headers.get("x-user");
+    const userHeader = await verifyToken(req);
     if (!userHeader) throw new ApiError("Unauthorized request", 401);
 
-    const userDetails = JSON.parse(userHeader);
+    // const userDetails = JSON.parse(userHeader);
     // if (!userDetails?._id || !userDetails?.role) {
     //   throw new ApiError("Invalid user data", 401);
     // }
 
-    const user = await User.findById(userDetails._id);
+    const user = await User.findById(userHeader?.userId);
     if (!user) throw new ApiError("User not found", 404);
 
     const plan = user.subscription?.planName || "Free";
