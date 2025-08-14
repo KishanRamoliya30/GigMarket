@@ -317,9 +317,9 @@ export default function Header() {
                 </Typography>
               )}
 
-              <Typography variant="body2" sx={{ fontWeight: 500 }}>
+              {/* <Typography variant="body2" sx={{ fontWeight: 500 }}>
                 Orders
-              </Typography>
+              </Typography> */}
               {renderUserAvatar()}
             </>
           ) : (

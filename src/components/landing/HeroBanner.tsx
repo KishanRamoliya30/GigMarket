@@ -44,7 +44,7 @@ function HomeBanner() {
   ];
 
   return (
-    <div className="relative py-14 px-4 sm:px-8 lg:px-20 text-white overflow-hidden min-h-[30pc] md:min-h-[45pc]">
+    <div className="relative py-14 px-4 sm:px-8 lg:px-20 text-white overflow-hidden min-h-[30pc] md:min-h-[50pc]">
       {/* Background */}
       <Image
         src="/pattern.png"
@@ -103,7 +103,12 @@ function HomeBanner() {
         <div className="group relative sm:hidden md:flex justify-center lg:justify-end items-end h-full gap-4">
           {/* Man Image */}
           <div className="relative w-44 md:w-60 h-72 md:h-96 overflow-hidden shadow-lg z-[-1]">
-            <Image src="/man.png" alt="Man" fill className="object-cover transition-all duration-500 group-hover:brightness-110" />
+            <Image
+              src="/man.png"
+              alt="Man"
+              fill
+              className="object-cover transition-all duration-500 group-hover:brightness-110"
+            />
             {/* Light Overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-white/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             <div className="absolute top-4 right-4 bg-white text-black text-xs px-3 py-2 rounded-lg shadow flex items-center gap-2 transition-all duration-500 group-hover:-translate-x-1">
@@ -123,7 +128,12 @@ function HomeBanner() {
 
           {/* Woman Image */}
           <div className="relative w-48 md:w-72 h-[28rem] md:h-[34rem] overflow-hidden shadow-lg z-[-1]">
-            <Image src="/woman.png" alt="Woman" fill className="object-cover transition-all duration-500 group-hover:brightness-110" />
+            <Image
+              src="/woman.png"
+              alt="Woman"
+              fill
+              className="object-cover transition-all duration-500 group-hover:brightness-110"
+            />
             {/* Light Overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-white/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             <div className="absolute bottom-4 right-4 bg-white text-black text-xs px-3 py-2 rounded-lg shadow flex items-center gap-2 transition-all duration-500 group-hover:-translate-x-1">
