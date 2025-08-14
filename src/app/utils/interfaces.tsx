@@ -51,6 +51,9 @@ export interface Profile {
   averageRating: number;
   updatedAt: string;
   __v: number;
+  location?: string;
+  rate?: string;
+  reviews?: number;
 }
 
 export interface Pagination {

@@ -1,61 +1,13 @@
 "use client";
-import { ArrowLeft, ArrowRight, Star } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Pagination, Profile } from "../utils/interfaces";
 import { apiRequest } from "../lib/apiCall";
 import CardList from "@/components/cardList/CardList";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import ProviderCard from "./ProviderCard";
 
 const ITEMS_PER_PAGE = 8;
-
-export const renderProfileCard = ({ item }: { item: Profile }) => {
-  const { fullName, profilePicture, averageRating, degreeType } = item;
-  return (
-    <div className="bg-white rounded-lg sm:rounded-2xl overflow-hidden shadow-md sm:shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 relative group w-full">
-      <div className="relative h-48 sm:h-64 md:h-72">
-        <img
-          src={profilePicture || "/noImageFound.png"}
-          alt={fullName}
-          className="w-full h-full object-cover"
-          sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-      </div>
-
-      <div className="p-3 sm:p-4 relative z-10">
-        <div className="flex justify-between items-start flex-wrap gap-2">
-          <div className="flex-1 min-w-[150px]">
-            <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-1 group-hover:text-emerald-600 transition-colors line-clamp-1">
-              {fullName}
-            </h3>
-            <p className="text-xs sm:text-sm text-gray-600 flex items-center gap-2">
-              <span className="w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-emerald-500 inline-block"></span>
-              <span className="line-clamp-1">{degreeType}</span>
-            </p>
-          </div>
-          <div className="flex items-center gap-1 bg-gray-900/90 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-white text-xs sm:text-sm font-medium">
-            <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400 fill-yellow-400" />
-            <span>{averageRating || 0}</span>
-          </div>
-        </div>
-
-        <div className="mt-3 sm:mt-4 flex justify-between items-center">
-          <Link href={`/publicProfile/${item.userId}`}>
-            <button className="text-xs sm:text-sm font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 cursor-pointer">
-              View Profile
-              <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
-            </button>
-          </Link>
-          <div className="h-6 w-6 sm:h-8 sm:w-8 rounded-full bg-emerald-50 flex items-center justify-center">
-            <Star className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const ProviderCardList = () => {
   const router = useRouter();
   const [providers, setProviders] = useState<Profile[]>([]);
@@ -143,7 +95,7 @@ const ProviderCardList = () => {
             <div className="w-full bg-white/30  p-4 sm:p-6">
               <CardList
                 data={providers}
-                CardComponent={renderProfileCard}
+                CardComponent={ProviderCard}
                 pagination={pagination}
                 onPageChange={handlePageChange}
               />

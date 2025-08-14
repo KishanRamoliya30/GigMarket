@@ -81,7 +81,7 @@ const CustomCarousel = <T,>({
   }
 
   return (
-    <section className={`px-4 py-12 md:px-16 relative ${sectionClassName}`}>
+    <section className={`relative ${sectionClassName}`}>
       <div className="flex flex-col justify-between items-center mb-1">
         {heading && (
           <h2 className="text-2xl sm:text-3xl lg:text-4xl mb-2 text-[#404145] font-bold text-center">
