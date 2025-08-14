@@ -82,13 +82,13 @@ const MadeOnFiverr = () => {
 
                   <div className="flex items-center justify-between pt-3 border-t border-gray-100 mt-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0">
+                      <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 relative">
                         <Image
                           src={gig.createdBy?.profilePicture || "/avatar.png"}
                           alt={gig.createdBy?.fullName || "User"}
-                          width={28}
-                          height={28}
+                          fill
                           className="object-cover"
+                          sizes="28px"
                         />
                       </div>
                       <span className="text-sm text-gray-700">

@@ -12,6 +12,7 @@ import MadeOnFiverr from "@/components/landing/MadeOnFiverr";
 // import TrustedServices from "@/components/landing/TrustedService";
 // import ServiceTiers from "@/components/landing/ServiceTiers";
 import LandingProviderProfiles from "@/components/Carousel/LandingProviderProfiles";
+import PricingCard from "@/components/landing/PricingCard";
 
 export default function Home() {
   return (
@@ -22,6 +23,7 @@ export default function Home() {
       {/* <PopularServices /> */}
       <MadeOnFiverr />
       <LandingProviderProfiles />
+      <PricingCard/>
       {/* <ServiceTiers /> */}
       <Companies />
       {/* <FiverrBusiness /> */}

@@ -1,10 +1,10 @@
-import React, { useState } from 'react'
-import { Profile } from '../utils/interfaces';
-import Image from 'next/image';
-import Link from 'next/link';
-import { ArrowRight, Star } from 'lucide-react';
+import React, { useState } from "react";
+import { Profile } from "../utils/interfaces";
+import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight, Star } from "lucide-react";
 
-const ProviderCard =({ item }: { item: Profile })=> {
+const ProviderCard = ({ item }: { item: Profile }) => {
   const {
     fullName,
     profilePicture,
@@ -22,7 +22,6 @@ const ProviderCard =({ item }: { item: Profile })=> {
   const hiddenSkills = skills?.slice(2);
   return (
     <div className="border border-gray-200 bg-white hover:shadow-lg transition-all duration-300 overflow-hidden w-full max-w-[320px] mx-auto p-5 flex flex-col justify-between min-h-[480px]">
-
       <div className="absolute top-4 right-4 h-8 w-8 rounded-full bg-white shadow-sm flex items-center justify-center cursor-pointer hover:bg-gray-100">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -117,6 +116,6 @@ const ProviderCard =({ item }: { item: Profile })=> {
       </Link>
     </div>
   );
-}
+};
 
-export default ProviderCard
+export default ProviderCard;
