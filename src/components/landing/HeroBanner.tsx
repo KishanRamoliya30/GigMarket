@@ -2,22 +2,16 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import { IoSearchOutline } from "react-icons/io5";
+import SearchIcon from "@mui/icons-material/Search";
+import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
+import GroupsIcon from "@mui/icons-material/Groups";
+import SecurityIcon from "@mui/icons-material/Security";
 
 function HomeBanner() {
   const router = useRouter();
-  const [image, setImage] = useState(1);
   const [searchData, setSearchData] = useState("");
-  const fullText = "Search any service here...";
   const [placeholder, setPlaceholder] = useState("");
-
-  useEffect(() => {
-    const interval = setInterval(
-      () => setImage(image >= 6 ? 1 : image + 1),
-      10000
-    );
-    return () => clearInterval(interval);
-  }, [image]);
+  const fullText = "What are you looking for?";
 
   useEffect(() => {
     let index = 0;
@@ -27,7 +21,6 @@ function HomeBanner() {
       typingInterval = setInterval(() => {
         setPlaceholder(fullText.slice(0, index + 1));
         index++;
-
         if (index === fullText.length) {
           clearInterval(typingInterval);
           setTimeout(() => {
@@ -40,72 +33,119 @@ function HomeBanner() {
     };
 
     startTyping();
-
     return () => clearInterval(typingInterval);
   }, []);
 
+  const stats = [
+    { num: "960M", label: "Total Freelancer" },
+    { num: "850M", label: "Positive Review" },
+    { num: "98M", label: "Order received" },
+    { num: "250M", label: "Projects Completed" },
+  ];
+
   return (
-    <div className="h-[680px] relative bg-cover">
-      {/* Background Images */}
-      <div className="absolute top-0 right-0 w-[110vw] h-full transition-opacity z-0">
-        {[1, 2, 3, 4, 5, 6].map((num) => (
-          <Image
-            key={num}
-            alt="hero"
-            src={`/bg-hero${num}.webp`}
-            fill
-            className={`${
-              image === num ? "opacity-100" : "opacity-0"
-            } transition-all duration-1000`}
-          />
-        ))}
-      </div>
+    <div className="relative py-14 px-4 sm:px-8 lg:px-20 text-white overflow-hidden min-h-[30pc] md:min-h-[50pc]">
+      {/* Background */}
+      <Image
+        src="/pattern.png"
+        alt="Background Pattern"
+        fill
+        className="object-cover z-0"
+        priority
+      />
+      <div className="absolute inset-0 bg-[#0e5135]/80 z-0" />
 
-      {/* Foreground Content */}
-      <div className="z-10 relative w-full max-w-[650px] flex justify-center flex-col h-full gap-3 md:gap-5 p-4 md:p-0 md:ml-20">
-        <h1 className="text-white text-2xl xs:text-3xl sm:text-4xl md:text-5xl leading-tight md:leading-snug">
-          Find the perfect&nbsp;
-          <i>freelance</i>
-          <br className="hidden xs:block" />
-          &nbsp; services for your business
-        </h1>
+      <div className="relative pt-8 md:pt-20 z-10 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center h-full">
+        {/* Left Side */}
+        <div className="flex flex-col gap-6 justify-center">
+          <h1 className="text-3xl md:text-5xl font-bold leading-snug">
+            Find the perfect freelance services for your business
+          </h1>
+          <p className="pb-8 md:pb-15 text-gray-200 text-sm md:text-base max-w-lg">
+            Work with talented people at the most affordable price to get the
+            most out of your time and cost
+          </p>
 
-        {/* Search Bar - joined input and button */}
-        <div className="flex w-full flex-col sm:flex-row gap-2 xs:gap-0">
-          <div className="relative flex-grow">
-            <IoSearchOutline className="absolute text-gray-500 text-xl md:text-2xl h-full left-2 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              className="h-12 md:h-14 w-full pl-10 rounded-md xs:rounded-r-none bg-white text-sm md:text-base"
-              placeholder={placeholder}
-              value={searchData}
-              onChange={(e) => setSearchData(e.target.value)}
-            />
+          {/* Search Bar */}
+          <div className="relative w-full max-w-2xl">
+            <div className="h-20 w-[120%] bg-white rounded-full flex flex-col sm:flex-row items-center overflow-hidden shadow-lg">
+              <div className="flex items-center flex-1 w-full">
+                <SearchIcon className="text-gray-500 text-lg ml-4" />
+                <input
+                  type="text"
+                  className="flex-1 py-3 px-3 text-black text-sm outline-none"
+                  placeholder={placeholder}
+                  value={searchData}
+                  onChange={(e) => setSearchData(e.target.value)}
+                />
+              </div>
+              <button
+                className="cursor-pointer h-20 w-full sm:w-40 bg-[#1DBF73] text-white px-6 py-3 font-medium hover:bg-[#19a564] transition-colors"
+                onClick={() => router.push(`/publicGigs?search=${searchData}`)}
+              >
+                Search
+              </button>
+            </div>
           </div>
-          <button
-            className=" w-auto h-12 md:h-14 bg-[#1DBF73] text-white px-4 md:px-10 text-sm md:text-lg font-semibold rounded-md xs:rounded-l-none cursor-pointer hover:bg-[#19a564] transition-colors"
-            onClick={() => router.push(`/publicGigs?search=${searchData}`)}
-          >
-            Search
-          </button>
+
+          {/* Stats */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mt-10 text-center">
+            {stats.map((stat) => (
+              <div key={stat.label}>
+                <p className="text-2xl font-bold">{stat.num}</p>
+                <p className="text-xs text-gray-300">{stat.label}</p>
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* Popular Tags */}
-        <div className="text-white flex flex-col xs:flex-row xs:items-center gap-2 xs:gap-4 text-xs md:text-sm mt-2 md:mt-4">
-          <span className="whitespace-nowrap">Popular:</span>
-          <ul className="flex flex-wrap gap-2 md:gap-3">
-            {["website design", "wordpress", "logo design", "ai services"].map(
-              (term) => (
-                <li
-                  key={term}
-                  className="py-1 px-2 md:px-3 border rounded-full hover:bg-white hover:text-black transition-all duration-300 cursor-pointer text-xs md:text-sm"
-                  onClick={() => router.push(`/publicGigs?search=${term}`)}
-                >
-                  {term.charAt(0).toUpperCase() + term.slice(1)}
-                </li>
-              )
-            )}
-          </ul>
+        {/* Right Side */}
+        <div className="group relative sm:hidden md:flex justify-center lg:justify-end items-end h-full gap-4">
+          {/* Man Image */}
+          <div className="relative w-44 md:w-60 h-72 md:h-96 overflow-hidden shadow-lg z-[-1]">
+            <Image
+              src="/man.png"
+              alt="Man"
+              fill
+              className="object-cover transition-all duration-500 group-hover:brightness-110"
+            />
+            {/* Light Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-white/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="absolute top-4 right-4 bg-white text-black text-xs px-3 py-2 rounded-lg shadow flex items-center gap-2 transition-all duration-500 group-hover:-translate-x-1">
+              <WorkspacePremiumIcon fontSize="small" sx={{ color: "green" }} />
+              <div>
+                Proof of quality <br />
+                <span className="text-gray-500 text-[10px]">
+                  Lorem Ipsum Dolar Amet
+                </span>
+              </div>
+            </div>
+            <div className="absolute bottom-4 left-4 bg-white text-black text-xs px-3 py-2 rounded-lg shadow flex items-center gap-2 transition-all duration-500 group-hover:-translate-x-1">
+              <GroupsIcon fontSize="small" sx={{ color: "green" }} />
+              <span>58M+ Professionals</span>
+            </div>
+          </div>
+
+          {/* Woman Image */}
+          <div className="relative w-48 md:w-72 h-[28rem] md:h-[34rem] overflow-hidden shadow-lg z-[-1]">
+            <Image
+              src="/woman.png"
+              alt="Woman"
+              fill
+              className="object-cover transition-all duration-500 group-hover:brightness-110"
+            />
+            {/* Light Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-white/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="absolute bottom-4 right-4 bg-white text-black text-xs px-3 py-2 rounded-lg shadow flex items-center gap-2 transition-all duration-500 group-hover:-translate-x-1">
+              <SecurityIcon fontSize="small" sx={{ color: "green" }} />
+              <div>
+                Safe and secure <br />
+                <span className="text-gray-500 text-[10px]">
+                  Lorem Ipsum Dolar Amet
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

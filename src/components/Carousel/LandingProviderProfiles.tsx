@@ -4,8 +4,8 @@ import { Profile } from "@/app/utils/interfaces";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
-import { renderProfileCard } from "@/app/providers/ProviderCardList";
 import CustomCarousel from "./CustomCarousel";
+import ProviderCard from "@/app/providers/ProviderCard";
 
 const LandingProviderProfiles = () => {
   const [data, setData] = useState<{
@@ -36,18 +36,18 @@ const LandingProviderProfiles = () => {
     return (
       <button
         onClick={() => router.push(`/providers`)}
-        className="text-sm font-semibold hover:underline flex items-center gap-1 cursor-pointer"
+        className="mt-10 mx-auto flex items-center gap-2 rounded-full bg-green-100 px-6 py-2 text-green-600 font-semibold hover:bg-green-200 transition-colors cursor-pointer"
       >
-        Browse All <ArrowRight className="w-4 h-4" />
+        All Providers <ArrowRight className="w-4 h-4" />
       </button>
     );
   };
 
   return (
-    <div className="py-12 md:px-12 sm:px-6 lg:px-16">
+    <div className="py-12 px-10">
       <CustomCarousel
         data={data.profiles}
-        CardComponent={renderProfileCard}
+        CardComponent={ProviderCard}
         ViewAllButtonComponent={() => ViewAllButton()}
         heading="Top Providers"
         subheading="Most viewed and all-time top-rated providers"

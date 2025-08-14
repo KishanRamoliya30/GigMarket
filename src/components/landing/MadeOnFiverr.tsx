@@ -37,7 +37,7 @@ const MadeOnFiverr = () => {
 
   return (
     data.data.length > 0 && (
-      <section className="py-12 px-10 md:px-18 lg:px-26">
+      <section className="py-12 px-10">
         <div className="mx-auto">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl mb-2 text-[#404145] font-bold text-center">
             Made on Gig Market
@@ -47,55 +47,70 @@ const MadeOnFiverr = () => {
             {data.data.map((gig, index) => (
               <div
                 key={index}
-                className="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:-translate-y-2 hover:cursor-pointer"
-                onClick={() => {
-                  router.push(`gigs/${gig._id}`);
-                }}
+                className="group relative bg-white shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out cursor-pointer overflow-hidden"
+                onClick={() => router.push(`gigs/${gig._id}`)}
               >
-                {/* Image */}
-                <div className="aspect-[4/3] overflow-hidden">
+                <div className="w-full aspect-[4/3] relative">
                   <Image
                     src={gig.gigImage?.url || "/noImageFound.png"}
                     alt={gig.title}
-                    width={400}
-                    height={300}
-                    className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500"
+                    fill
+                    className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
                   />
                 </div>
-
-                {/* Hover overlay with text */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent  transition-opacity duration-300">
-                  <div className="absolute bottom-6 left-6 right-6">
-                    <p className="text-base font-semibold text-white mb-2">
-                      Featured in:{" "}
-                      {gig.title.length > 30
-                        ? `${gig.title.substring(0, 30)}...`
-                        : gig.title}
-                    </p>
-                    {gig.createdBy.fullName && (
-                      <p className="text-sm text-gray-200 flex items-center gap-2">
-                        <span className="p-1 w-6 h-6 rounded-full bg-purple-500 flex items-center justify-center">
-                          {gig.createdBy.fullName.charAt(0)}
-                        </span>
-                        {gig.createdBy.fullName}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Like icon */}
-                <button className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full p-1 shadow-lg hover:bg-white transition-colors z-10 group-hover:scale-110">
+                <button className="absolute top-4 right-4 bg-white rounded-full p-1 shadow-md hover:scale-110 transition z-10">
                   <FavoriteBorderOutlined className="w-5 h-5 text-gray-700" />
                 </button>
+                <div className="p-4">
+                  <p className="text-xs text-gray-500 font-medium mb-1">
+                    Design & Creative
+                  </p>
+
+                  <p className="text-base font-semibold text-gray-900 mb-2 line-clamp-2">
+                    {gig.title}
+                  </p>
+
+                  <div className="flex items-center text-sm text-gray-600 gap-1 mb-4">
+                    <span className="text-yellow-500 text-base">★</span>
+                    <span className="font-semibold">
+                      {gig.rating?.toFixed(1) || "0.0"}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      ({gig.reviews || 0} Reviews)
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-3 border-t border-gray-100 mt-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 relative">
+                        <Image
+                          src={gig.createdBy?.profilePicture || "/avatar.png"}
+                          alt={gig.createdBy?.fullName || "User"}
+                          fill
+                          className="object-cover"
+                          sizes="28px"
+                        />
+                      </div>
+                      <span className="text-sm text-gray-700">
+                        {gig.createdBy?.fullName}
+                      </span>
+                    </div>
+
+                    <div className="text-sm text-gray-700">
+                      Starting at:{" "}
+                      <span className="font-bold">${gig.price}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
 
           <button
             onClick={() => router.push(`/publicGigs`)}
-            className="text-sm mt-10 ml-auto mr-auto font-semibold hover:underline flex items-center gap-1 cursor-pointer"
+            className="mt-10 mx-auto flex items-center gap-2 rounded-full bg-green-100 px-6 py-2 text-green-600 font-semibold hover:bg-green-200 transition-colors cursor-pointer"
           >
-            Browse All <ArrowRight className="w-4 h-4" />
+            All Services <ArrowRight className="w-4 h-4" />
           </button>
         </div>
       </section>

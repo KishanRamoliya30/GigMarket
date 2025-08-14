@@ -3,7 +3,7 @@ import Image from "next/image";
 
 function Companies() {
   return (
-    <div className="pt-12 flex flex-col sm:flex-row items-center justify-center text-gray-400 text-lg sm:text-xl md:text-2xl font-bold min-h-[11vh] px-4 text-center">
+    <div className="pb-20 pt-12 flex flex-col sm:flex-row items-center justify-center text-gray-400 text-lg sm:text-xl md:text-2xl font-bold min-h-[11vh] px-4 text-center">
       <span className="mb-4 sm:mb-0 sm:mr-4">Trusted by:</span>
       <ul className="flex flex-wrap justify-center sm:justify-start gap-6 sm:gap-10">
         {[1, 2, 3, 4, 5].map((num) => (
