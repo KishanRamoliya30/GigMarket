@@ -19,24 +19,26 @@ import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { requestNotificationPermission } from "../../../app/utils/notificationPermission";
 import FiverrLogo from "@/components/logo";
 import { apiRequest } from "@/app/lib/apiCall";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 import ClearIcon from "@mui/icons-material/Clear";
+import NotificationModal from "@/components/user/NotificationModal";
+import Cookies from "js-cookie";
+
 const HeaderWrapper = styled(Box)(({ theme }) => ({
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
-  padding: "10px 24px",
-  borderBottom: "1px solid #eee",
+  padding: "12px 24px",
   backgroundColor: "#fff",
   flexWrap: "wrap",
-  gap: "12px",
   position: "fixed",
-  width: " 100%",
+  width: "100%",
   zIndex: 1111,
 
   "& .logoGroup": {
@@ -123,10 +125,13 @@ export default function Header() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [searchTerm, setSearchTerm] = useState<string>(
     searchParams.get("search") || ""
   );
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [notificationCount, setNotificationCount] = useState(0);
+  const notificationRef = useRef<HTMLButtonElement>(null);
   const { user, setRole, resetUser } = useUser();
   const role = user?.role;
   const _id = user?._id;
@@ -143,6 +148,32 @@ export default function Header() {
   const handleCloseMenu = () => {
     setAnchorEl(null);
   };
+
+  useEffect(() => {
+    let isSubscribed = true;
+
+    const initializeHeader = async () => {
+      if (user?._id && isSubscribed) {
+        const token = Cookies.get("token");
+        if (token) {
+          await requestNotificationPermission(token);
+        }
+      }
+    };
+
+    initializeHeader();
+
+    const handleNewNotification = () => {
+      setNotificationCount((prev) => prev + 1);
+    };
+
+    window.addEventListener("new-notification", handleNewNotification);
+
+    return () => {
+      isSubscribed = false;
+      window.removeEventListener("new-notification", handleNewNotification);
+    };
+  }, [user?._id]);
 
   const handleLogout = async () => {
     const response = await apiRequest("logout", { method: "POST" });
@@ -298,31 +329,37 @@ export default function Header() {
         </Box>
 
         <Box className="rightIcons hideOnMobile">
-          <NotificationsNoneIcon />
+          {_id && (
+            <IconButton
+              size="large"
+              aria-label="show notifications"
+              color="inherit"
+              onClick={() => {
+                setNotificationOpen(true);
+                setNotificationCount(0);
+              }}
+              ref={notificationRef}
+            >
+              <Badge badgeContent={notificationCount} color="error">
+                <NotificationsNoneIcon />
+              </Badge>
+            </IconButton>
+          )}
           <MailOutlineIcon />
           <FavoriteBorderIcon />
-          {_id ? (
-            <>
-              {isAllCompleted && (
-                <Typography
-                  variant="body2"
-                  sx={{
-                    fontWeight: 500,
-                    "&:hover": {
-                      borderBottom: "2px solid",
-                    },
-                  }}
-                >
-                  <Link href="/gigs/create">Add Gig</Link>
-                </Typography>
-              )}
+          {_id && role === "Provider" && isAllCompleted && (
+            <Typography
+              sx={{
+                fontWeight: 600,
+                cursor: "pointer",
+                color: "rgb(29, 191, 115)",
+              }}
+            >
+              <Link href="/gigs/create">Add Gig</Link>
+            </Typography>
+          )}
 
-              {/* <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                Orders
-              </Typography> */}
-              {renderUserAvatar()}
-            </>
-          ) : (
+          {!_id ? (
             <>
               <Link href="/login">
                 <Typography sx={{ fontWeight: 600, cursor: "pointer" }}>
@@ -344,6 +381,8 @@ export default function Header() {
                 </Button>
               </Link>
             </>
+          ) : (
+            renderUserAvatar()
           )}
         </Box>
       </HeaderWrapper>
@@ -373,10 +412,24 @@ export default function Header() {
             </IconButton>
           </Box>
 
-          <Box display="flex" alignItems="center" gap={2}>
-            <NotificationsNoneIcon />
-            <Typography>Notifications</Typography>
-          </Box>
+          {_id && (
+            <Box
+              display="flex"
+              alignItems="center"
+              gap={2}
+              sx={{ cursor: "pointer" }}
+              onClick={() => {
+                setNotificationOpen(true);
+                setIsSidebarOpen(false);
+              }}
+              ref={notificationRef}
+            >
+              <Badge badgeContent={0} color="error">
+                <NotificationsNoneIcon />
+              </Badge>
+              <Typography>Notifications</Typography>
+            </Box>
+          )}
           <Box display="flex" alignItems="center" gap={2}>
             <MailOutlineIcon />
             <Typography>Messages</Typography>
@@ -459,6 +512,14 @@ export default function Header() {
           </Box>
         )}
       </Menu>
+
+      <NotificationModal
+        anchorEl={notificationRef.current}
+        open={notificationOpen}
+        onClose={() => {
+          setNotificationOpen(false);
+        }}
+      />
     </>
   );
 }

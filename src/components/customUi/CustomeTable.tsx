@@ -27,7 +27,7 @@ const CustomeTable = ({
   raws,
   columns,
   handleBidStatusChange,
-  openChatModal
+  openChatModal,
 }: CustomeTableProps) => {
   const router = useRouter();
 
@@ -131,7 +131,10 @@ const CustomeTable = ({
 
       case "chat":
         return (
-          <IconButton aria-label="chat" onClick={() => openChatModal?.(raw.createdBy._id)}>
+          <IconButton
+            aria-label="chat"
+            onClick={() => openChatModal?.(raw.createdBy._id)}
+          >
             <ChatIcon />
           </IconButton>
         );
@@ -142,18 +145,18 @@ const CustomeTable = ({
   };
 
   return (
-    <div className="overflow-x-auto dark:shadow-md">
+    <div className="overflow-x-auto">
       <div className="inline-block min-w-full align-middle">
-        <div className="overflow-hidden border border-gray-200 dark:border-transparent rounded-md ">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 ">
-            <thead className="bg-gray-50 dark:bg-gray-800">
+        <div className="overflow-hidden border border-gray-200 rounded-md ">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
               <tr>
                 {columns.map((column) => {
                   return (
                     <th
                       key={column.id}
                       scope="col"
-                      className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs sm:text-sm font-medium text-gray-800 dark:text-gray-300 tracking-wider"
+                      className="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-left text-xs sm:text-sm font-medium text-gray-800  tracking-wider"
                     >
                       {column.label.charAt(0).toUpperCase() +
                         column.label.slice(1).toLowerCase()}
@@ -162,17 +165,14 @@ const CustomeTable = ({
                 })}
               </tr>
             </thead>
-            <tbody className="bg-transparent divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody className="bg-transparent divide-y divide-gray-200">
               {raws.map((raw) => (
-                <tr
-                  key={raw._id}
-                  className="hover:bg-gray-600 dark:hover:bg-gray-700"
-                >
+                <tr key={raw._id} className="hover:bg-gray-100">
                   {columns.map((column) => {
                     return (
                       <td
                         key={column.id}
-                        className="px-3 sm:px-4 md:px-6 py-2 sm:py-4 text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-600 break-words"
+                        className="px-3 sm:px-4 md:px-6 py-2 sm:py-4 text-xs sm:text-sm font-medium text-gray-500 break-words"
                       >
                         {handleCellValue(raw, column)}
                       </td>
