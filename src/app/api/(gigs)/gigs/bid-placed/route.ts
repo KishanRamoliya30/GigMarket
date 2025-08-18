@@ -111,6 +111,8 @@ export const GET = withApiHandler(async (req: NextRequest): Promise<NextResponse
     })
   );
 
+  
+
   return successResponse(
     {
       gigs: enrichedGigs,
