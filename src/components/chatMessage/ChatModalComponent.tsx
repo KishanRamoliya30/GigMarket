@@ -22,6 +22,9 @@ import CustomTextField from "../customUi/CustomTextField";
 import Image from "next/image";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
 import { MediaFile } from "@/app/models/message";
+import RequestQuoteIcon from "@mui/icons-material/RequestQuote";
+import { Loader2 } from "lucide-react";
+import { toast } from "react-toastify";
 
 interface UserProfile {
   _id: string;
@@ -30,6 +33,14 @@ interface UserProfile {
     fullName: string;
     profilePicture: string;
   };
+}
+
+export interface PaymentRequest {
+  amount: number;
+  description?: string;
+  paymentType: string;
+  status: "Pending" | "Approved" | "Rejected";
+  gigId: string;
 }
 
 export interface Message {
@@ -41,6 +52,7 @@ export interface Message {
   mediaUrl?: string;
   seenBy: string[];
   createdAt: string;
+  paymentRequest?: PaymentRequest;
 }
 
 interface ChatModalProps {
@@ -66,6 +78,12 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  const [openPaymentModal, setOpenPaymentModal] = useState(false);
+  const [bidAmountType, setBidAmountType] = useState("hourly");
+  const [bidAmount, setBidAmount] = useState("");
+  const [bidComment, setBidComment] = useState("");
+  const [error, setError] = useState({ bidAmount: "", bidComment: "" });
+  const [submitting, setSubmitting] = useState(false);
 
   const limit = 20;
   const [page, setPage] = useState(1);
@@ -198,6 +216,167 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
     }
   };
 
+  const sendPaymentRequest = async () => {
+    if (!chatId) {
+      toast.error("Chat id is missing");
+      return;
+    }
+
+    let hasError = false;
+    const bidError = { bidAmount: "", bidComment: "" };
+
+    if (!bidAmount) {
+      hasError = true;
+      bidError.bidAmount = "Bid amount is required";
+    } else if (isNaN(Number(bidAmount)) || Number(bidAmount) <= 0) {
+      hasError = true;
+      bidError.bidAmount = "Invalid Amount";
+    }
+    if (!bidComment) {
+      hasError = true;
+      bidError.bidComment = "Bid Comment is required";
+    }
+
+    if (hasError) {
+      setError(bidError);
+      return;
+    }
+
+    setIsSending(true);
+    setSubmitting(true);
+
+    const formData = new FormData();
+    formData.append("chatId", chatId);
+    formData.append("sender", currentUserId);
+    formData.append("amount", bidAmount.toString());
+    formData.append("description", bidComment);
+    formData.append("amountType", bidAmountType);
+    if (gigId) formData.append("gigId", gigId);
+    formData.append("message", `Payment request of ${bidAmount}`);
+
+    apiRequest(`message`, {
+      method: "POST",
+      data: formData,
+      headers: { "Content-Type": "multipart/form-data" },
+    }).then((res) => {
+      setIsSending(false);
+      setSubmitting(false);
+
+      if (res.ok) {
+        closePaymentModal();
+        const messageData = res.data.data;
+        socket.emit("message", {
+          chatId: messageData.chatId,
+          message: messageData,
+        });
+      } else {
+        setError({
+          ...error,
+          bidComment: res.message ?? "Payment request failed",
+        });
+      }
+    });
+  };
+
+  const confirmPayment = async (requestMessageId: string, amount: number) => {
+    if (!amount || amount <= 0) return;
+
+    const confirmed = window.confirm(`Pay ₹${amount}?`);
+    if (!confirmed) return;
+
+    setIsSending(true);
+    try {
+      const payRes = await apiRequest("payments/pay", {
+        method: "POST",
+        data: {
+          amount,
+          chatId,
+          payerId: currentUserId,
+          relatedMessageId: requestMessageId,
+        },
+      });
+
+      if (payRes.success) {
+        const res = await apiRequest("message", {
+          method: "POST",
+          data: {
+            chatId,
+            sender: currentUserId,
+            type: "payment-confirmation",
+            amount,
+            message: `Payment of ₹${amount} confirmed`,
+            relatedMessageId: requestMessageId,
+          },
+        });
+
+        if (res.success) {
+          const messageData = res.data.data;
+          socket.emit("message", {
+            chatId: messageData.chatId,
+            message: messageData,
+          });
+        }
+      } else {
+        toast.error(payRes?.message || "Payment failed. Please try again.");
+      }
+    } catch (err) {
+      console.error("Payment confirmation failed:", err);
+      toast.error("Payment failed. See console for details.");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const rejectPaymentRequest = async (messageId: string) => {
+    if (!messageId) {
+      toast.error("Message ID is missing");
+      return;
+    }
+
+    setIsSending(true);
+
+    try {
+      const res = await apiRequest(`message`, {
+        method: "PATCH",
+        data: {
+          status: "Rejected",
+          messageId,
+        },
+      });
+
+      setIsSending(false);
+
+      if (res.ok) {
+        toast.success("Payment request rejected");
+
+        setMessages((prevMessages) =>
+          prevMessages.map((msg) =>
+            msg._id === messageId && msg.paymentRequest
+              ? {
+                  ...msg,
+                  paymentRequest: {
+                    ...msg.paymentRequest,
+                    status: "Rejected",
+                  },
+                }
+              : msg
+          )
+        );
+
+        socket.emit("update-message", {
+          messageId,
+          paymentRequest: { status: "rejected" },
+        });
+      } else {
+        toast.error(res.message ?? "Failed to reject payment request");
+      }
+    } catch (error) {
+      console.error("Reject payment error:", error);
+      toast.error("Something went wrong while rejecting payment request");
+      setIsSending(false);
+    }
+  };
+
   useEffect(() => {
     if (open) {
       setPage(1);
@@ -235,6 +414,109 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
       socket.off("seen-update");
     };
   }, [chatId]);
+
+  const closePaymentModal = () => {
+    setOpenPaymentModal(false);
+    setBidAmount("");
+    setBidComment("");
+  };
+
+  const PaymentDialog = () => {
+    return (
+      <Dialog open={openPaymentModal} fullWidth maxWidth="sm">
+        <DialogTitle className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold text-gray-800 mb-6">
+            Request Payment
+          </h2>
+          <IconButton onClick={closePaymentModal} disabled={isSending}>
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent>
+          <div className="w-full flex flex-col">
+            <div className="flex items-center gap-4 mb-5">
+              <div className="flex items-center">
+                <input
+                  type="radio"
+                  id="hourly"
+                  name="bidAmountType"
+                  value="hourly"
+                  className="mr-2 accent-emerald-600"
+                  checked={bidAmountType === "hourly"}
+                  onChange={(e) => setBidAmountType(e.target.value)}
+                />
+                <label htmlFor="hourly" className="text-gray-700">
+                  Hourly Rate
+                </label>
+              </div>
+              <div className="flex items-center">
+                <input
+                  type="radio"
+                  id="fixed"
+                  name="bidAmountType"
+                  value="fixed"
+                  className="mr-2 accent-emerald-600"
+                  checked={bidAmountType === "fixed"}
+                  onChange={(e) => setBidAmountType(e.target.value)}
+                />
+                <label htmlFor="fixed" className="text-gray-700">
+                  Fixed Price
+                </label>
+              </div>
+            </div>
+
+            <div className="w-full flex items-center gap-2 mb-5">
+              <CustomTextField
+                placeholder="Enter your request amount"
+                type="number"
+                style={{ width: "300px" }}
+                slotProps={{ input: { startAdornment: "$" } }}
+                fullWidth={true}
+                isWithoutMargin
+                value={bidAmount}
+                onChange={(e) => setBidAmount(e.target.value)}
+                disabled={submitting}
+                error={error.bidAmount !== ""}
+                helperText={error.bidAmount}
+              />
+              {bidAmountType === "hourly" && (
+                <h6 className="text-gray-600 font-semibold">/ hour</h6>
+              )}
+            </div>
+
+            <CustomTextField
+              fullWidth
+              multiline
+              minRows={4}
+              placeholder="Enter your request description for this gig"
+              className="bidComment"
+              value={bidComment}
+              onChange={(e) => setBidComment(e.target.value)}
+              disabled={submitting}
+              error={error.bidComment !== ""}
+              helperText={error.bidComment}
+            />
+
+            <button
+              onClick={sendPaymentRequest}
+              disabled={submitting}
+              className="group relative w-fit flex items-center justify-center gap-2 px-8 py-3 bg-gradient-to-br from-emerald-600 to-emerald-800 hover:from-emerald-700 hover:to-emerald-900 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-[1.02] hover:shadow-xl active:scale-[0.98] before:absolute before:inset-0 before:bg-white/10 before:rounded-xl before:opacity-0 before:transition hover:before:opacity-100 overflow-hidden cursor-pointer disabled:cursor-not-allowed ml-auto"
+            >
+              {submitting ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Processing...
+                </span>
+              ) : (
+                "Submit Request"
+              )}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  };
 
   return (
     <Dialog open={open} fullWidth maxWidth="lg">
@@ -332,48 +614,114 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
                         : "bg-gray-200 text-left"
                     }`}
                   >
-                    {msg.mediaFiles.length > 0 &&
-                      msg.mediaFiles.map((file, index) => {
-                        const isImage = file.type.startsWith("image/");
-                        const isVideo = file.type.startsWith("video/");
-                        const isOther = !isImage && !isVideo;
+                    {msg?.paymentRequest ? (
+                      msg.paymentRequest.status === "Pending" ? (
+                        <div className="bg-yellow-50 p-2 rounded-md border border-yellow-200">
+                          <p className="font-semibold">Payment Request</p>
+                          <p className="text-sm">
+                            Amount: ₹{msg.paymentRequest.amount}
+                          </p>
+                          <p className="text-xs text-gray-600">
+                            {msg.paymentRequest.description}
+                          </p>
 
-                        return (
-                          <div key={index}>
-                            {isImage && (
-                              <Image
-                                src={file.url}
-                                alt={file.name}
-                                width={200}
-                                height={200}
-                                className="rounded-md cursor-pointer"
-                                onClick={() => setLightboxUrl(file.url)}
-                              />
-                            )}
-
-                            {isVideo && (
-                              <video
-                                src={file.url}
-                                controls
-                                className="rounded-md w-full max-w-xs"
-                              />
-                            )}
-
-                            {isOther && (
-                              <a
-                                href={file.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="block bg-white border border-blue-300 rounded-lg px-3 py-2 shadow-sm hover:shadow-md transition text-sm font-medium text-blue-800"
+                          {isCurrentUser ? (
+                            <p className="text-xs text-gray-500 mt-1">
+                              You requested this payment
+                            </p>
+                          ) : (
+                            <div className="mt-2 flex gap-2">
+                              <button
+                                className="group relative w-fit flex items-center justify-center gap-2 px-3 py-1 bg-gradient-to-br from-emerald-600 to-emerald-800 hover:from-emerald-700 hover:to-emerald-900 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-[1.02] hover:shadow-xl active:scale-[0.98] before:absolute before:inset-0 before:bg-white/10 before:rounded-xl before:opacity-0 before:transition hover:before:opacity-100 overflow-hidden cursor-pointer disabled:cursor-not-allowed ml-auto"
+                                disabled={
+                                  isSending ||
+                                  msg.paymentRequest.status !== "Pending"
+                                }
+                                onClick={() =>
+                                  confirmPayment(
+                                    msg._id,
+                                    msg?.paymentRequest
+                                      ? msg.paymentRequest.amount
+                                      : 0
+                                  )
+                                }
                               >
-                                📄 {file.name}
-                              </a>
-                            )}
-                          </div>
-                        );
-                      })}
+                                Accept
+                              </button>
+                              <button
+                                className="group relative w-fit flex items-center justify-center gap-2 px-3 py-1 bg-gradient-to-br from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-[1.02] hover:shadow-xl active:scale-[0.98] before:absolute before:inset-0 before:bg-white/10 before:rounded-xl before:opacity-0 before:transition hover:before:opacity-100 overflow-hidden cursor-pointer disabled:cursor-not-allowed ml-auto"
+                                disabled={
+                                  isSending ||
+                                  msg.paymentRequest.status !== "Pending"
+                                }
+                                onClick={() => rejectPaymentRequest(msg._id)}
+                              >
+                                Reject
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ) : msg.paymentRequest.status === "Approved" ? (
+                        <div className="bg-green-50 p-2 rounded-md border border-green-200">
+                          <p className="font-semibold">Payment Confirmed</p>
+                          <p className="text-sm">
+                            Amount: ₹{msg.paymentRequest.amount}
+                          </p>
+                        </div>
+                      ) : msg.paymentRequest.status === "Rejected" ? (
+                        <div className="bg-red-50 p-2 rounded-md border border-red-200">
+                          <p className="font-semibold">Payment Rejected</p>
+                          <p className="text-sm">
+                            Amount: ₹{msg.paymentRequest.amount}
+                          </p>
+                        </div>
+                      ) : null
+                    ) : (
+                      <>
+                        {msg.mediaFiles.length > 0 &&
+                          msg.mediaFiles.map((file, index) => {
+                            const isImage = file.type.startsWith("image/");
+                            const isVideo = file.type.startsWith("video/");
+                            const isOther = !isImage && !isVideo;
 
-                    {msg.message && <p>{msg.message}</p>}
+                            return (
+                              <div key={index}>
+                                {isImage && (
+                                  <Image
+                                    src={file.url}
+                                    alt={file.name}
+                                    width={200}
+                                    height={200}
+                                    className="rounded-md cursor-pointer"
+                                    onClick={() => setLightboxUrl(file.url)}
+                                  />
+                                )}
+
+                                {isVideo && (
+                                  <video
+                                    src={file.url}
+                                    controls
+                                    className="rounded-md w-full max-w-xs"
+                                  />
+                                )}
+
+                                {isOther && (
+                                  <a
+                                    href={file.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="block bg-white border border-blue-300 rounded-lg px-3 py-2 shadow-sm hover:shadow-md transition text-sm font-medium text-blue-800"
+                                  >
+                                    📄 {file.name}
+                                  </a>
+                                )}
+                              </div>
+                            );
+                          })}
+
+                        {msg.message && <p>{msg.message}</p>}
+                      </>
+                    )}
 
                     <div className="text-xs text-gray-500 mt-1 flex items-center gap-1 justify-end">
                       {new Date(msg.createdAt).toLocaleTimeString([], {
@@ -407,7 +755,7 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
 
       {previewUrls.length > 0 && (
         <Paper
-          className={`items-end p-4 flex gap-4 overflow-x-auto mr-[66px] ml-[113px] rounded-lg shadow-lg 
+          className={`items-end p-4 flex gap-4 overflow-x-auto mr-[66px] ml-[66px] rounded-lg shadow-lg 
             bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-dashed border-blue-400 ${isSending ? "opacity-60 cursor-not-allowed" : ""}`}
           elevation={0}
         >
@@ -498,6 +846,18 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
           style={{ display: "none" }}
           disabled={isSending}
         />
+        <Tooltip title="Request Payment">
+          <span>
+            <IconButton
+              color="secondary"
+              disabled={isSending}
+              onClick={() => setOpenPaymentModal(true)}
+            >
+              <RequestQuoteIcon />
+            </IconButton>
+          </span>
+        </Tooltip>
+
         <Box style={{ width: "100%", marginBottom: "-16px" }}>
           <CustomTextField
             multiline
@@ -521,6 +881,8 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
           <EmojiPicker onEmojiClick={handleEmojiClick} />
         </div>
       )}
+
+      {openPaymentModal && PaymentDialog()}
     </Dialog>
   );
 };
