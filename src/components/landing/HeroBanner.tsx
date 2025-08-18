@@ -80,7 +80,7 @@ function HomeBanner() {
                 />
               </div>
               <button
-                className="cursor-pointer h-20 w-full sm:w-40 bg-[#1DBF73] text-white px-6 py-3 font-medium hover:bg-[#19a564] transition-colors"
+                className="cursor-pointer h-15 rounded-full mr-4 md:w-30 sm:w-40 bg-[#1DBF73] text-white px-6 py-3 font-medium hover:bg-[#19a564] transition-colors"
                 onClick={() => router.push(`/publicGigs?search=${searchData}`)}
               >
                 Search
