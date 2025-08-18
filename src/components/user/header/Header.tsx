@@ -291,7 +291,8 @@ export default function Header() {
                 </Link>
               </>
             ) : (
-              <>{renderUserAvatar()} 3</>
+              // <>{renderUserAvatar()}</>
+              <></>
             )}
           </Box>
         </Box>
