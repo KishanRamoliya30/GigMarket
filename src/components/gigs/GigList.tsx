@@ -52,8 +52,6 @@ export default function GigListing(props?: { self?: boolean }) {
   const isSelf = props?.self || false;
   const [page, setPage] = useState(1);
 
-  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
-  const [openMenu, setOpenMenu] = useState("");
   const [selectedBudget, setSelectedBudget] = useState("");
   const [selectedReviews, setSelectedReviews] = useState("");
   const [customMin, setCustomMin] = useState("");
@@ -95,18 +93,6 @@ export default function GigListing(props?: { self?: boolean }) {
     handleSortClose();
   };
 
-  const handleOpenMenu = (
-    event: React.MouseEvent<HTMLButtonElement>,
-    menuType: string
-  ) => {
-    setAnchorEl(event.currentTarget);
-    setOpenMenu(menuType);
-  };
-
-  const handleCloseMenu = () => {
-    setAnchorEl(null);
-    setOpenMenu("");
-  };
   const gigList = async () => {
     setLoading(true);
     const priceParams: { minPrice?: number; maxPrice?: number } = {
@@ -219,632 +205,558 @@ export default function GigListing(props?: { self?: boolean }) {
         {isSelf ? "My Gigs" : "Browse Gigs"}
       </Typography>
 
-      {/* Filter bar */}
-      <Box
-        display="flex"
-        flexWrap="wrap"
-        alignItems="center"
-        gap={2}
-        className="filterMenu"
-      >
-        <Button
-          variant="outlined"
-          endIcon={
-            <Box component="span">
-              <ExpandMoreOutlined />
+      <Box className="flex gap-6">
+        <Box>
+          <div className="w-64 bg-white p-4 rounded-lg shadow">
+            {/* Selected filters */}
+            <Box className="mb-3" display="flex" flexWrap="wrap" gap={1} mt={1}>
+              {selectedTiers.map((label) => (
+                <Chip
+                  key={label}
+                  label={label}
+                  onDelete={() =>
+                    setSelectedTiers((prev) => prev.filter((s) => s !== label))
+                  }
+                  className="chip"
+                />
+              ))}
+              {selectedBudget && selectedBudget !== "custom" && (
+                <Chip
+                  label={selectedBudget}
+                  onDelete={() => setSelectedBudget("")}
+                  className="chip"
+                />
+              )}
+              {selectedBudget === "custom" && customMin && customMax && (
+                <Chip
+                  label={`₹${customMin} - ₹${customMax}`}
+                  onDelete={() => {
+                    setCustomMin("");
+                    setCustomMax("");
+                    setSelectedBudget("");
+                  }}
+                  className="chip"
+                />
+              )}
+              {selectedReviews && (
+                <Chip
+                  label={selectedReviews}
+                  onDelete={() => setSelectedReviews("")}
+                  className="chip"
+                />
+              )}
+              {selectedRating && (
+                <Chip
+                  label={selectedRating}
+                  onDelete={() => setSelectedRating("")}
+                  className="chip"
+                />
+              )}
             </Box>
-          }
-          onClick={(e) => handleOpenMenu(e, "sellers")}
-        >
-          Tiers
-        </Button>
 
-        <Button
-          variant="outlined"
-          endIcon={
-            <Box component="span">
-              <ExpandMoreOutlined />
-            </Box>
-          }
-          onClick={(e) => handleOpenMenu(e, "budget")}
-        >
-          Budget
-        </Button>
-        {!isSelf && (
-          <>
-            <Button
-              variant="outlined"
-              endIcon={
-                <Box component="span">
-                  <ExpandMoreOutlined />
+            <div className="mb-6">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Tiers</h3>
+              <ul>
+                {tiers.map((option) => (
+                  <li key={option}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={selectedTiers.includes(option)}
+                          onChange={(e) => {
+                            const checked = e.target.checked;
+                            setSelectedTiers((prev) =>
+                              checked
+                                ? [...prev, option]
+                                : prev.filter((s) => s !== option)
+                            );
+                          }}
+                          sx={{
+                            borderRadius: "0.25rem",
+                            color: "border-gray-300",
+                            "&.Mui-checked": {
+                              color: "#388E3C",
+                            },
+                          }}
+                        />
+                      }
+                      label={option}
+                      sx={{
+                        ".MuiTypography-root": {
+                          fontWeight: 500,
+                          color: "#333",
+                        },
+                      }}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <hr className="border-gray-200 mb-6" />
+
+            <div className="mb-6">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Budget</h3>
+              <ul>
+                <RadioGroup
+                value={selectedBudget}
+                onChange={(e) => {
+                  setSelectedBudget(e.target.value);
+                  setCustomMin("");
+                  setCustomMax("");
+                }}
+              >
+                  {["Under ₹500", "₹500–₹1500", "₹1500 & Above", "custom"].map(
+                    (opt) => (
+                      <li key={opt}>
+                        <FormControlLabel
+                          value={opt}
+                          control={
+                            <Radio
+                              sx={{
+                                color: "border-gray-300",
+                                "&.Mui-checked": {
+                                  color: "#388E3C",
+                                },
+                              }}
+                            />
+                          }
+                          label={opt === "custom" ? "Custom" : opt}
+                          sx={{
+                            ".MuiTypography-root": {
+                              fontWeight: 500,
+                              color: "#333",
+                            },
+                          }}
+                        />
+                      </li>
+                    )
+                  )}
+                </RadioGroup>
+                {selectedBudget === "custom" && (
+                  <Box display="flex" gap={1} mt={1}>
+                  <Box flex={1}>
+                    <CustomTextField
+                      type="number"
+                      variant="outlined"
+                      size="small"
+                      fullWidth
+                      value={customMin}
+                      onChange={(e) => setCustomMin(e.target.value)}
+                      placeholder="Min ₹"
+                      slotProps={{
+                        input: {
+                          style: {
+                            fontSize: "0.9rem",
+                          },
+                        },
+                      }}
+                    />
+                  </Box>
+                  <Box flex={1}>
+                    <CustomTextField
+                      type="number"
+                      variant="outlined"
+                      size="small"
+                      fullWidth
+                      value={customMax}
+                      onChange={(e) => setCustomMax(e.target.value)}
+                      placeholder="Max ₹"
+                      slotProps={{
+                        input: {
+                          style: {
+                            fontSize: "0.9rem",
+                          },
+                        },
+                      }}
+                    />
+                  </Box>
                 </Box>
-              }
-              onClick={(e) => handleOpenMenu(e, "rating")}
-            >
-              Rating
-            </Button>
+              )}
+              </ul>
+            </div>
 
-            <Button
-              variant="outlined"
-              endIcon={
-                <Box component="span">
-                  <ExpandMoreOutlined />
-                </Box>
-              }
-              onClick={(e) => handleOpenMenu(e, "reviews")}
-            >
-              No. of Reviews
-            </Button>
-          </>
-        )}
-      </Box>
+            {!isSelf && (
+              <>
+                <hr className="border-gray-200 mb-6" />
 
-      {/* Selected filters */}
-      <Box display="flex" flexWrap="wrap" gap={1} mt={1}>
-        {selectedTiers.map((label) => (
-          <Chip
-            key={label}
-            label={label}
-            onDelete={() =>
-              setSelectedTiers((prev) => prev.filter((s) => s !== label))
-            }
-            className="chip"
-          />
-        ))}
-        {selectedBudget && selectedBudget !== "custom" && (
-          <Chip
-            label={selectedBudget}
-            onDelete={() => setSelectedBudget("")}
-            className="chip"
-          />
-        )}
-        {selectedBudget === "custom" && customMin && customMax && (
-          <Chip
-            label={`₹${customMin} - ₹${customMax}`}
-            onDelete={() => {
-              setCustomMin("");
-              setCustomMax("");
-              setSelectedBudget("");
-            }}
-            className="chip"
-          />
-        )}
-        {selectedReviews && (
-          <Chip
-            label={selectedReviews}
-            onDelete={() => setSelectedReviews("")}
-            className="chip"
-          />
-        )}
-        {selectedRating && (
-          <Chip
-            label={selectedRating}
-            onDelete={() => setSelectedRating("")}
-            className="chip"
-          />
-        )}
-      </Box>
+                <div className="mb-6">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-3">Rating</h3>
+                  <ul>
+                    <RadioGroup
+                      value={selectedRating}
+                      onChange={(e) => {
+                        setSelectedRating(e.target.value);
+                      }}
+                    >
+                      {["5⭐", "4⭐ and above", "3⭐ and above", "2⭐ and above"].map(
+                        (opt) => (
+                          <li key={opt}>
+                            <FormControlLabel
+                              value={opt}
+                              control={
+                                <Radio
+                                  sx={{
+                                    color: "#388E3C",
+                                    "&.Mui-checked": {
+                                      color: "#388E3C",
+                                    },
+                                  }}
+                                />
+                              }
+                              label={opt}
+                              sx={{
+                                ".MuiTypography-root": {
+                                  fontWeight: 500,
+                                  color: "#333",
+                                },
+                              }}
+                            />
+                          </li>
+                        )
+                      )}
+                    </RadioGroup>
+                  </ul>
+                </div>
 
-      <Menu
-        anchorEl={anchorEl}
-        open={openMenu === "sellers"}
-        onClose={handleCloseMenu}
-      >
-        <Box px={2} py={1}>
-          <Typography fontWeight={600} mb={1}>
-            Tiers
-          </Typography>
+                <hr className="border-gray-200 mb-6" />
+
+                <div className="mb-6">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-3">No. of Reviews</h3>
+                  <ul>
+                    <RadioGroup
+                value={selectedReviews}
+                onChange={(e) => {
+                  setSelectedReviews(e.target.value);
+                }}
+              >
+                {["Under 500", "500–1000", "1000 & Above"].map((opt) => (
+                  <FormControlLabel
+                    key={opt}
+                    value={opt}
+                    control={
+                      <Radio
+                        sx={{
+                          color: "#388E3C",
+                          "&.Mui-checked": {
+                            color: "#388E3C",
+                          },
+                        }}
+                      />
+                    }
+                    label={opt}
+                    sx={{
+                      ".MuiTypography-root": {
+                        fontWeight: 500,
+                        color: "#333",
+                      },
+                    }}
+                  />
+                ))}
+              </RadioGroup>
+                  </ul>
+                </div>
+              </>
+            )}
+          </div>
+        </Box>
+        <Box className="flex-1">
           <Box
             display="flex"
-            flexDirection="column"
-            gap={1}
-            sx={{ width: 250, overflowY: "auto" }}
-            className="tiersBox"
+            justifyContent="space-between"
+            alignItems={"center"}
+            mb={1}
           >
-            {tiers.map((option) => (
-              <FormControlLabel
-                key={option}
-                control={
-                  <Checkbox
-                    checked={selectedTiers.includes(option)}
-                    onChange={(e) => {
-                      const checked = e.target.checked;
-                      setSelectedTiers((prev) =>
-                        checked
-                          ? [...prev, option]
-                          : prev.filter((s) => s !== option)
-                      );
-                    }}
-                    sx={{
-                      color: "#388E3C",
-                      "&.Mui-checked": {
-                        color: "#388E3C",
-                      },
-                    }}
-                  />
-                }
-                label={option}
-                sx={{
-                  ".MuiTypography-root": {
-                    fontWeight: 500,
-                    color: "#333",
-                  },
-                }}
-              />
-            ))}
-          </Box>
-        </Box>
-      </Menu>
-
-      <Menu
-        anchorEl={anchorEl}
-        open={openMenu === "rating"}
-        onClose={handleCloseMenu}
-      >
-        <Box px={2} py={1} width={250}>
-          <Typography fontWeight={600} mb={1}>
-            Select Rating
-          </Typography>
-          <RadioGroup
-            value={selectedRating}
-            onChange={(e) => {
-              setSelectedRating(e.target.value);
-            }}
-          >
-            {["5⭐", "4⭐ and above", "3⭐ and above", "2⭐ and above"].map(
-              (opt) => (
-                <FormControlLabel
-                  key={opt}
-                  value={opt}
-                  control={
-                    <Radio
-                      sx={{
-                        color: "#388E3C",
-                        "&.Mui-checked": {
-                          color: "#388E3C",
-                        },
-                      }}
-                    />
-                  }
-                  label={opt}
-                  sx={{
-                    ".MuiTypography-root": {
-                      fontWeight: 500,
-                      color: "#333",
-                    },
-                  }}
-                />
-              )
-            )}
-          </RadioGroup>
-        </Box>
-      </Menu>
-
-      <Menu
-        anchorEl={anchorEl}
-        open={openMenu === "budget"}
-        onClose={handleCloseMenu}
-      >
-        <Box px={2} py={1} width={250}>
-          <Typography fontWeight={600} mb={1} color="#333">
-            Select Budget
-          </Typography>
-          <RadioGroup
-            value={selectedBudget}
-            onChange={(e) => {
-              setSelectedBudget(e.target.value);
-              setCustomMin("");
-              setCustomMax("");
-            }}
-          >
-            {["Under ₹500", "₹500–₹1500", "₹1500 & Above", "custom"].map(
-              (opt) => (
-                <FormControlLabel
-                  key={opt}
-                  value={opt}
-                  control={
-                    <Radio
-                      sx={{
-                        color: "#388E3C",
-                        "&.Mui-checked": {
-                          color: "#388E3C",
-                        },
-                      }}
-                    />
-                  }
-                  label={opt === "custom" ? "Custom" : opt}
-                  sx={{
-                    ".MuiTypography-root": {
-                      fontWeight: 500,
-                      color: "#333",
-                    },
-                  }}
-                />
-              )
-            )}
-          </RadioGroup>
-          {selectedBudget === "custom" && (
-            <Box display="flex" gap={1} mt={1}>
-              <Box flex={1}>
-                <CustomTextField
-                  type="number"
-                  variant="outlined"
-                  size="small"
-                  fullWidth
-                  value={customMin}
-                  onChange={(e) => setCustomMin(e.target.value)}
-                  placeholder="Min ₹"
-                  slotProps={{
-                    input: {
-                      style: {
-                        fontSize: "0.9rem",
-                      },
-                    },
-                  }}
-                />
-              </Box>
-              <Box flex={1}>
-                <CustomTextField
-                  type="number"
-                  variant="outlined"
-                  size="small"
-                  fullWidth
-                  value={customMax}
-                  onChange={(e) => setCustomMax(e.target.value)}
-                  placeholder="Max ₹"
-                  slotProps={{
-                    input: {
-                      style: {
-                        fontSize: "0.9rem",
-                      },
-                    },
-                  }}
-                />
-              </Box>
+            <Box>
+              <Typography fontWeight={600} color="#333">
+                {pagination.total} Gigs found
+              </Typography>
             </Box>
-          )}
-        </Box>
-      </Menu>
-
-      <Menu
-        anchorEl={anchorEl}
-        open={openMenu === "reviews"}
-        onClose={handleCloseMenu}
-      >
-        <Box px={2} py={1} width={250}>
-          <Typography fontWeight={600} mb={1} color="#333">
-            No. of Reviews
-          </Typography>
-          <RadioGroup
-            value={selectedReviews}
-            onChange={(e) => {
-              setSelectedReviews(e.target.value);
-            }}
-          >
-            {["Under 500", "500–1000", "1000 & Above"].map((opt) => (
-              <FormControlLabel
-                key={opt}
-                value={opt}
-                control={
-                  <Radio
-                    sx={{
-                      color: "#388E3C",
-                      "&.Mui-checked": {
-                        color: "#388E3C",
-                      },
-                    }}
-                  />
-                }
-                label={opt}
+            <Box display="flex" alignItems="center">
+              <Typography fontWeight={600} mr={1} color="#333">
+                Sort by:
+              </Typography>
+              <Box
+                onClick={handleSortClick}
                 sx={{
-                  ".MuiTypography-root": {
-                    fontWeight: 500,
-                    color: "#333",
-                  },
-                }}
-              />
-            ))}
-          </RadioGroup>
-        </Box>
-      </Menu>
-
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems={"center"}
-        mt={2}
-        mb={1}
-      >
-        <Box>
-          <Typography fontWeight={600} color="#333">
-            {pagination.total} Gigs found
-          </Typography>
-        </Box>
-        <Box display="flex" alignItems="center">
-          <Typography fontWeight={600} mr={1} color="#333">
-            Sort by:
-          </Typography>
-          <Box
-            onClick={handleSortClick}
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              px: 2,
-              py: 1,
-              cursor: "pointer",
-              position: "relative",
-              fontWeight: 500,
-              fontSize: "0.9rem",
-              color: "#333",
-              backgroundColor: "#E8F5E9",
-              borderRadius: "8px",
-              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-              ":hover": {
-                backgroundColor: "#fff",
-                color: "#388E3C",
-              },
-            }}
-          >
-            {sortBy}
-            <ExpandMoreOutlined
-              sx={{ ml: 1, fontSize: "1rem", color: "#388E3C" }}
-            />
-          </Box>
-          <Menu
-            anchorEl={sortAnchorEl}
-            open={Boolean(sortAnchorEl)}
-            onClose={handleSortClose}
-            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-            transformOrigin={{ vertical: "top", horizontal: "right" }}
-            slotProps={{
-              paper: {
-                sx: {
-                  borderRadius: 2,
-                  mt: 1,
-                  boxShadow: 3,
-                  minWidth: 180,
-                  backgroundColor: "#fff",
-                },
-              },
-            }}
-          >
-            {sortOptions.map((option) => (
-              <MenuItem
-                key={option}
-                onClick={() => handleSortSelect(option)}
-                selected={sortBy === option}
-                sx={{
-                  fontWeight: sortBy === option ? 600 : 400,
+                  display: "flex",
+                  alignItems: "center",
+                  px: 2,
+                  py: 1,
+                  cursor: "pointer",
+                  position: "relative",
+                  fontWeight: 500,
                   fontSize: "0.9rem",
                   color: "#333",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  backgroundColor:
-                    sortBy === option ? "#E8F5E9 !important" : "transparent",
-                  "&:hover": {
-                    backgroundColor: "#E8F5E9 !important",
+                  backgroundColor: "#E8F5E9",
+                  borderRadius: "8px",
+                  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                  ":hover": {
+                    backgroundColor: "#fff",
+                    color: "#388E3C",
                   },
                 }}
               >
-                {option}
-                {sortBy === option && (
-                  <CheckIcon sx={{ color: "#333", fontSize: "1rem" }} />
-                )}
-              </MenuItem>
-            ))}
-          </Menu>
-        </Box>
-      </Box>
-
-      <Grid container spacing={3} mt={2}>
-        {loading
-          ? Array.from(new Array(8)).map((_, idx) => (
-              <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={idx}>
-                <Card className="gigCard">
-                  <CardContent>
-                    <Skeleton variant="text" height={32} width="80%" />
-                    <Skeleton variant="text" height={20} width="100%" />
-                    <Skeleton variant="text" height={20} width="90%" />
-                    <Box mt={1} mb={2}>
-                      <Skeleton variant="rectangular" height={24} width={60} />
-                    </Box>
-                    <Skeleton variant="text" height={28} width="40%" />
-                  </CardContent>
-                  <CardActions
-                    sx={{ px: 2, pb: 2, justifyContent: "space-between" }}
-                  >
-                    <Box display="flex" alignItems="center" gap={1}>
-                      <Skeleton variant="circular" width={40} height={40} />
-                      <Box>
-                        <Skeleton variant="text" height={20} width={80} />
-                        <Skeleton variant="text" height={16} width={60} />
-                      </Box>
-                    </Box>
-                    <Skeleton variant="rectangular" width={64} height={36} />
-                  </CardActions>
-                </Card>
-              </Grid>
-            ))
-          : allGig?.map((gig, ind) => (
-              <Grid
-                size={{ xs: 12, sm: 6, md: 4, lg: 3 }}
-                key={`${ind}-${gig.id}`}
+                {sortBy}
+                <ExpandMoreOutlined
+                  sx={{ ml: 1, fontSize: "1rem", color: "#388E3C" }}
+                />
+              </Box>
+              <Menu
+                anchorEl={sortAnchorEl}
+                open={Boolean(sortAnchorEl)}
+                onClose={handleSortClose}
+                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                transformOrigin={{ vertical: "top", horizontal: "right" }}
+                slotProps={{
+                  paper: {
+                    sx: {
+                      borderRadius: 2,
+                      mt: 1,
+                      boxShadow: 3,
+                      minWidth: 180,
+                      backgroundColor: "#fff",
+                    },
+                  },
+                }}
               >
-                <div
-                  key={ind}
-                  className="group relative bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 ease-in-out transform hover:-translate-y-2 hover:cursor-pointer"
-                  onClick={() =>
-                    router.push(`/${isSelf ? "myGigs" : "gigs"}/${gig._id}`)
-                  }
-                >
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-black/10 to-transparent transition-opacity duration-300">
-                    <div className="absolute top-0 left-0 right-0 z-10 p-2 sm:p-4 flex justify-between items-start">
-                      <h3 className="text-sm sm:text-base md:text-lg font-semibold text-white line-clamp-2 drop-shadow-lg max-w-[70%]">
-                        {gig.title}
-                      </h3>
-                      <div className="flex gap-1 sm:gap-2 shrink-0">
-                        {gig.createdBy?._id === user?._id && (
-                          <button
-                            className="bg-white/90 backdrop-blur-sm rounded-full p-0.5 sm:p-1 shadow-lg hover:bg-white transition-colors z-10 group-hover:scale-110"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              router.push(`/gigs/edit/${gig._id}`);
-                            }}
-                          >
-                            <EditIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-700 hover:text-green-400 cursor-pointer transition-colors" />
-                          </button>
-                        )}
-                        {gig.createdBy?._id === user?._id && (
-                          <button
-                            className="bg-white/90 backdrop-blur-sm rounded-full p-0.5 sm:p-1 shadow-lg hover:bg-white transition-colors z-10 group-hover:scale-110"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteModalClick(gig?._id);
-                            }}
-                          >
-                            <DeleteOutlineOutlinedIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-700 hover:text-red-400 cursor-pointer transition-colors" />
-                          </button>
-                        )}
-                        <button className="bg-white/90 backdrop-blur-sm rounded-full p-0.5 sm:p-1 shadow-lg hover:bg-white transition-colors z-10 group-hover:scale-110">
-                          <FavoriteBorderOutlined className="w-4 h-4 sm:w-5 sm:h-5 text-gray-700" />
-                        </button>
+                {sortOptions.map((option) => (
+                  <MenuItem
+                    key={option}
+                    onClick={() => handleSortSelect(option)}
+                    selected={sortBy === option}
+                    sx={{
+                      fontWeight: sortBy === option ? 600 : 400,
+                      fontSize: "0.9rem",
+                      color: "#333",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      backgroundColor:
+                        sortBy === option ? "#E8F5E9 !important" : "transparent",
+                      "&:hover": {
+                        backgroundColor: "#E8F5E9 !important",
+                      },
+                    }}
+                  >
+                    {option}
+                    {sortBy === option && (
+                      <CheckIcon sx={{ color: "#333", fontSize: "1rem" }} />
+                    )}
+                  </MenuItem>
+                ))}
+              </Menu>
+            </Box>
+          </Box>
+          <Grid container spacing={3} mt={2}>
+            {loading
+              ? Array.from(new Array(8)).map((_, idx) => (
+                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={idx}>
+                  <Card className="gigCard">
+                    <CardContent>
+                      <Skeleton variant="text" height={32} width="80%" />
+                      <Skeleton variant="text" height={20} width="100%" />
+                      <Skeleton variant="text" height={20} width="90%" />
+                      <Box mt={1} mb={2}>
+                        <Skeleton variant="rectangular" height={24} width={60} />
+                      </Box>
+                      <Skeleton variant="text" height={28} width="40%" />
+                    </CardContent>
+                    <CardActions
+                      sx={{ px: 2, pb: 2, justifyContent: "space-between" }}
+                    >
+                      <Box display="flex" alignItems="center" gap={1}>
+                        <Skeleton variant="circular" width={40} height={40} />
+                        <Box>
+                          <Skeleton variant="text" height={20} width={80} />
+                          <Skeleton variant="text" height={16} width={60} />
+                        </Box>
+                      </Box>
+                      <Skeleton variant="rectangular" width={64} height={36} />
+                    </CardActions>
+                  </Card>
+                </Grid>
+              ))
+              : allGig?.map((gig) => (
+                <Grid size={{ xs: 12, sm: 6, md: 6, lg: 4 }} key={gig._id}>
+                  <article
+                    className="bg-white rounded-2xl shadow hover:shadow-lg transition overflow-hidden"
+                  >
+                    <div className="relative cursor-pointer"
+                      onClick={() =>
+                        router.push(`/${isSelf ? "myGigs" : "gigs"}/${gig._id}`)
+                      } >
+                      <div className="aspect-[4/3] overflow-hidden">
+                        <Image
+                          src={gig.gigImage?.url || "/noImageFound.png"}
+                          alt={gig.title}
+                          width={400}
+                          height={300}
+                          className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500"
+                        />
                       </div>
+                      <div className="absolute top-3 right-3 flex items-center space-x-1 gap-1 sm:gap-2 shrink-0">
+                          {gig.createdBy?._id === user?._id && (
+                            <button
+                              className="bg-white/90 backdrop-blur-sm rounded-full p-0.5 sm:p-1 shadow-lg hover:bg-white transition-colors z-10 group-hover:scale-110"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                router.push(`/gigs/edit/${gig._id}`);
+                              }}
+                            >
+                              <EditIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-700 hover:text-green-400 cursor-pointer transition-colors" />
+                            </button>
+                          )}
+                          {gig.createdBy?._id === user?._id && (
+                            <button
+                              className="bg-white/90 backdrop-blur-sm rounded-full p-0.5 sm:p-1 shadow-lg hover:bg-white transition-colors z-10 group-hover:scale-110"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteModalClick(gig?._id);
+                              }}
+                            >
+                              <DeleteOutlineOutlinedIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-700 hover:text-red-400 cursor-pointer transition-colors" />
+                            </button>
+                          )}
+                          <button className="bg-white/90 backdrop-blur-sm rounded-full p-0.5 sm:p-1 shadow-lg hover:bg-white transition-colors z-10 group-hover:scale-110">
+                            <FavoriteBorderOutlined className="w-4 h-4 sm:w-5 sm:h-5 text-gray-700" />
+                          </button>
+                        </div>
                     </div>
-                  </div>
 
-                  {/* Image */}
-                  <div className="aspect-[4/3] overflow-hidden">
-                    <Image
-                      src={gig.gigImage?.url || "/noImageFound.png"}
-                      alt={gig.title}
-                      width={400}
-                      height={300}
-                      className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500"
-                    />
-                  </div>
+                    <div className="p-4">
+                      <h2 className="text-lg font-semibold text-gray-800 mb-2">
+                        <a
+                          href={`/${isSelf ? "myGigs" : "gigs"}/${gig._id}`}
+                          className="hover:text-green-600 transition"
+                        >
+                          {gig.title}
+                        </a>
+                      </h2>
 
-                  {/* Hover overlay with text */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent transition-opacity duration-300">
-                    <div className="absolute bottom-2 sm:bottom-4 md:bottom-6 left-2 sm:left-4 md:left-6 right-2 sm:right-4 md:right-6">
-                      <p className="text-xs sm:text-sm text-gray-200 line-clamp-2 mb-2 sm:mb-3">
+                      <p className="text-xs sm:text-sm text-gray-800 line-clamp-2 mb-2 sm:mb-3 min-h-[2.5rem]">
                         {gig.description}
                       </p>
 
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                        <div className="flex items-center gap-2 sm:gap-3">
-                          <span className="px-2 py-0.5 sm:px-3 sm:py-1 text-xs font-medium text-green-600 bg-green-100 rounded-full truncate max-w-[100px]">
-                            {gig.tier}
-                          </span>
-                          <span className="text-sm sm:text-base text-white font-semibold">
-                            ${gig.price}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1 sm:gap-2">
-                          <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full overflow-hidden shrink-0">
+                      <div className="flex items-center justify-between mb-2">
+                        {/* <div className="text-sm text-green-600 font-medium mb-1">
+                          Design & Creative
+                        </div> */}
+
+                        <span className="px-2 py-0.5 sm:px-3 sm:py-1 text-xs font-medium text-green-600 bg-green-100 rounded-full truncate max-w-[100px]">
+                          {gig.tier}
+                        </span>
+                      </div>
+
+                      <hr className="border-gray-200 mb-4 mt-4" />
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div className="relative">
                             <Image
-                              src={
-                                gig.createdBy.profilePicture ||
-                                "/default-avatar.png"
-                              }
-                              alt={gig.createdBy.fullName}
                               width={32}
                               height={32}
-                              className="object-cover w-full h-full"
+                              src={gig.createdBy.profilePicture || "/default-avatar.png"}
+                              alt={gig.createdBy.fullName}
+                              className="w-8 h-8 rounded-full object-cover"
                             />
                           </div>
-                          <span className="text-xs sm:text-sm text-gray-200 truncate max-w-[120px]">
-                            {gig.createdBy.fullName}
-                          </span>
+                          <span className="text-gray-700 font-medium">{gig.createdBy.fullName}</span>
+                        </div>
+
+                        <div className="text-right">
+                          <span className="block text-xs text-gray-500">Starting at:</span>
+                          <span className="text-green-600 font-semibold text-lg">${gig.price}</span>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              </Grid>
-            ))}
-        <Dialog
-          open={!!selectedDeleteGig}
-          onClose={() => handleDeleteModalClick("")}
-          aria-labelledby="alert-dialog-title"
-          aria-describedby="alert-dialog-description"
-          fullWidth
-          maxWidth="xs"
-          PaperProps={{
-            sx: {
-              borderRadius: "16px",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.08)",
-              border: "1px solid rgba(0,0,0,0.08)",
-            },
-          }}
-        >
-          <DialogTitle
-            id="alert-dialog-title"
-            sx={{
-              fontSize: "1.5rem",
-              fontWeight: 600,
-              color: "#1a1a1a",
-              p: 1,
-              pt: 3,
-              textAlign: "center",
-            }}
-          >
-            Confirm Deletion
-          </DialogTitle>
-          <DialogContent sx={{ py: 4, px: 1 }}>
-            <Typography
-              align="center"
-              sx={{
-                fontSize: "1rem",
-                color: "#666",
-                maxWidth: "80%",
-                mx: "auto",
-              }}
-            >
-              Are you sure you want to delete this gig? This action cannot be
-              undone.
-            </Typography>
-          </DialogContent>
-          <DialogActions sx={{ p: 3, gap: 2, paddingTop: 0 }}>
-            <Button
-              onClick={() => handleDeleteModalClick("")}
-              sx={{
-                color: "#666",
-                backgroundColor: "#f5f5f5",
-                borderRadius: "8px",
-                px: 3,
-                "&:hover": {
-                  backgroundColor: "#eeeeee",
-                },
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="contained"
-              sx={{
-                backgroundColor: "#d32f2f",
-                color: "white",
-                borderRadius: "8px",
-                px: 3,
-                "&:hover": {
-                  backgroundColor: "#b71c1c",
-                },
-              }}
-              onClick={() => handleConfirmDelete()}
-            >
-              Delete
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </Grid>
+                  </article>
+                </Grid>
+              ))}
 
-      <Box display="flex" justifyContent="center" mt={4} className="pagination">
-        <Pagination
-          count={pagination.totalPages}
-          page={page}
-          onChange={(_, value) => setPage(value)}
-          shape="circular"
-        />
+            <Dialog
+              open={!!selectedDeleteGig}
+              onClose={() => handleDeleteModalClick("")}
+              aria-labelledby="alert-dialog-title"
+              aria-describedby="alert-dialog-description"
+              fullWidth
+              maxWidth="xs"
+              PaperProps={{
+                sx: {
+                  borderRadius: "16px",
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.08)",
+                  border: "1px solid rgba(0,0,0,0.08)",
+                },
+              }}
+            >
+              <DialogTitle
+                id="alert-dialog-title"
+                sx={{
+                  fontSize: "1.5rem",
+                  fontWeight: 600,
+                  color: "#1a1a1a",
+                  p: 1,
+                  pt: 3,
+                  textAlign: "center",
+                }}
+              >
+                Confirm Deletion
+              </DialogTitle>
+              <DialogContent sx={{ py: 4, px: 1 }}>
+                <Typography
+                  align="center"
+                  sx={{
+                    fontSize: "1rem",
+                    color: "#666",
+                    maxWidth: "80%",
+                    mx: "auto",
+                  }}
+                >
+                  Are you sure you want to delete this gig? This action cannot be
+                  undone.
+                </Typography>
+              </DialogContent>
+              <DialogActions sx={{ p: 3, gap: 2, paddingTop: 0 }}>
+                <Button
+                  onClick={() => handleDeleteModalClick("")}
+                  sx={{
+                    color: "#666",
+                    backgroundColor: "#f5f5f5",
+                    borderRadius: "8px",
+                    px: 3,
+                    "&:hover": {
+                      backgroundColor: "#eeeeee",
+                    },
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="contained"
+                  sx={{
+                    backgroundColor: "#d32f2f",
+                    color: "white",
+                    borderRadius: "8px",
+                    px: 3,
+                    "&:hover": {
+                      backgroundColor: "#b71c1c",
+                    },
+                  }}
+                  onClick={() => handleConfirmDelete()}
+                >
+                  Delete
+                </Button>
+              </DialogActions>
+            </Dialog>
+          </Grid>
+          <Box display="flex" justifyContent="center" mt={4} className="pagination">
+            <Pagination
+              count={pagination.totalPages}
+              page={page}
+              onChange={(_, value) => setPage(value)}
+              shape="circular"
+            />
+          </Box>
+        </Box>
       </Box>
     </StyledWrapper>
   );
