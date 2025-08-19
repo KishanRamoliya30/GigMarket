@@ -67,7 +67,7 @@ const ForgotPasswordForm = ({isAdmin}:{isAdmin?:boolean}) => {
     <Box
       onSubmit={handleSubmit}
       width="100%"
-      minWidth={{ xs: "100%", md: "600px", sm: "600px" }}
+      maxWidth={{ xs: "100%", md: "600px" }}
       bgcolor="#fff"
       borderRadius={4}
       boxShadow={3}
@@ -88,6 +88,7 @@ const ForgotPasswordForm = ({isAdmin}:{isAdmin?:boolean}) => {
         fullWidth
         label="Email address"
         name="email"
+        isAstrick
         value={values.email}
         onChange={handleChange}
         onBlur={handleBlur}
@@ -101,6 +102,7 @@ const ForgotPasswordForm = ({isAdmin}:{isAdmin?:boolean}) => {
         label={isSubmitting ? "Sending..." : "Send OTP"}
         sx={{ mt: 4 }}
         disabled={!formik.isValid || !formik.dirty || isSubmitting}
+        style={{ background: "#2e7d32"}}
       />
     </Box>
   );

@@ -25,7 +25,7 @@ const LoginForm = () => {
   const [showTerms, setShowTerms] = useState(false);
   const [terms, setTerms] = useState("");
   const [userId, setUserId] = useState("");
-  const { setUser,redirectUrl, setRedirectUrl } = useUser();
+  const { setUser, redirectUrl, setRedirectUrl } = useUser();
   const formik = useFormik({
     initialValues: {
       email: "",
@@ -44,8 +44,11 @@ const LoginForm = () => {
           setTerms(res.data.terms);
           setShowTerms(true);
         } else {
-          const user = res.data?.user
-          redirectAfterLogin(res.data.hasSubscription,{...user,role:"User"});          
+          const user = res.data?.user;
+          redirectAfterLogin(res.data.hasSubscription, {
+            ...user,
+            role: "User",
+          });
         }
       } else {
         setFieldError("password", res.error ?? "Invalid credentials");
@@ -55,9 +58,9 @@ const LoginForm = () => {
     },
   });
 
-  const redirectAfterLogin = (hasSubscription:boolean,user:UserType) => {
+  const redirectAfterLogin = (hasSubscription: boolean, user: UserType) => {
     setUser(user);
-     // Step 1: Send to subscription first
+    // Step 1: Send to subscription first
     if (!hasSubscription) {
       router.push("/subscription");
       return;
@@ -73,7 +76,7 @@ const LoginForm = () => {
       router.push(redirectUrl);
       setRedirectUrl("");
       return;
-    }    
+    }
     router.push("/dashboard");
   };
 
@@ -86,8 +89,8 @@ const LoginForm = () => {
     });
 
     if (res.ok && res.data) {
-      const user = res.data?.user
-      redirectAfterLogin(res.data.hasSubscription,{...user,role:"User"});
+      const user = res.data?.user;
+      redirectAfterLogin(res.data.hasSubscription, { ...user, role: "User" });
     }
   };
 
@@ -126,18 +129,17 @@ const LoginForm = () => {
           component="form"
           onSubmit={handleSubmit}
         >
-          <Typography
-            variant="h6" fontWeight={600} mb={1}
-          >
+          <Typography variant="h6" fontWeight={600} mb={1}>
             Sign In
           </Typography>
-<Typography variant="body1" color="text.secondary" mb={4}>
-       Continue with your email and password
-      </Typography>
+          <Typography variant="body1" color="text.secondary" mb={4}>
+            Continue with your email and password
+          </Typography>
           <CustomTextField
             fullWidth
             label="Email"
             name="email"
+            isAstrick
             value={values.email}
             onChange={handleChange}
             onBlur={handleBlur}
@@ -149,6 +151,7 @@ const LoginForm = () => {
             fullWidth
             label="Password"
             name="password"
+            isAstrick
             value={values.password}
             onChange={handleChange}
             onBlur={handleBlur}
@@ -178,6 +181,7 @@ const LoginForm = () => {
             variant="contained"
             type="submit"
             disabled={!formik.isValid || !formik.dirty || isSubmitting}
+            style={{ background: "#2e7d32" }}
           />
           <Box mt={3} display="flex" justifyContent="center">
             Don&apos;t have an account?

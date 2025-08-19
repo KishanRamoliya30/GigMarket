@@ -10,9 +10,9 @@ import { apiRequest } from "@/app/lib/apiCall";
 import { toast } from "react-toastify";
 import Cookies from "js-cookie";
 
-const ResetPasswordForm = ({isAdmin}:{isAdmin?:boolean}) => {
-  const router = useRouter(); 
-const email = Cookies.get("email");
+const ResetPasswordForm = ({ isAdmin }: { isAdmin?: boolean }) => {
+  const router = useRouter();
+  const email = Cookies.get("email");
   const validationSchema = Yup.object({
     password: Yup.string()
       .min(8, "Password must be at least 8 characters")
@@ -37,7 +37,7 @@ const email = Cookies.get("email");
         },
       });
       let redirectLink = "/login";
-      if(isAdmin) redirectLink = `/admin${redirectLink}`
+      if (isAdmin) redirectLink = `/admin${redirectLink}`;
       if (response.ok) {
         Cookies.remove("email");
         toast.success(response.message || "Password reset successfully!");
@@ -69,7 +69,8 @@ const email = Cookies.get("email");
   return (
     <Box
       onSubmit={handleSubmit}
-     minWidth={{ xs: "100%", md: "600px", sm: "600px" }}
+      width="100%"
+      maxWidth={{ xs: "100%", md: "600px" }}
       bgcolor="#fff"
       borderRadius={4}
       boxShadow={3}
@@ -90,17 +91,19 @@ const email = Cookies.get("email");
         label="New Password"
         name="password"
         isPassword
+        isAstrick
         value={values.password}
         onChange={handleChange}
         onBlur={handleBlur}
         errorText={touched.password && errors.password ? errors.password : ""}
       />
-     
+
       <CustomTextField
         fullWidth
         label="Confirm Password"
         name="confirmPassword"
         isPassword
+        isAstrick
         value={values.confirmPassword}
         onChange={handleChange}
         onBlur={handleBlur}
@@ -110,7 +113,13 @@ const email = Cookies.get("email");
             : ""
         }
       />
-  <Box mt={2} mb={2} display="flex" flexWrap="wrap" justifyContent="space-between">
+      <Box
+        mt={2}
+        mb={2}
+        display="flex"
+        flexWrap="wrap"
+        justifyContent="space-between"
+      >
         <Box width={{ xs: "100%", sm: "48%" }} mb={1}>
           <Typography
             variant="body2"
@@ -151,6 +160,7 @@ const email = Cookies.get("email");
         label={isSubmitting ? "Resetting..." : "Reset Password"}
         sx={{ mt: 4 }}
         disabled={!formik.isValid || isSubmitting}
+        style={{ background: "#2e7d32" }}
       />
     </Box>
   );
