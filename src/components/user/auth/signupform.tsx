@@ -11,7 +11,7 @@ import { toast } from "react-toastify";
 import { useRef } from "react";
 
 const SignupForm = () => {
-    const formRef = useRef<HTMLFormElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const validationSchema = Yup.object({
     firstName: Yup.string().required("First name is required"),
@@ -55,8 +55,11 @@ const SignupForm = () => {
           profileCompleted: false,
         },
       });
-      if (response.ok && response.data) {        
-        toast.success(response.message || "User created successfully. Please check your email to verify your account.");
+      if (response.ok && response.data) {
+        toast.success(
+          response.message ||
+            "User created successfully. Please check your email to verify your account."
+        );
         resetForm();
       } else {
         setFieldError("password", response.error ?? "Invalid credentials");
@@ -82,7 +85,7 @@ const SignupForm = () => {
     lowercase: /[a-z]/.test(values.password),
     number: /[0-9]/.test(values.password),
   };
- const triggerFormSubmit = () => {
+  const triggerFormSubmit = () => {
     formRef.current?.requestSubmit();
   };
 
@@ -97,7 +100,7 @@ const SignupForm = () => {
       height={{ xs: "90vh", sm: "80vh" }}
       display="flex"
       flexDirection="column"
-      p={{ xs: 2, sm: 4 }}
+      p={{ xs: 4, sm: 4 }}
     >
       <Typography variant="h6" fontWeight={600} mb={1}>
         Sign Up
@@ -112,7 +115,7 @@ const SignupForm = () => {
         onSubmit={handleSubmit}
         sx={{
           overflowY: "auto",
-          p: { xs: 1, sm: 1 },
+          // p: { xs: 1, sm: 1 },
           flexGrow: 1,
           scrollbarWidth: "thin",
           "&::-webkit-scrollbar": {
@@ -136,6 +139,7 @@ const SignupForm = () => {
             <CustomTextField
               label="First name"
               name="firstName"
+              isAstrick
               value={values.firstName}
               onChange={handleChange}
               onBlur={handleBlur}
@@ -148,6 +152,7 @@ const SignupForm = () => {
             <CustomTextField
               label="Last name"
               name="lastName"
+              isAstrick
               value={values.lastName}
               onChange={handleChange}
               onBlur={handleBlur}
@@ -162,6 +167,7 @@ const SignupForm = () => {
           fullWidth
           margin="normal"
           label="Email address"
+          isAstrick
           name="email"
           value={values.email}
           onChange={handleChange}
@@ -174,6 +180,7 @@ const SignupForm = () => {
           margin="normal"
           label="Password"
           name="password"
+          isAstrick
           isPassword
           value={values.password}
           onChange={handleChange}
@@ -271,7 +278,8 @@ const SignupForm = () => {
         sx={{ mt: 3 }}
         type="submit"
         disabled={!formik.isValid || !formik.dirty || isSubmitting}
-         onClick={triggerFormSubmit}
+        onClick={triggerFormSubmit}
+        style={{ background: "#2e7d32" }}
       />
 
       <Typography

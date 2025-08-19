@@ -10,13 +10,13 @@ import {
   Drawer,
   Menu,
   MenuItem,
-  Button,
   DialogContent,
   Dialog,
   List,
   ListItem,
   ListItemButton,
   ListItemText,
+  ListItemIcon,
 } from "@mui/material";
 import { styled, SxProps, Theme } from "@mui/material/styles";
 import SearchIcon from "@mui/icons-material/Search";
@@ -34,6 +34,7 @@ import { useUser } from "@/context/UserContext";
 import ClearIcon from "@mui/icons-material/Clear";
 import NotificationModal from "@/components/user/NotificationModal";
 import Cookies from "js-cookie";
+import { CreditCard, Repeat, User, Wallet } from "lucide-react";
 
 const HeaderWrapper = styled(Box)(({ theme }) => ({
   display: "flex",
@@ -471,37 +472,70 @@ export default function Header() {
         }}
       >
         {_id ? (
-          <Box>
+          <Box sx={{ p: 1, minWidth: 220 }}>
             {(user.subscription?.planType ?? 0) > 1 && (
-              <Button
-                fullWidth
-                variant="outlined"
+              <MenuItem
                 onClick={handleRoleSwitch}
                 sx={{
-                  textTransform: "none",
-                  fontWeight: 600,
-                  borderRadius: "8px",
-                  border: "1.5px solid black",
-                  color: "#333",
-                  mb: 1,
-                  transition: "all 0.3s ease",
-                  "&:hover": {
-                    backgroundColor: "#f5f5f5",
-                    borderColor: "#bbb",
-                    boxShadow: "0 2px 6px rgba(0, 0, 0, 0.08)",
-                  },
+                  borderRadius: "10px",
+                  mb: 0.5,
+                  py: 1,
+                  "&:hover": { backgroundColor: "#f5f7f9", color: "#1DBF73" },
                 }}
               >
-                Switch to {role === "User" ? "Provider" : "User"}
-              </Button>
+                <ListItemIcon>
+                  <Repeat size={20} />
+                </ListItemIcon>
+                <ListItemText
+                  primary={`Switch to ${role === "User" ? "Provider" : "User"}`}
+                />
+              </MenuItem>
             )}
-            {(user.subscriptionCompleted || user.profileCompleted) && (
-              <MenuItem onClick={handleProfileSection}>My Profile</MenuItem>
-            )}
-            {user.subscriptionCompleted && (
-              <MenuItem onClick={handleSubscriptions}>Subscriptions</MenuItem>
-            )}
-            <MenuItem onClick={handleLogout}>Logout</MenuItem>
+
+            <MenuItem
+              onClick={handleProfileSection}
+              sx={{
+                borderRadius: "10px",
+                mb: 0.5,
+                py: 1,
+                "&:hover": { backgroundColor: "#f5f7f9", color: "#1DBF73" },
+              }}
+            >
+              <ListItemIcon>
+                <User size={20} />
+              </ListItemIcon>
+              <ListItemText primary="My Profile" />
+            </MenuItem>
+
+            <MenuItem
+              onClick={handleSubscriptions}
+              sx={{
+                borderRadius: "10px",
+                mb: 0.5,
+                py: 1,
+                "&:hover": { backgroundColor: "#f5f7f9", color: "#1DBF73" },
+              }}
+            >
+              <ListItemIcon>
+                <CreditCard size={20} />
+              </ListItemIcon>
+              <ListItemText primary="Subscriptions" />
+            </MenuItem>
+
+            <MenuItem
+              onClick={handleLogout}
+              sx={{
+                borderRadius: "10px",
+                py: 1,
+                color: "red",
+                "&:hover": { backgroundColor: "#fff5f5", color: "#d32f2f" },
+              }}
+            >
+              <ListItemIcon>
+                <Wallet size={20} color="red" />
+              </ListItemIcon>
+              <ListItemText primary="Logout" />
+            </MenuItem>
           </Box>
         ) : (
           <Box>

@@ -45,7 +45,7 @@ export default function CustomTextField({
             fontWeight: 700,
             fontSize: "14px",
             color: "text.secondary",
-            mb: "6px",
+            mb: "4px",
             display: "flex",
             alignItems: "center",
           }}
