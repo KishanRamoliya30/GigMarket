@@ -17,7 +17,7 @@ const validationSchema = Yup.object({
   email: Yup.string()
     .email("Invalid email format")
     .required("Email is required"),
-  password: Yup.string().required(""),
+  password: Yup.string().required("Password is requird"),
 });
 
 const LoginForm = () => {
@@ -180,7 +180,7 @@ const LoginForm = () => {
             label={isSubmitting ? "Signing In..." : "Sign In"}
             variant="contained"
             type="submit"
-            disabled={!formik.isValid || !formik.dirty || isSubmitting}
+            // disabled={!formik.isValid || !formik.dirty || isSubmitting}
             style={{ background: "#2e7d32" }}
           />
           <Box mt={3} display="flex" justifyContent="center">

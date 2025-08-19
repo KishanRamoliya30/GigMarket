@@ -13,6 +13,7 @@ const LandingProviderProfiles = () => {
     pagination: { total: number };
   }>({ profiles: [], pagination: { total: 0 } });
   const router = useRouter();
+  const [loading, setLoading] = useState<boolean>(true);
   useEffect(() => {
     async function getOpenGigs() {
       try {
@@ -25,6 +26,7 @@ const LandingProviderProfiles = () => {
         if (res.ok) {
           setData(res.data.data);
         }
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching gigs:", error);
       }
@@ -46,6 +48,7 @@ const LandingProviderProfiles = () => {
   return (
     <div className="py-12 px-10">
       <CustomCarousel
+        loading={loading}
         data={data.profiles}
         CardComponent={ProviderCard}
         ViewAllButtonComponent={() => ViewAllButton()}

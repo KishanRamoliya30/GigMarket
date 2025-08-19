@@ -16,7 +16,7 @@ const plans = [
   {
     _id: 2,
     name: "Basic Account",
-    price: 10,
+    price: 16,
     description:
       "Limited access to pro features — for users who want to start providing services with restrictions.",
     benefits: [
@@ -71,19 +71,7 @@ export default function PricingCard() {
                       key={i}
                       className="flex items-center gap-2 text-gray-700 text-sm"
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 text-green-500 flex-shrink-0"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-7.364 7.364a1 1 0 01-1.414 0L3.293 9.414a1 1 0 011.414-1.414l4.293 4.293 6.657-6.657a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      {feature}
+                     ✅{feature}
                     </li>
                   ))}
                 </ul>
@@ -93,7 +81,7 @@ export default function PricingCard() {
                 type="button"
                 className="w-full flex items-center justify-center gap-2 px-6 py-3 text-[#5bbb7b] bg-[#eef8f2] hover:text-white hover:bg-[#5bbb7b] rounded-full transition-all duration-300 font-semibold"
               >
-                Add To Cart
+                Buy Now
               </button>
             </div>
           ))}

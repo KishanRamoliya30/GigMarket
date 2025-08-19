@@ -159,7 +159,7 @@ const ResetPasswordForm = ({ isAdmin }: { isAdmin?: boolean }) => {
         variant="contained"
         label={isSubmitting ? "Resetting..." : "Reset Password"}
         sx={{ mt: 4 }}
-        disabled={!formik.isValid || isSubmitting}
+        // disabled={!formik.isValid || isSubmitting}
         style={{ background: "#2e7d32" }}
       />
     </Box>
