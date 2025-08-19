@@ -6,20 +6,21 @@ import "slick-carousel/slick/slick-theme.css";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
 interface CustomCarouselProps<T> {
-  CardComponent: React.ComponentType<{ item: T }>;
+  CardComponent: React.ComponentType<{ item: T; loading: boolean }>;
   data: T[];
   heading?: string;
   subheading?: string;
   ViewAllButtonComponent?: () => ReactNode;
   sectionClassName?: string;
   total?: number | string;
+  loading: boolean;
 }
 
 function PrevArrow({ onClick }: { onClick?: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="absolute z-10 -left-3 top-1/2 transform -translate-y-1/2 bg-emerald-600 text-white p-2 rounded-full shadow-md  hover:scale-110 hover:shadow-lg cursor-pointer transition-all duration-300 ease-in-out sm:block"
+      className="absolute z-10 -left-3 top-1/2 transform -translate-y-1/2 bg-emerald-600 text-white p-2 rounded-full shadow-md hover:scale-110 hover:shadow-lg cursor-pointer transition-all duration-300 ease-in-out"
     >
       <ArrowLeft className="w-5 h-5" />
     </button>
@@ -30,7 +31,7 @@ function NextArrow({ onClick }: { onClick?: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="absolute z-10 -right-3 top-1/2 transform -translate-y-1/2 bg-emerald-600 text-white p-2 rounded-full shadow-md cursor-pointer hover:scale-110 hover:shadow-lg transition-all duration-300 ease-in-out block"
+      className="absolute z-10 -right-3 top-1/2 transform -translate-y-1/2 bg-emerald-600 text-white p-2 rounded-full shadow-md hover:scale-110 hover:shadow-lg cursor-pointer transition-all duration-300 ease-in-out"
     >
       <ArrowRight className="w-5 h-5" />
     </button>
@@ -45,6 +46,7 @@ const CustomCarousel = <T,>({
   ViewAllButtonComponent,
   sectionClassName = "",
   total,
+  loading,
 }: CustomCarouselProps<T>) => {
   const settings = {
     dots: false,
@@ -55,30 +57,25 @@ const CustomCarousel = <T,>({
     nextArrow: <NextArrow />,
     prevArrow: <PrevArrow />,
     responsive: [
-      {
-        breakpoint: 1280,
-        settings: {
-          slidesToShow: 3,
-        },
-      },
-      {
-        breakpoint: 1024,
-        settings: {
-          slidesToShow: 2,
-        },
-      },
-      {
-        breakpoint: 640,
-        settings: {
-          slidesToShow: 1,
-        },
-      },
+      { breakpoint: 1280, settings: { slidesToShow: 3 } },
+      { breakpoint: 1024, settings: { slidesToShow: 2 } },
+      { breakpoint: 640, settings: { slidesToShow: 1 } },
     ],
   };
 
-  if (!data?.length) {
-    return null;
-  }
+  const placeholderArray = Array.from({ length: 8 });
+
+  const renderCards = loading
+    ? placeholderArray.map((_, i) => (
+        <div key={`skeleton-${i}`} className="p-2 sm:p-3">
+          <CardComponent item={{} as T} loading={true} />
+        </div>
+      ))
+    : data.map((obj, i) => (
+        <div key={i} className="p-2 sm:p-3">
+          <CardComponent item={obj} loading={false} />
+        </div>
+      ));
 
   return (
     <section className={`relative ${sectionClassName}`}>
@@ -95,46 +92,15 @@ const CustomCarousel = <T,>({
         )}
       </div>
 
-      {data.length <= 3 ? (
-        <div>
-          <div className="flex flex-row justify-center items-center flex-wrap">
-            {data.map((obj, i) => (
-              <div key={i} className="p-2 sm:p-3 w-[340px]">
-                <CardComponent item={obj} />
-              </div>
-            ))}
-          </div>
-          {total && (
-            <div className="absolute bottom-8 right-4 md:right-16 bg-gray-100 px-3 py-1 rounded-full">
-              <span className="text-sm font-medium text-gray-700">
-                Total: {total}
-              </span>
-            </div>
-          )}
-        </div>
-      ) : (
-        <>
-          <Slider {...settings}>
-            {data.map((item, index) => (
-              <div key={index} className="p-2 sm:p-3">
-                <CardComponent item={item} />
-              </div>
-            ))}
-          </Slider>
+      <Slider {...settings}>{renderCards}</Slider>
 
-          {ViewAllButtonComponent && (
-            <div className="flex justify-center mt-6">
-              {ViewAllButtonComponent()}
-            </div>
-          )}
-          {total && (
-            <div className="absolute bottom-12 right-4 md:right-16 bg-gray-100 px-3 py-1 rounded-full">
-              <span className="text-sm font-medium text-gray-700">
-                Total: {total}
-              </span>
-            </div>
-          )}
-        </>
+      {!loading && ViewAllButtonComponent && (
+        <div className="flex justify-center mt-6">{ViewAllButtonComponent()}</div>
+      )}
+      {total && !loading && (
+        <div className="absolute bottom-12 right-4 md:right-16 bg-gray-100 px-3 py-1 rounded-full">
+          <span className="text-sm font-medium text-gray-700">Total: {total}</span>
+        </div>
       )}
     </section>
   );

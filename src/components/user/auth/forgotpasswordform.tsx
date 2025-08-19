@@ -101,7 +101,7 @@ const ForgotPasswordForm = ({isAdmin}:{isAdmin?:boolean}) => {
         variant="contained"
         label={isSubmitting ? "Sending..." : "Send OTP"}
         sx={{ mt: 4 }}
-        disabled={!formik.isValid || !formik.dirty || isSubmitting}
+        // disabled={!formik.isValid || !formik.dirty || isSubmitting}
         style={{ background: "#2e7d32"}}
       />
     </Box>

@@ -3,8 +3,15 @@ import { Profile } from "../utils/interfaces";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Star } from "lucide-react";
+import { Box, Skeleton } from "@mui/material";
 
-const ProviderCard = ({ item }: { item: Profile }) => {
+const ProviderCard = ({
+  item,
+  loading,
+}: {
+  item: Profile;
+  loading: boolean;
+}) => {
   const {
     fullName,
     profilePicture,
@@ -17,6 +24,57 @@ const ProviderCard = ({ item }: { item: Profile }) => {
     major,
   } = item;
   const [showMoreSkills, setShowMoreSkills] = useState<boolean>(false);
+
+  if (loading) {
+    return (
+      <Box className="border border-gray-200 bg-white w-full max-w-[320px] mx-auto p-5 flex flex-col justify-between min-h-[480px] rounded-xl">
+        <Skeleton
+          variant="circular"
+          width={96}
+          height={96}
+          sx={{ margin: "16px auto" }}
+        />
+
+        <Skeleton
+          variant="text"
+          width="60%"
+          height={24}
+          sx={{ margin: "0 auto" }}
+        />
+        <Skeleton
+          variant="text"
+          width="40%"
+          height={20}
+          sx={{ margin: "8px auto" }}
+        />
+
+        <Skeleton
+          variant="text"
+          width="50%"
+          height={20}
+          sx={{ margin: "12px auto" }}
+        />
+
+        <Box className="flex justify-center gap-2 mt-3">
+          <Skeleton variant="rounded" width={50} height={24} />
+          <Skeleton variant="rounded" width={70} height={24} />
+          <Skeleton variant="rounded" width={40} height={24} />
+        </Box>
+
+        <Box className="flex justify-between items-center mt-4 border-t border-gray-100 pt-3">
+          <Skeleton variant="text" width="40%" height={20} />
+          <Skeleton variant="text" width="20%" height={20} />
+        </Box>
+
+        <Skeleton
+          variant="rounded"
+          width="100%"
+          height={40}
+          sx={{ marginTop: "16px" }}
+        />
+      </Box>
+    );
+  }
 
   const visibleSkills = skills?.slice(0, 2);
   const hiddenSkills = skills?.slice(2);

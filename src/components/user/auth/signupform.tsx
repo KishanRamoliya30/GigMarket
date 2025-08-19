@@ -277,7 +277,7 @@ const SignupForm = () => {
         variant="contained"
         sx={{ mt: 3 }}
         type="submit"
-        disabled={!formik.isValid || !formik.dirty || isSubmitting}
+        // disabled={!formik.isValid || !formik.dirty || isSubmitting}
         onClick={triggerFormSubmit}
         style={{ background: "#2e7d32" }}
       />
