@@ -26,7 +26,8 @@ import RequestQuoteIcon from "@mui/icons-material/RequestQuote";
 import { Loader2 } from "lucide-react";
 import { toast } from "react-toastify";
 import { FormDataValue, objectToFormData } from "@/app/lib/commonFunctions";
-import { Gig } from "@/app/utils/interfaces";
+import { GigData } from "@/app/utils/interfaces";
+import PaymentPage from "@/app/(protected)/payment/page";
 
 interface UserProfile {
   _id: string;
@@ -71,7 +72,7 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
   gigId,
   user1Id,
 }) => {
-  const [gigDetails, setGigDetails] = useState<Gig | null>(null);
+  const [gigDetails, setGigDetails] = useState<GigData | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [chatId, setChatId] = useState<string>("");
   const [newMessage, setNewMessage] = useState("");
@@ -81,12 +82,14 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  const [openPaymentRequest, setOpenPaymentRequest] = useState(false);
   const [openPaymentModal, setOpenPaymentModal] = useState(false);
   const [bidAmountType, setBidAmountType] = useState("hourly");
   const [bidAmount, setBidAmount] = useState("");
   const [bidComment, setBidComment] = useState("");
   const [error, setError] = useState({ bidAmount: "", bidComment: "" });
   const [submitting, setSubmitting] = useState(false);
+  const [paymentMessage, setPaymentMessage] = useState<Message | null>(null);
 
   const limit = 20;
   const [page, setPage] = useState(1);
@@ -97,7 +100,7 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
     totalPages: 0,
   });
 
-  const { user } = useUser();
+  const { user, setPaymentInfo } = useUser();
   const currentUserId = user?._id ?? "";
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -110,7 +113,7 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
     }
   };
 
-  const gigDetail = async () => {
+  const getGigDetail = async () => {
     const apiPath = `gigs/${gigId}`;
     const res = await apiRequest(apiPath, {
       method: "GET",
@@ -277,7 +280,7 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
       setSubmitting(false);
 
       if (res.ok) {
-        closePaymentModal();
+        closePaymentRequestModal();
         const messageData = res.data.data;
         socket.emit("message", {
           chatId: messageData.chatId,
@@ -292,28 +295,42 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
     });
   };
 
-  const confirmPayment = async (message: Message) => {
-    const { _id, paymentRequest } = message;
-    if (paymentRequest?.amount && paymentRequest?.amount <= 0) return;
+  const makePayment = async (message: Message) => {
+    setPaymentInfo({
+      gigId: gigDetails?._id ?? "",
+      gigTitle: gigDetails?.title ?? "",
+      gigDescription: gigDetails?.description ?? "",
+      amount: message.paymentRequest?.amount || 0,
+      refId: gigDetails?.assignedToBid?.createdBy || "",
+    });
+    setOpenPaymentModal(true);
+    setPaymentMessage(message);
+    // confirmPayment();
+  };
+  const confirmPayment = async () => {
+    if (paymentMessage) {
+      const { _id, paymentRequest } = paymentMessage;
+      if (paymentRequest?.amount && paymentRequest?.amount <= 0) return;
 
-    setIsSending(true);
-    try {
-      // write logic here for payment modal
-      const payRes = {
-        message: "Make payment here",
-      };
-      if (payRes) {
-        updateMessage(_id, {
-          paymentRequest: { status: "Approved" },
-        });
-      } else {
-        toast.error(payRes || "Payment failed. Please try again.");
+      setIsSending(true);
+      try {
+        // write logic here for payment modal
+        const payRes = {
+          message: "Make payment here",
+        };
+        if (payRes) {
+          updateMessage(_id, {
+            paymentRequest: { status: "Approved" },
+          });
+        } else {
+          toast.error(payRes || "Payment failed. Please try again.");
+        }
+      } catch (err) {
+        console.error("Payment confirmation failed:", err);
+        toast.error("Payment failed. See console for details.");
+      } finally {
+        setIsSending(false);
       }
-    } catch (err) {
-      console.error("Payment confirmation failed:", err);
-      toast.error("Payment failed. See console for details.");
-    } finally {
-      setIsSending(false);
     }
   };
 
@@ -384,7 +401,7 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
 
   useEffect(() => {
     if (open) {
-      gigDetail();
+      getGigDetail();
       setPage(1);
       fetchChat(1);
     }
@@ -421,20 +438,25 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
     };
   }, [chatId]);
 
-  const closePaymentModal = () => {
-    setOpenPaymentModal(false);
+  const closePaymentRequestModal = () => {
+    setOpenPaymentRequest(false);
     setBidAmount("");
     setBidComment("");
   };
 
+  const closePaymentModal = () => {
+    closePaymentRequestModal();
+    setOpenPaymentModal(false);
+  };
+
   const PaymentDialog = () => {
     return (
-      <Dialog open={openPaymentModal} fullWidth maxWidth="sm">
+      <Dialog open={openPaymentRequest} fullWidth maxWidth="sm">
         <DialogTitle className="flex justify-between items-center">
           <h2 className="text-xl font-semibold text-gray-800 mb-6">
             Request Payment
           </h2>
-          <IconButton onClick={closePaymentModal} disabled={isSending}>
+          <IconButton onClick={closePaymentRequestModal} disabled={isSending}>
             <CloseIcon />
           </IconButton>
         </DialogTitle>
@@ -525,375 +547,387 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
   };
 
   return (
-    <Dialog open={open} fullWidth maxWidth="lg">
-      <DialogTitle className="flex justify-between items-center">
-        Chat
-        <IconButton onClick={onClose} disabled={isSending}>
-          <CloseIcon />
-        </IconButton>
-      </DialogTitle>
-
-      <DialogContent
-        className="h-96 overflow-y-auto space-y-3"
-        ref={(el: HTMLDivElement | null) => {
-          messagesEndRef.current = el;
-          containerRef.current = el;
-        }}
-        onScroll={handleScroll}
-      >
-        {loading ? (
-          Array.from({ length: 6 }).map((_, index) => {
-            const isCurrentUser = index % 2 === 1;
-            return (
-              <div
-                key={index}
-                className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
-              >
-                {!isCurrentUser && (
-                  <Skeleton
-                    variant="circular"
-                    width={32}
-                    height={32}
-                    className="self-end mr-2"
-                  />
-                )}
-                <div>
+    <>
+      <Dialog open={open} fullWidth maxWidth="lg">
+        <DialogTitle className="flex justify-between items-center">
+          Chat
+          <IconButton onClick={onClose} disabled={isSending}>
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent
+          className="h-96 overflow-y-auto space-y-3"
+          ref={(el: HTMLDivElement | null) => {
+            messagesEndRef.current = el;
+            containerRef.current = el;
+          }}
+          onScroll={handleScroll}
+        >
+          {loading ? (
+            Array.from({ length: 6 }).map((_, index) => {
+              const isCurrentUser = index % 2 === 1;
+              return (
+                <div
+                  key={index}
+                  className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
+                >
                   {!isCurrentUser && (
                     <Skeleton
-                      variant="text"
-                      width={100}
-                      height={18}
-                      className="mb-1"
+                      variant="circular"
+                      width={32}
+                      height={32}
+                      className="self-end mr-2"
                     />
                   )}
-                  <Skeleton
-                    variant="rectangular"
-                    width={200}
-                    height={60}
-                    className="rounded-md"
-                  />
+                  <div>
+                    {!isCurrentUser && (
+                      <Skeleton
+                        variant="text"
+                        width={100}
+                        height={18}
+                        className="mb-1"
+                      />
+                    )}
+                    <Skeleton
+                      variant="rectangular"
+                      width={200}
+                      height={60}
+                      className="rounded-md"
+                    />
+                  </div>
+                  {isCurrentUser && (
+                    <Skeleton
+                      variant="circular"
+                      width={32}
+                      height={32}
+                      className="self-end ml-2"
+                    />
+                  )}
                 </div>
-                {isCurrentUser && (
-                  <Skeleton
-                    variant="circular"
-                    width={32}
-                    height={32}
-                    className="self-end ml-2"
-                  />
-                )}
-              </div>
-            );
-          })
-        ) : messages.length === 0 ? (
-          <p className="text-gray-500 text-center mt-10">No messages yet</p>
-        ) : (
-          messages.map((msg) => {
-            const isCurrentUser = msg.sender._id === currentUserId;
-            return (
-              <div
-                key={msg._id}
-                className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
-              >
-                {!isCurrentUser && (
-                  <Image
-                    src={
-                      msg.sender.profile?.profilePicture ||
-                      "/default-avatar.png"
-                    }
-                    alt={msg.sender.profile?.fullName || "Sender"}
-                    width={32}
-                    height={32}
-                    className="w-8 h-8 rounded-full mr-2 self-end"
-                  />
-                )}
-                <div>
+              );
+            })
+          ) : messages.length === 0 ? (
+            <p className="text-gray-500 text-center mt-10">No messages yet</p>
+          ) : (
+            messages.map((msg) => {
+              const isCurrentUser = msg.sender._id === currentUserId;
+              return (
+                <div
+                  key={msg._id}
+                  className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
+                >
                   {!isCurrentUser && (
-                    <div className="text-sm text-gray-600 font-medium mb-1">
-                      {msg.sender.profile?.fullName}
+                    <Image
+                      src={
+                        msg.sender.profile?.profilePicture ||
+                        "/default-avatar.png"
+                      }
+                      alt={msg.sender.profile?.fullName || "Sender"}
+                      width={32}
+                      height={32}
+                      className="w-8 h-8 rounded-full mr-2 self-end"
+                    />
+                  )}
+                  <div>
+                    {!isCurrentUser && (
+                      <div className="text-sm text-gray-600 font-medium mb-1">
+                        {msg.sender.profile?.fullName}
+                      </div>
+                    )}
+
+                    <div
+                      className={`p-2 rounded-md max-w-xs break-words space-y-2 ${
+                        isCurrentUser
+                          ? "bg-blue-100 text-right ml-auto"
+                          : "bg-gray-200 text-left"
+                      }`}
+                    >
+                      {msg?.paymentRequest ? (
+                        msg.paymentRequest.status === "Pending" ? (
+                          <div className="bg-yellow-50 p-2 rounded-md border border-yellow-200">
+                            <p className="font-semibold">Payment Request</p>
+                            <p className="text-sm">
+                              Amount: ₹{msg.paymentRequest.amount}
+                            </p>
+                            <p className="text-xs text-gray-600">
+                              {msg.paymentRequest.description}
+                            </p>
+
+                            {isCurrentUser ? (
+                              <p className="text-xs text-gray-500 mt-1">
+                                You requested this payment
+                              </p>
+                            ) : (
+                              <div className="mt-2 flex gap-2">
+                                <button
+                                  className="group relative w-fit flex items-center justify-center gap-2 px-3 py-1 bg-gradient-to-br from-emerald-600 to-emerald-800 hover:from-emerald-700 hover:to-emerald-900 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-[1.02] hover:shadow-xl active:scale-[0.98] before:absolute before:inset-0 before:bg-white/10 before:rounded-xl before:opacity-0 before:transition hover:before:opacity-100 overflow-hidden cursor-pointer disabled:cursor-not-allowed ml-auto"
+                                  disabled={
+                                    isSending ||
+                                    msg.paymentRequest.status !== "Pending"
+                                  }
+                                  onClick={() => makePayment(msg)}
+                                >
+                                  Accept
+                                </button>
+                                <button
+                                  className="group relative w-fit flex items-center justify-center gap-2 px-3 py-1 bg-gradient-to-br from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-[1.02] hover:shadow-xl active:scale-[0.98] before:absolute before:inset-0 before:bg-white/10 before:rounded-xl before:opacity-0 before:transition hover:before:opacity-100 overflow-hidden cursor-pointer disabled:cursor-not-allowed ml-auto"
+                                  disabled={
+                                    isSending ||
+                                    msg.paymentRequest.status !== "Pending"
+                                  }
+                                  onClick={() =>
+                                    updateMessage(msg._id, {
+                                      paymentRequest: { status: "Rejected" },
+                                    })
+                                  }
+                                >
+                                  Reject
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        ) : msg.paymentRequest.status === "Approved" ? (
+                          <div className="bg-green-50 p-2 rounded-md border border-green-200">
+                            <p className="font-semibold">Payment Confirmed</p>
+                            <p className="text-sm">
+                              Amount: ₹{msg.paymentRequest.amount}
+                            </p>
+                          </div>
+                        ) : msg.paymentRequest.status === "Rejected" ? (
+                          <div className="bg-red-50 p-2 rounded-md border border-red-200">
+                            <p className="font-semibold">Payment Rejected</p>
+                            <p className="text-sm">
+                              Amount: ₹{msg.paymentRequest.amount}
+                            </p>
+                          </div>
+                        ) : null
+                      ) : (
+                        <>
+                          {msg.mediaFiles.length > 0 &&
+                            msg.mediaFiles.map((file, index) => {
+                              const isImage = file.type.startsWith("image/");
+                              const isVideo = file.type.startsWith("video/");
+                              const isOther = !isImage && !isVideo;
+
+                              return (
+                                <div key={index}>
+                                  {isImage && (
+                                    <Image
+                                      src={file.url}
+                                      alt={file.name}
+                                      width={200}
+                                      height={200}
+                                      className="rounded-md cursor-pointer"
+                                      onClick={() => setLightboxUrl(file.url)}
+                                    />
+                                  )}
+
+                                  {isVideo && (
+                                    <video
+                                      src={file.url}
+                                      controls
+                                      className="rounded-md w-full max-w-xs"
+                                    />
+                                  )}
+
+                                  {isOther && (
+                                    <a
+                                      href={file.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="block bg-white border border-blue-300 rounded-lg px-3 py-2 shadow-sm hover:shadow-md transition text-sm font-medium text-blue-800"
+                                    >
+                                      📄 {file.name}
+                                    </a>
+                                  )}
+                                </div>
+                              );
+                            })}
+
+                          {msg.message && <p>{msg.message}</p>}
+                        </>
+                      )}
+
+                      <div className="text-xs text-gray-500 mt-1 flex items-center gap-1 justify-end">
+                        {new Date(msg.createdAt).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                        {isCurrentUser &&
+                          (msg.seenBy?.length > 1 ? (
+                            <span className="text-blue-500">✓✓</span>
+                          ) : (
+                            <span className="text-gray-400">✓</span>
+                          ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {isCurrentUser && (
+                    <Image
+                      src={
+                        user?.profile?.profilePicture || "/default-avatar.png"
+                      }
+                      alt="User avatar"
+                      width={32}
+                      height={32}
+                      className="w-8 h-8 rounded-full ml-2 self-end"
+                    />
+                  )}
+                </div>
+              );
+            })
+          )}
+        </DialogContent>
+
+        {previewUrls.length > 0 && (
+          <Paper
+            className={`items-end p-4 flex gap-4 overflow-x-auto mr-[66px] ml-[66px] rounded-lg shadow-lg 
+              bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-dashed border-blue-400 ${isSending ? "opacity-60 cursor-not-allowed" : ""}`}
+            elevation={0}
+          >
+            {previewUrls.map((url, index) => {
+              const file = selectedFiles[index];
+              return (
+                <div key={index} className="relative flex-shrink-0">
+                  {file.type.startsWith("image/") ? (
+                    <Image
+                      src={url}
+                      alt="Preview"
+                      width={150}
+                      height={150}
+                      className="rounded-lg cursor-pointer object-cover border border-blue-300 shadow-sm hover:shadow-md transition"
+                      onClick={() => !isSending && setLightboxUrl(url)}
+                    />
+                  ) : file.type.startsWith("video/") ? (
+                    <video
+                      src={url}
+                      controls
+                      className="rounded-lg w-40 cursor-pointer border border-blue-300 shadow-sm hover:shadow-md transition"
+                    />
+                  ) : (
+                    <div className="bg-white border border-blue-300 rounded-lg px-3 py-2 shadow-sm hover:shadow-md transition">
+                      <p className="text-sm font-medium text-blue-800">
+                        📄 {file.name}
+                      </p>
                     </div>
                   )}
 
-                  <div
-                    className={`p-2 rounded-md max-w-xs break-words space-y-2 ${
-                      isCurrentUser
-                        ? "bg-blue-100 text-right ml-auto"
-                        : "bg-gray-200 text-left"
-                    }`}
+                  <button
+                    disabled={isSending}
+                    className={`cursor-pointer absolute -top-2 -right-2 bg-red-500 text-white rounded-full 
+                      w-6 h-6 flex items-center justify-center shadow-md hover:bg-red-600 transition ${isSending ? "opacity-50 cursor-not-allowed" : ""}`}
+                    onClick={() => removeFile(index)}
                   >
-                    {msg?.paymentRequest ? (
-                      msg.paymentRequest.status === "Pending" ? (
-                        <div className="bg-yellow-50 p-2 rounded-md border border-yellow-200">
-                          <p className="font-semibold">Payment Request</p>
-                          <p className="text-sm">
-                            Amount: ₹{msg.paymentRequest.amount}
-                          </p>
-                          <p className="text-xs text-gray-600">
-                            {msg.paymentRequest.description}
-                          </p>
-
-                          {isCurrentUser ? (
-                            <p className="text-xs text-gray-500 mt-1">
-                              You requested this payment
-                            </p>
-                          ) : (
-                            <div className="mt-2 flex gap-2">
-                              <button
-                                className="group relative w-fit flex items-center justify-center gap-2 px-3 py-1 bg-gradient-to-br from-emerald-600 to-emerald-800 hover:from-emerald-700 hover:to-emerald-900 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-[1.02] hover:shadow-xl active:scale-[0.98] before:absolute before:inset-0 before:bg-white/10 before:rounded-xl before:opacity-0 before:transition hover:before:opacity-100 overflow-hidden cursor-pointer disabled:cursor-not-allowed ml-auto"
-                                disabled={
-                                  isSending ||
-                                  msg.paymentRequest.status !== "Pending"
-                                }
-                                onClick={() => confirmPayment(msg)}
-                              >
-                                Accept
-                              </button>
-                              <button
-                                className="group relative w-fit flex items-center justify-center gap-2 px-3 py-1 bg-gradient-to-br from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-[1.02] hover:shadow-xl active:scale-[0.98] before:absolute before:inset-0 before:bg-white/10 before:rounded-xl before:opacity-0 before:transition hover:before:opacity-100 overflow-hidden cursor-pointer disabled:cursor-not-allowed ml-auto"
-                                disabled={
-                                  isSending ||
-                                  msg.paymentRequest.status !== "Pending"
-                                }
-                                onClick={() =>
-                                  updateMessage(msg._id, {
-                                    paymentRequest: { status: "Rejected" },
-                                  })
-                                }
-                              >
-                                Reject
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      ) : msg.paymentRequest.status === "Approved" ? (
-                        <div className="bg-green-50 p-2 rounded-md border border-green-200">
-                          <p className="font-semibold">Payment Confirmed</p>
-                          <p className="text-sm">
-                            Amount: ₹{msg.paymentRequest.amount}
-                          </p>
-                        </div>
-                      ) : msg.paymentRequest.status === "Rejected" ? (
-                        <div className="bg-red-50 p-2 rounded-md border border-red-200">
-                          <p className="font-semibold">Payment Rejected</p>
-                          <p className="text-sm">
-                            Amount: ₹{msg.paymentRequest.amount}
-                          </p>
-                        </div>
-                      ) : null
-                    ) : (
-                      <>
-                        {msg.mediaFiles.length > 0 &&
-                          msg.mediaFiles.map((file, index) => {
-                            const isImage = file.type.startsWith("image/");
-                            const isVideo = file.type.startsWith("video/");
-                            const isOther = !isImage && !isVideo;
-
-                            return (
-                              <div key={index}>
-                                {isImage && (
-                                  <Image
-                                    src={file.url}
-                                    alt={file.name}
-                                    width={200}
-                                    height={200}
-                                    className="rounded-md cursor-pointer"
-                                    onClick={() => setLightboxUrl(file.url)}
-                                  />
-                                )}
-
-                                {isVideo && (
-                                  <video
-                                    src={file.url}
-                                    controls
-                                    className="rounded-md w-full max-w-xs"
-                                  />
-                                )}
-
-                                {isOther && (
-                                  <a
-                                    href={file.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="block bg-white border border-blue-300 rounded-lg px-3 py-2 shadow-sm hover:shadow-md transition text-sm font-medium text-blue-800"
-                                  >
-                                    📄 {file.name}
-                                  </a>
-                                )}
-                              </div>
-                            );
-                          })}
-
-                        {msg.message && <p>{msg.message}</p>}
-                      </>
-                    )}
-
-                    <div className="text-xs text-gray-500 mt-1 flex items-center gap-1 justify-end">
-                      {new Date(msg.createdAt).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                      {isCurrentUser &&
-                        (msg.seenBy?.length > 1 ? (
-                          <span className="text-blue-500">✓✓</span>
-                        ) : (
-                          <span className="text-gray-400">✓</span>
-                        ))}
-                    </div>
-                  </div>
+                    ×
+                  </button>
                 </div>
-
-                {isCurrentUser && (
-                  <Image
-                    src={user?.profile?.profilePicture || "/default-avatar.png"}
-                    alt="User avatar"
-                    width={32}
-                    height={32}
-                    className="w-8 h-8 rounded-full ml-2 self-end"
-                  />
-                )}
-              </div>
-            );
-          })
+              );
+            })}
+          </Paper>
         )}
-      </DialogContent>
 
-      {previewUrls.length > 0 && (
-        <Paper
-          className={`items-end p-4 flex gap-4 overflow-x-auto mr-[66px] ml-[66px] rounded-lg shadow-lg 
-            bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-dashed border-blue-400 ${isSending ? "opacity-60 cursor-not-allowed" : ""}`}
-          elevation={0}
-        >
-          {previewUrls.map((url, index) => {
-            const file = selectedFiles[index];
-            return (
-              <div key={index} className="relative flex-shrink-0">
-                {file.type.startsWith("image/") ? (
-                  <Image
-                    src={url}
-                    alt="Preview"
-                    width={150}
-                    height={150}
-                    className="rounded-lg cursor-pointer object-cover border border-blue-300 shadow-sm hover:shadow-md transition"
-                    onClick={() => !isSending && setLightboxUrl(url)}
-                  />
-                ) : file.type.startsWith("video/") ? (
-                  <video
-                    src={url}
-                    controls
-                    className="rounded-lg w-40 cursor-pointer border border-blue-300 shadow-sm hover:shadow-md transition"
-                  />
-                ) : (
-                  <div className="bg-white border border-blue-300 rounded-lg px-3 py-2 shadow-sm hover:shadow-md transition">
-                    <p className="text-sm font-medium text-blue-800">
-                      📄 {file.name}
-                    </p>
-                  </div>
-                )}
+        {lightboxUrl && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50"
+            onClick={() => setLightboxUrl(null)}
+          >
+            <Image
+              src={lightboxUrl}
+              alt="Full View"
+              width={800}
+              height={800}
+              className="max-h-[90vh] max-w-[90vw] object-contain"
+            />
+          </div>
+        )}
 
-                <button
-                  disabled={isSending}
-                  className={`cursor-pointer absolute -top-2 -right-2 bg-red-500 text-white rounded-full 
-                    w-6 h-6 flex items-center justify-center shadow-md hover:bg-red-600 transition ${isSending ? "opacity-50 cursor-not-allowed" : ""}`}
-                  onClick={() => removeFile(index)}
-                >
-                  ×
-                </button>
-              </div>
-            );
-          })}
-        </Paper>
-      )}
-
-      {lightboxUrl && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50"
-          onClick={() => setLightboxUrl(null)}
+          className={`p-4 flex items-center gap-2 ${isSending ? "opacity-60 cursor-not-allowed" : ""}`}
         >
-          <Image
-            src={lightboxUrl}
-            alt="Full View"
-            width={800}
-            height={800}
-            className="max-h-[90vh] max-w-[90vw] object-contain"
-          />
-        </div>
-      )}
-
-      <div
-        className={`p-4 flex items-center gap-2 ${isSending ? "opacity-60 cursor-not-allowed" : ""}`}
-      >
-        <Tooltip title="Emoji">
-          <span>
-            <IconButton
-              onClick={() => setShowEmojiPicker((prev) => !prev)}
-              disabled={isSending}
-            >
-              <InsertEmoticonIcon />
-            </IconButton>
-          </span>
-        </Tooltip>
-        <Tooltip title="Attach File">
-          <span>
-            <IconButton
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isSending}
-            >
-              <AttachFileIcon />
-            </IconButton>
-          </span>
-        </Tooltip>
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileSelect}
-          multiple
-          style={{ display: "none" }}
-          disabled={isSending}
-        />
-
-        <Tooltip title="Request Payment">
-          <span>
-            <IconButton
-              disabled={
-                isSending ||
-                !!gigDetails?.assignedToBid ||
-                !(
-                  gigDetails?.status &&
-                  ["Open", "Requested"].includes(gigDetails.status)
-                )
-              }
-              onClick={() => setOpenPaymentModal(true)}
-            >
-              <RequestQuoteIcon />
-            </IconButton>
-          </span>
-        </Tooltip>
-
-        <Box style={{ width: "100%", marginBottom: "-16px" }}>
-          <CustomTextField
-            multiline
-            maxRows={5}
-            minRows={1}
-            fullWidth
-            name="message"
-            placeholder="Type a message..."
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
+          <Tooltip title="Emoji">
+            <span>
+              <IconButton
+                onClick={() => setShowEmojiPicker((prev) => !prev)}
+                disabled={isSending}
+              >
+                <InsertEmoticonIcon />
+              </IconButton>
+            </span>
+          </Tooltip>
+          <Tooltip title="Attach File">
+            <span>
+              <IconButton
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isSending}
+              >
+                <AttachFileIcon />
+              </IconButton>
+            </span>
+          </Tooltip>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileSelect}
+            multiple
+            style={{ display: "none" }}
             disabled={isSending}
           />
-        </Box>
-        <IconButton color="primary" onClick={sendMessage} disabled={isSending}>
-          <SendIcon />
-        </IconButton>
-      </div>
 
-      {showEmojiPicker && !isSending && (
-        <div className="absolute bottom-20 left-4 z-50">
-          <EmojiPicker onEmojiClick={handleEmojiClick} />
+          <Tooltip title="Request Payment">
+            <span>
+              <IconButton
+                disabled={
+                  isSending ||
+                  !!gigDetails?.assignedToBid ||
+                  !(
+                    gigDetails?.status &&
+                    ["Open", "Requested"].includes(gigDetails.status)
+                  )
+                }
+                onClick={() => setOpenPaymentRequest(true)}
+              >
+                <RequestQuoteIcon />
+              </IconButton>
+            </span>
+          </Tooltip>
+
+          <Box style={{ width: "100%", marginBottom: "-16px" }}>
+            <CustomTextField
+              multiline
+              maxRows={5}
+              minRows={1}
+              fullWidth
+              name="message"
+              placeholder="Type a message..."
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              disabled={isSending}
+            />
+          </Box>
+          <IconButton
+            color="primary"
+            onClick={sendMessage}
+            disabled={isSending}
+          >
+            <SendIcon />
+          </IconButton>
         </div>
-      )}
 
-      {openPaymentModal && PaymentDialog()}
-    </Dialog>
+        {showEmojiPicker && !isSending && (
+          <div className="absolute bottom-20 left-4 z-50">
+            <EmojiPicker onEmojiClick={handleEmojiClick} />
+          </div>
+        )}
+
+        {openPaymentRequest && PaymentDialog()}
+      </Dialog>
+      <PaymentPage
+        asModal
+        open={openPaymentModal}
+        onClose={closePaymentModal}
+      />
+    </>
   );
 };
 
