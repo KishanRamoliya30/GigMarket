@@ -149,11 +149,11 @@ export const PATCH = async (req: NextRequest) => {
     await existingMessage.save();
 
     if (updateData.paymentRequest?.status === "Accepted") {
-        const amount = updateData.paymentRequest;
-        message = "Payment has beed accepted";
+        const payment = updateData.paymentRequest;
+        message = "Payment has been accepted";
         const gigId = existingMessage.paymentRequest.gigId.toString();
 
-        if (!gigId) {
+        if (!gigId || !payment.amount) {
             throw new ApiError("Gig ID and amount are required to update bid", 400);
         }
 
@@ -163,8 +163,17 @@ export const PATCH = async (req: NextRequest) => {
         });
 
         if (bid) {
-            bid.bidAmount = amount;
+            bid.bidAmount = payment.amount;
             await bid.save();
+        } else {
+            await Bids.create({
+                gigId: gigId,
+                createdBy: existingMessage.sender.toString(),
+                bidAmount: payment.amount,
+                description: payment.description || "Auto-generated from payment acceptance",
+                bidAmountType: payment.amountType || "hourly",
+                status: "Requested"
+            });
         }
     }
 
@@ -184,6 +193,6 @@ export const PATCH = async (req: NextRequest) => {
         },
     });
 
-    return successResponse(populatedMessage, message , 200);
+    return successResponse(populatedMessage, message, 200);
 };
 
