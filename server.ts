@@ -70,6 +70,32 @@ app.prepare().then(async () => {
       //   console.error("Message send error:", err);
       // }
     });
+
+    socket.on("update-message", async (updatedMessage) => {
+      try {
+        if (!updatedMessage?._id) {
+          console.error("update-message missing _id");
+          return;
+        }
+
+        const chatId = String(updatedMessage.chatId);
+        if (!chatId) {
+          console.error("update-message missing chatId");
+          return;
+        }
+
+        // Broadcast to everyone else in the chat room
+        socket.to(chatId).emit("message-updated", {
+          ...updatedMessage,
+          _id: String(updatedMessage._id),
+          chatId
+        });
+      } catch (err) {
+        console.error("Error handling update-message:", err);
+      }
+    });
+
+
     socket.on("mark-seen", async ({ chatId, userId }) => {
       try {
         const unseenMessages = await Message.find({ chatId, seenBy: { $ne: userId } });

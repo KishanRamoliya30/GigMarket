@@ -13,7 +13,7 @@ interface CustomCarouselProps<T> {
   ViewAllButtonComponent?: () => ReactNode;
   sectionClassName?: string;
   total?: number | string;
-  loading: boolean;
+  loading?: boolean;
 }
 
 function PrevArrow({ onClick }: { onClick?: () => void }) {
@@ -46,7 +46,7 @@ const CustomCarousel = <T,>({
   ViewAllButtonComponent,
   sectionClassName = "",
   total,
-  loading,
+  loading = false,
 }: CustomCarouselProps<T>) => {
   const settings = {
     dots: false,

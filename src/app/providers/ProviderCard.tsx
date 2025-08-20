@@ -7,10 +7,10 @@ import { Box, Skeleton } from "@mui/material";
 
 const ProviderCard = ({
   item,
-  loading,
+  loading = false,
 }: {
   item: Profile;
-  loading: boolean;
+  loading?: boolean;
 }) => {
   const {
     fullName,

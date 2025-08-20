@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "tsx server.ts",
     "build": "next build --no-lint",
-    "start": "next start",
+    "start": "set NODE_ENV=production && tsx server.ts",
     "lint": "next lint",
     "stripe:listen": "stripe listen --forward-to localhost:3000/api/webhooks/stripe"
   },
