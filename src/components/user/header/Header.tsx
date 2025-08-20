@@ -10,13 +10,18 @@ import {
   Drawer,
   Menu,
   MenuItem,
-  Button,
+  DialogContent,
+  Dialog,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+  ListItemIcon,
 } from "@mui/material";
 import { styled, SxProps, Theme } from "@mui/material/styles";
 import SearchIcon from "@mui/icons-material/Search";
 import MailOutlineIcon from "@mui/icons-material/MailOutline";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
-import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
 import { useState, useEffect, useRef } from "react";
@@ -29,17 +34,19 @@ import { useUser } from "@/context/UserContext";
 import ClearIcon from "@mui/icons-material/Clear";
 import NotificationModal from "@/components/user/NotificationModal";
 import Cookies from "js-cookie";
+import { CreditCard, Repeat, User, Wallet } from "lucide-react";
 
 const HeaderWrapper = styled(Box)(({ theme }) => ({
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
   padding: "12px 24px",
-  backgroundColor: "#fff",
+  backgroundColor: "#1f4b3f",
   flexWrap: "wrap",
   position: "fixed",
   width: "100%",
   zIndex: 1111,
+  borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
 
   "& .logoGroup": {
     display: "flex",
@@ -47,26 +54,15 @@ const HeaderWrapper = styled(Box)(({ theme }) => ({
     gap: "12px",
   },
 
-  "& .searchContainer": {
-    display: "flex",
-    alignItems: "center",
-    border: "1px solid #ccc",
-    borderRadius: "6px",
-    overflow: "hidden",
-    flex: 1,
-    minWidth: 250,
-    maxWidth: 600,
-  },
-
   "& .searchInput": {
     padding: "8px 12px",
     flex: 1,
     fontSize: "14px",
-    color: "#333",
+    color: "#fff",
   },
 
   "& .searchButton": {
-    backgroundColor: "#222325",
+    backgroundColor: "#ffff",
     borderRadius: 0,
     padding: "10px 14px",
     height: "45px",
@@ -82,7 +78,7 @@ const HeaderWrapper = styled(Box)(({ theme }) => ({
     display: "flex",
     alignItems: "center",
     gap: "26px",
-    color: "#555",
+    color: "#ffff",
   },
 
   "& .menuIcon": {
@@ -99,11 +95,6 @@ const HeaderWrapper = styled(Box)(({ theme }) => ({
       justifyContent: "space-between",
     },
 
-    "& .searchContainer": {
-      width: "100%",
-      order: 2,
-    },
-
     "& .rightIcons": {
       justifyContent: "flex-end",
       width: "100%",
@@ -112,7 +103,10 @@ const HeaderWrapper = styled(Box)(({ theme }) => ({
   },
   [theme.breakpoints.down("md")]: {
     "& .menuIcon": {
-      display: "inline-flex",
+      display: "flex",
+      position: "absolute",
+      right: "0px",
+      color: "#fff",
     },
     "& .hideOnMobile": {
       display: "none",
@@ -136,7 +130,12 @@ export default function Header() {
   const role = user?.role;
   const _id = user?._id;
   const isAllCompleted = user?.subscriptionCompleted && user.profileCompleted;
+  const [searchPopupOpen, setSearchPopupOpen] = useState(false);
 
+  // toggle function
+  const toggleSearchPopup = () => {
+    setSearchPopupOpen(!searchPopupOpen);
+  };
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
@@ -257,16 +256,21 @@ export default function Header() {
     );
   };
 
+  const navItems = [
+    { name: "Home", path: "/" },
+    { name: "Services", path: "/publicGigs" },
+    { name: "Providers", path: "/providers" },
+  ];
+
   return (
     <>
       <HeaderWrapper>
+        <IconButton className="menuIcon" onClick={toggleSidebar}>
+          <MenuIcon />
+        </IconButton>
         <Box className="logoGroup">
-          <IconButton className="menuIcon" onClick={toggleSidebar}>
-            <MenuIcon />
-          </IconButton>
-
           <Link href="/">
-            <FiverrLogo />
+            <FiverrLogo textColor="#ffff" />
           </Link>
 
           {/* Mobile Auth Display */}
@@ -279,56 +283,39 @@ export default function Header() {
                   </Typography>
                 </Link>
                 <Link href="/signup">
-                  <Button
-                    variant="outlined"
-                    sx={{
-                      color: "rgb(29, 191, 115)",
-                      borderColor: "rgb(29, 191, 115)",
-                      textTransform: "none",
-                      fontWeight: 600,
-                      borderRadius: 1,
-                    }}
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-center gap-2 px-6 py-3 text-[#5bbb7b] bg-[#eef8f2] hover:text-white hover:bg-[#5bbb7b] rounded-full transition-all duration-300 font-semibold"
                   >
-                    Join
-                  </Button>
+                    Sign Up
+                  </button>
                 </Link>
               </>
             ) : (
-              <>{renderUserAvatar()}</>
+              // <>{renderUserAvatar()}</>
+              <></>
             )}
           </Box>
         </Box>
 
-        <Box className="searchContainer">
-          <InputBase
-            className="searchInput"
-            placeholder="What service are you looking for today?"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value.trimStart())}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                searchGigs();
-              }
-            }}
-            endAdornment={
-              searchTerm && (
-                <IconButton
-                  size="small"
-                  onClick={() => searchGigs(true)}
-                  sx={{ visibility: searchTerm ? "visible" : "hidden" }}
-                >
-                  <ClearIcon fontSize="small" />
-                </IconButton>
-              )
-            }
-          />
-          <IconButton className="searchButton" onClick={() => searchGigs()}>
-            <SearchIcon />
-          </IconButton>
-        </Box>
+        <Box className="rightIcons flex items-center">
+          <div className="hidden md:flex items-center space-x-8  hideOnMobile">
+            {navItems.map((item) => (
+              <Link
+                key={item.name}
+                href={item.path}
+                className="font-medium hover:text-[#5bbb7b] transition-colors"
+              >
+                {item.name}
+              </Link>
+            ))}
+          </div>
+          <Box sx={{ display: "flex" }}>
+            <IconButton onClick={toggleSearchPopup}>
+              <SearchIcon sx={{ color: "#fff", marginTop: "4px" }} />
+            </IconButton>
+          </Box>
 
-        <Box className="rightIcons hideOnMobile">
           {_id && (
             <IconButton
               size="large"
@@ -345,8 +332,8 @@ export default function Header() {
               </Badge>
             </IconButton>
           )}
-          <MailOutlineIcon />
-          <FavoriteBorderIcon />
+          {_id && <MailOutlineIcon />}
+          {/* <FavoriteBorderIcon /> */}
           {_id && role === "Provider" && isAllCompleted && (
             <Typography
               sx={{
@@ -360,29 +347,23 @@ export default function Header() {
           )}
 
           {!_id ? (
-            <>
+            <Box className="hideOnMobile  rightIcons flex items-center space-x-4">
               <Link href="/login">
                 <Typography sx={{ fontWeight: 600, cursor: "pointer" }}>
                   Sign in
                 </Typography>
               </Link>
               <Link href="/signup">
-                <Button
-                  variant="outlined"
-                  sx={{
-                    color: "rgb(29, 191, 115)",
-                    borderColor: "rgb(29, 191, 115)",
-                    textTransform: "none",
-                    fontWeight: 600,
-                    borderRadius: 1,
-                  }}
+                <button
+                  type="button"
+                  className="w-full flex items-center justify-center gap-2 px-6 py-3 text-[#5bbb7b] bg-[#eef8f2] hover:text-white hover:bg-[#5bbb7b] rounded-full transition-all duration-300 font-semibold"
                 >
-                  Join
-                </Button>
+                  Sign Up
+                </button>
               </Link>
-            </>
+            </Box>
           ) : (
-            renderUserAvatar()
+            <Box className="mr-0 md:mr-5">{renderUserAvatar()}</Box>
           )}
         </Box>
       </HeaderWrapper>
@@ -411,6 +392,15 @@ export default function Header() {
               <CloseIcon />
             </IconButton>
           </Box>
+          {navItems.map((item) => (
+            <Link
+              key={item.name}
+              href={item.path}
+              className="font-medium hover:text-[#5bbb7b] transition-colors"
+            >
+              {item.name}
+            </Link>
+          ))}
 
           {_id && (
             <Box
@@ -424,23 +414,41 @@ export default function Header() {
               }}
               ref={notificationRef}
             >
-              <Badge badgeContent={0} color="error">
-                <NotificationsNoneIcon />
-              </Badge>
               <Typography>Notifications</Typography>
             </Box>
           )}
           <Box display="flex" alignItems="center" gap={2}>
-            <MailOutlineIcon />
             <Typography>Messages</Typography>
           </Box>
-          <Box display="flex" alignItems="center" gap={2}>
-            <FavoriteBorderIcon />
-            <Typography>Wishlist</Typography>
-          </Box>
-          <Box display="flex" alignItems="center" gap={2}>
-            <Typography>Orders</Typography>
-          </Box>
+
+          {!_id && (
+            <List>
+              <ListItem disablePadding>
+                <ListItemButton
+                  sx={{
+                    color: "rgb(29, 191, 115)",
+                    borderColor: "rgb(29, 191, 115)",
+                  }}
+                  component={Link}
+                  href="/login"
+                >
+                  <ListItemText primary="Login" />
+                </ListItemButton>
+              </ListItem>
+              <ListItem disablePadding>
+                <ListItemButton
+                  sx={{
+                    color: "rgb(29, 191, 115)",
+                    borderColor: "rgb(29, 191, 115)",
+                  }}
+                  component={Link}
+                  href="/register"
+                >
+                  <ListItemText primary="Register" />
+                </ListItemButton>
+              </ListItem>
+            </List>
+          )}
           {_id && (
             <Box display="flex" alignItems="center" gap={2}>
               {renderUserAvatar({ width: 32, height: 32 })}
@@ -449,7 +457,6 @@ export default function Header() {
           )}
         </Box>
       </Drawer>
-
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
@@ -465,37 +472,70 @@ export default function Header() {
         }}
       >
         {_id ? (
-          <Box>
+          <Box sx={{ p: 1, minWidth: 220 }}>
             {(user.subscription?.planType ?? 0) > 1 && (
-              <Button
-                fullWidth
-                variant="outlined"
+              <MenuItem
                 onClick={handleRoleSwitch}
                 sx={{
-                  textTransform: "none",
-                  fontWeight: 600,
-                  borderRadius: "8px",
-                  border: "1.5px solid black",
-                  color: "#333",
-                  mb: 1,
-                  transition: "all 0.3s ease",
-                  "&:hover": {
-                    backgroundColor: "#f5f5f5",
-                    borderColor: "#bbb",
-                    boxShadow: "0 2px 6px rgba(0, 0, 0, 0.08)",
-                  },
+                  borderRadius: "10px",
+                  mb: 0.5,
+                  py: 1,
+                  "&:hover": { backgroundColor: "#f5f7f9", color: "#1DBF73" },
                 }}
               >
-                Switch to {role === "User" ? "Provider" : "User"}
-              </Button>
+                <ListItemIcon>
+                  <Repeat size={20} />
+                </ListItemIcon>
+                <ListItemText
+                  primary={`Switch to ${role === "User" ? "Provider" : "User"}`}
+                />
+              </MenuItem>
             )}
-            {(user.subscriptionCompleted || user.profileCompleted) && (
-              <MenuItem onClick={handleProfileSection}>My Profile</MenuItem>
-            )}
-            {user.subscriptionCompleted && (
-              <MenuItem onClick={handleSubscriptions}>Subscriptions</MenuItem>
-            )}
-            <MenuItem onClick={handleLogout}>Logout</MenuItem>
+
+            <MenuItem
+              onClick={handleProfileSection}
+              sx={{
+                borderRadius: "10px",
+                mb: 0.5,
+                py: 1,
+                "&:hover": { backgroundColor: "#f5f7f9", color: "#1DBF73" },
+              }}
+            >
+              <ListItemIcon>
+                <User size={20} />
+              </ListItemIcon>
+              <ListItemText primary="My Profile" />
+            </MenuItem>
+
+            <MenuItem
+              onClick={handleSubscriptions}
+              sx={{
+                borderRadius: "10px",
+                mb: 0.5,
+                py: 1,
+                "&:hover": { backgroundColor: "#f5f7f9", color: "#1DBF73" },
+              }}
+            >
+              <ListItemIcon>
+                <CreditCard size={20} />
+              </ListItemIcon>
+              <ListItemText primary="Subscriptions" />
+            </MenuItem>
+
+            <MenuItem
+              onClick={handleLogout}
+              sx={{
+                borderRadius: "10px",
+                py: 1,
+                color: "red",
+                "&:hover": { backgroundColor: "#fff5f5", color: "#d32f2f" },
+              }}
+            >
+              <ListItemIcon>
+                <Wallet size={20} color="red" />
+              </ListItemIcon>
+              <ListItemText primary="Logout" />
+            </MenuItem>
           </Box>
         ) : (
           <Box>
@@ -507,7 +547,7 @@ export default function Header() {
               }}
               onClick={() => router.push("/signup")}
             >
-              Join
+              Sign Up
             </MenuItem>
           </Box>
         )}
@@ -520,6 +560,79 @@ export default function Header() {
           setNotificationOpen(false);
         }}
       />
+      <Dialog
+        open={searchPopupOpen}
+        onClose={toggleSearchPopup}
+        maxWidth="md"
+        PaperProps={{
+          className: "shadow-none w-full flex justify-center items-start mt-40",
+        }}
+        sx={{
+          "& .MuiDialog-container": {
+            alignItems: "flex-start",
+            marginTop: "80px",
+            "& .MuiPaper-root": {
+              backgroundColor: "transparent",
+              boxShadow: "none",
+            },
+          },
+        }}
+      >
+        <DialogContent
+          sx={{ paddingTop: "40px" }}
+          className="relative w-full max-w-3xl "
+        >
+          <IconButton
+            onClick={toggleSearchPopup}
+            sx={{
+              position: "absolute",
+              top: -10,
+              right: 15,
+              color: "white",
+              "&:hover": {
+                color: "#e5e7eb",
+              },
+            }}
+          >
+            <CloseIcon className="w-6 h-6" />
+          </IconButton>
+
+          <div className="flex items-center bg-white rounded-md shadow-lg overflow-hidden ">
+            {" "}
+            <SearchIcon className="ml-4 text-gray-500 w-5 h-5" />
+            <InputBase
+              className="flex-1 px-4 py-4 text-base text-gray-700 placeholder-gray-400 focus:outline-none h-[80px] "
+              placeholder="What service are you looking for today?"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value.trimStart())}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  searchGigs();
+                }
+              }}
+              endAdornment={
+                searchTerm && (
+                  <IconButton
+                    size="small"
+                    onClick={() => searchGigs(true)}
+                    sx={{ visibility: searchTerm ? "visible" : "hidden" }}
+                  >
+                    <ClearIcon fontSize="small" />
+                  </IconButton>
+                )
+              }
+            />
+            <button
+              onClick={() => searchGigs()}
+              className="mr-3 cursor-pointer bg-[#1DBF73] text-white font-semibold px-8 py-4 rounded-md 
+             border-2 border-transparent hover:border-[#1DBF73] hover:bg-[#ffff] hover:text-[#1DBF73] transition-all"
+            >
+              Search
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
