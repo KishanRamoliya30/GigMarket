@@ -25,6 +25,7 @@ import { MediaFile } from "@/app/models/message";
 import RequestQuoteIcon from "@mui/icons-material/RequestQuote";
 import { Loader2 } from "lucide-react";
 import { toast } from "react-toastify";
+import { FormDataValue, objectToFormData } from "@/app/lib/commonFunctions";
 
 interface UserProfile {
   _id: string;
@@ -278,46 +279,22 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
     });
   };
 
-  const confirmPayment = async (requestMessageId: string, amount: number) => {
-    if (!amount || amount <= 0) return;
-
-    const confirmed = window.confirm(`Pay ₹${amount}?`);
-    if (!confirmed) return;
+  const confirmPayment = async (message: Message) => {
+    const { _id, paymentRequest } = message;
+    if (paymentRequest?.amount && paymentRequest?.amount <= 0) return;
 
     setIsSending(true);
     try {
-      const payRes = await apiRequest("payments/pay", {
-        method: "POST",
-        data: {
-          amount,
-          chatId,
-          payerId: currentUserId,
-          relatedMessageId: requestMessageId,
-        },
-      });
-
-      if (payRes.success) {
-        const res = await apiRequest("message", {
-          method: "POST",
-          data: {
-            chatId,
-            sender: currentUserId,
-            type: "payment-confirmation",
-            amount,
-            message: `Payment of ₹${amount} confirmed`,
-            relatedMessageId: requestMessageId,
-          },
+      // write logic here for payment modal
+      const payRes = {
+        message: "Make payment here",
+      };
+      if (payRes) {
+        updateMessage(_id, {
+          paymentRequest: { status: "Approved" },
         });
-
-        if (res.success) {
-          const messageData = res.data.data;
-          socket.emit("message", {
-            chatId: messageData.chatId,
-            message: messageData,
-          });
-        }
       } else {
-        toast.error(payRes?.message || "Payment failed. Please try again.");
+        toast.error(payRes || "Payment failed. Please try again.");
       }
     } catch (err) {
       console.error("Payment confirmation failed:", err);
@@ -327,7 +304,10 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
     }
   };
 
-  const rejectPaymentRequest = async (messageId: string) => {
+  const updateMessage = async (
+    messageId: string,
+    data: Record<string, FormDataValue> | undefined
+  ) => {
     if (!messageId) {
       toast.error("Message ID is missing");
       return;
@@ -335,38 +315,32 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
 
     setIsSending(true);
 
+    const formData = objectToFormData({
+      ...data,
+      messageId,
+    });
+
     try {
       const res = await apiRequest(`message`, {
         method: "PATCH",
-        data: {
-          status: "Rejected",
-          messageId,
-        },
+        data: formData,
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
       setIsSending(false);
 
-      if (res.ok) {
-        toast.success("Payment request rejected");
+      if (res.success) {
+        toast.success(res.message);
+        const updatedMessage = res.data.data;
 
-        setMessages((prevMessages) =>
-          prevMessages.map((msg) =>
-            msg._id === messageId && msg.paymentRequest
-              ? {
-                  ...msg,
-                  paymentRequest: {
-                    ...msg.paymentRequest,
-                    status: "Rejected",
-                  },
-                }
-              : msg
-          )
+        setMessages((prev) =>
+          prev.map((m) => (m._id === messageId ? updatedMessage : m))
         );
 
-        socket.emit("update-message", {
-          messageId,
-          paymentRequest: { status: "rejected" },
-        });
+        const cid = updatedMessage.chatId || chatId;
+
+        socket.emit("join", cid);
+        socket.emit("update-message", updatedMessage);
       } else {
         toast.error(res.message ?? "Failed to reject payment request");
       }
@@ -376,6 +350,24 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
       setIsSending(false);
     }
   };
+
+  useEffect(() => {
+    const handleMessageUpdated = (updatedMessage: Message) => {
+      if (updatedMessage.chatId === chatId) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            String(m._id) === String(updatedMessage._id) ? updatedMessage : m
+          )
+        );
+      }
+    };
+
+    socket.on("message-updated", handleMessageUpdated);
+
+    return () => {
+      socket.off("message-updated", handleMessageUpdated);
+    };
+  }, [chatId]);
 
   useEffect(() => {
     if (open) {
@@ -637,14 +629,7 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
                                   isSending ||
                                   msg.paymentRequest.status !== "Pending"
                                 }
-                                onClick={() =>
-                                  confirmPayment(
-                                    msg._id,
-                                    msg?.paymentRequest
-                                      ? msg.paymentRequest.amount
-                                      : 0
-                                  )
-                                }
+                                onClick={() => confirmPayment(msg)}
                               >
                                 Accept
                               </button>
@@ -654,7 +639,11 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
                                   isSending ||
                                   msg.paymentRequest.status !== "Pending"
                                 }
-                                onClick={() => rejectPaymentRequest(msg._id)}
+                                onClick={() =>
+                                  updateMessage(msg._id, {
+                                    paymentRequest: { status: "Rejected" },
+                                  })
+                                }
                               >
                                 Reject
                               </button>
