@@ -26,6 +26,7 @@ import RequestQuoteIcon from "@mui/icons-material/RequestQuote";
 import { Loader2 } from "lucide-react";
 import { toast } from "react-toastify";
 import { FormDataValue, objectToFormData } from "@/app/lib/commonFunctions";
+import { Gig } from "@/app/utils/interfaces";
 
 interface UserProfile {
   _id: string;
@@ -70,6 +71,7 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
   gigId,
   user1Id,
 }) => {
+  const [gigDetails, setGigDetails] = useState<Gig | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [chatId, setChatId] = useState<string>("");
   const [newMessage, setNewMessage] = useState("");
@@ -105,6 +107,17 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollTop = messagesEndRef.current.scrollHeight;
+    }
+  };
+
+  const gigDetail = async () => {
+    const apiPath = `gigs/${gigId}`;
+    const res = await apiRequest(apiPath, {
+      method: "GET",
+    });
+    if (res.ok) {
+      setLoading(false);
+      setGigDetails(res.data.data);
     }
   };
 
@@ -371,6 +384,7 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
 
   useEffect(() => {
     if (open) {
+      gigDetail();
       setPage(1);
       fetchChat(1);
     }
@@ -835,11 +849,18 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
           style={{ display: "none" }}
           disabled={isSending}
         />
+
         <Tooltip title="Request Payment">
           <span>
             <IconButton
-              color="secondary"
-              disabled={isSending}
+              disabled={
+                isSending ||
+                !!gigDetails?.assignedToBid ||
+                !(
+                  gigDetails?.status &&
+                  ["Open", "Requested"].includes(gigDetails.status)
+                )
+              }
               onClick={() => setOpenPaymentModal(true)}
             >
               <RequestQuoteIcon />
