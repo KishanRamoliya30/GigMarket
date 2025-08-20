@@ -1,98 +1,151 @@
 "use client";
 
-import {
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Legend,
-} from "recharts";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import {
   WorkOutline,
-  StarBorder,
-  ChatBubbleOutline,
-  ThumbUpAlt,
-  Send,
-  AccessTime,
-  People,
+  TaskAlt,
+  HourglassEmpty,
+  RateReview,
 } from "@mui/icons-material";
 import { motion } from "framer-motion";
-
-const earningsData = [
-  { month: "Jan", earnings: 800 },
-  { month: "Feb", earnings: 1200 },
-  { month: "Mar", earnings: 1600 },
-  { month: "Apr", earnings: 900 },
-  { month: "May", earnings: 1500 },
-  { month: "Jun", earnings: 1800 },
-];
-
-const gigStatusData = [
-  { name: "Active", value: 12 },
-  { name: "Paused", value: 5 },
-  { name: "Pending", value: 3 },
-  { name: "Denied", value: 2 },
-];
-
-const topSkills = [
-  { skill: "React", projects: 18 },
-  { skill: "Next.js", projects: 12 },
-  { skill: "Figma", projects: 9 },
-  { skill: "Node.js", projects: 10 },
-];
-
-const recentProjects = [
-  { title: "Landing Page Design", client: "Client A", status: "Completed" },
-  { title: "E-commerce API", client: "Client B", status: "In Progress" },
-  { title: "Portfolio Redesign", client: "Client C", status: "Pending" },
-];
-
-const COLORS = ["#34D399", "#60A5FA", "#FBBF24", "#F87171"];
-
-const stats = [
-  {
-    title: "Total Orders",
-    value: "120",
-    icon: <WorkOutline className="text-3xl text-[#1DBF73]" />,
-  },
-  {
-    title: "Total Reviews",
-    value: "87",
-    icon: <StarBorder className="text-3xl text-yellow-500" />,
-  },
-  {
-    title: "Messages",
-    value: "15",
-    icon: <ChatBubbleOutline className="text-3xl text-blue-500" />,
-  },
-  {
-    title: "Proposals Sent",
-    value: "245",
-    icon: <Send className="text-3xl text-indigo-500" />,
-  },
-  {
-    title: "Avg. Response Time",
-    value: "1.2h",
-    icon: <AccessTime className="text-3xl text-pink-500" />,
-  },
-  {
-    title: "Repeat Clients",
-    value: "12",
-    icon: <People className="text-3xl text-emerald-500" />,
-  },
-];
-
+import moment from "moment";
+import { useEffect, useState } from "react";
+import { apiRequest } from "@/app/lib/apiCall";
+import { DashboardResponse, Notification } from "@/app/utils/interfaces";
+import { useUser } from "@/context/UserContext";
+import { Skeleton } from "@mui/material";
+import { useRouter } from "next/navigation";
+export interface RecentProject {
+  _id?: string;
+  title: string;
+  description?: string;
+  createdAt: string;
+  status: string;
+  cost?: number;
+}
+const COLORS: Record<string, string> = {
+  Open: "#60A5FA",
+  Assigned: "#FBBF24",
+  Approved: "#34D399",
+  Completed: "#10B981",
+  "In-Progress": "#6366F1",
+  Denied: "#F87171",
+  Pending: "#FACC15",
+};
 
 const DashboardHome = () => {
+  const [dashboardData, setDashboardData] = useState<DashboardResponse>();
+  const [loading, setLoading] = useState(true);
+  const { user } = useUser();
+  const route = useRouter();
+
+  const fetchDashboard = async () => {
+    try {
+      const res = await apiRequest(`dashboard?role=${user?.role}`, {
+        method: "GET",
+      });
+      if (res.success) {
+        setDashboardData(res.data.data);
+        console.log("test data", res.data.data);
+      }
+    } catch (err) {
+      console.error("Error fetching dashboard:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboard();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="bg-[#f0efec] p-5 md:p-10 min-h-screen space-y-8">
+        {/* Title */}
+        <Skeleton variant="text" width={250} height={40} />
+
+        {/* Stats cards skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {Array.from({ length: 4 }).map((_, idx) => (
+            <div
+              key={idx}
+              className="bg-white p-6 shadow rounded-lg flex justify-between items-center"
+            >
+              <div>
+                <Skeleton variant="text" width={100} height={20} />
+                <Skeleton variant="text" width={60} height={30} />
+              </div>
+              <Skeleton variant="circular" width={40} height={40} />
+            </div>
+          ))}
+        </div>
+
+        {/* Charts + Notifications */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 bg-white p-6 shadow h-[400px] flex justify-center items-center">
+            <Skeleton variant="circular" width={200} height={200} />
+          </div>
+          <div className="bg-white h-[400px] shadow p-6 space-y-4">
+            <Skeleton variant="text" width={150} height={30} />
+            {Array.from({ length: 4 }).map((_, idx) => (
+              <Skeleton key={idx} variant="rectangular" height={60} />
+            ))}
+          </div>
+        </div>
+
+        {/* Recent Projects */}
+        <div className="bg-white p-6 shadow rounded-lg">
+          <Skeleton variant="text" width={200} height={30} className="mb-4" />
+          {Array.from({ length: 5 }).map((_, idx) => (
+            <div key={idx} className="grid grid-cols-4 gap-4 py-3">
+              <Skeleton variant="text" width={100} />
+              <Skeleton variant="text" width={60} />
+              <Skeleton variant="rectangular" width={80} height={30} />
+              <Skeleton variant="rectangular" width={100} height={30} />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (!dashboardData) {
+    return (
+      <div className="p-10 text-center text-red-500">
+        Failed to load dashboard
+      </div>
+    );
+  }
+
+  const { stats, gigStatusData, recentProjects, notifications } = dashboardData;
+
+  // convert stats into card data with icons
+  const statsCards = [
+    {
+      title: "Posted Services",
+      value: stats.postedServices,
+      icon: <WorkOutline className="text-3xl text-[#1DBF73]" />,
+    },
+    {
+      title: "Completed Services",
+      value: stats.completedServices,
+      icon: <TaskAlt className="text-3xl text-green-500" />,
+    },
+    {
+      title: "In Queue Services",
+      value: stats.inQueueServices,
+      icon: <HourglassEmpty className="text-3xl text-blue-500" />,
+    },
+    {
+      title: "Reviews",
+      value: stats.reviews,
+      icon: <RateReview className="text-3xl text-yellow-500" />,
+    },
+  ];
+
   return (
-    <div className="p-5 md:p-10 bg-gradient-to-br from-gray-50 to-white min-h-screen">
+    <div className="bg-[#f0efec] p-5 md:p-10 min-h-screen">
       <motion.h1
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -103,74 +156,49 @@ const DashboardHome = () => {
       </motion.h1>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        {stats.map((stat, index) => (
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+        {statsCards.map((stat, index) => (
           <motion.div
             key={index}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: index * 0.1 }}
-            className="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-4"
+            className="bg-white p-6 shadow hover:shadow-md transition-all duration-300 flex justify-between items-center"
           >
-            <div className="p-3 bg-gray-100 rounded-full">{stat.icon}</div>
             <div>
-              <h4 className="text-lg font-medium text-gray-700">
-                {stat.title}
-              </h4>
-              <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+              <p className="text-gray-500 text-sm">{stat.title}</p>
+              <h4 className="text-2xl font-bold text-gray-800">{stat.value}</h4>
             </div>
+            <div className="bg-green-50 p-3 rounded-full">{stat.icon}</div>
           </motion.div>
         ))}
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
-        {/* Earnings Line Chart */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="bg-white p-6 rounded-xl shadow-md h-[320px]"
-        >
-          <h3 className="text-lg font-semibold mb-4 text-gray-700">
-            Earnings Over Time
-          </h3>
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={earningsData}>
-              <Line
-                type="monotone"
-                dataKey="earnings"
-                stroke="#1DBF73"
-                strokeWidth={3}
-              />
-              <Tooltip />
-            </LineChart>
-          </ResponsiveContainer>
-        </motion.div>
-
-        {/* Gig Status Pie Chart */}
+      {/* Charts + Notifications */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-4">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="bg-white p-6 rounded-xl shadow-md h-[320px]"
+          className="lg:col-span-2 bg-white p-6 shadow-md h-[400px] mb-10"
         >
           <h3 className="text-lg font-semibold mb-4 text-gray-700">
             Gig Status Breakdown
           </h3>
+
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
                 data={gigStatusData}
                 dataKey="value"
                 nameKey="name"
-                outerRadius={90}
+                outerRadius={120}
                 label
               >
-                {gigStatusData.map((entry, index) => (
+                {gigStatusData.map((entry: { name: string }, index: number) => (
                   <Cell
                     key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
+                    fill={COLORS[entry.name] || "#9CA3AF"}
                   />
                 ))}
               </Pie>
@@ -178,28 +206,30 @@ const DashboardHome = () => {
             </PieChart>
           </ResponsiveContainer>
         </motion.div>
-      </div>
 
-      {/* Top Skills in Demand */}
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="bg-white p-6 rounded-xl shadow-md h-[320px] mb-10"
-      >
-        <h3 className="text-lg font-semibold mb-4 text-gray-700">
-          Top Skills in Demand
-        </h3>
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={topSkills}>
-            <XAxis dataKey="skill" />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="projects" fill="#60A5FA" />
-          </BarChart>
-        </ResponsiveContainer>
-      </motion.div>
+        <div className="bg-white h-[400px] shadow p-6">
+          <h2 className="text-lg font-semibold mb-4">Notifications</h2>
+          <div className="max-h-80 overflow-y-auto divide-y divide-gray-200">
+            {notifications.length > 0 ? (
+              notifications.map((notif: Notification) => (
+                <div key={notif._id} className="px-6 py-4 hover:bg-gray-50">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-sm font-semibold text-gray-800">
+                      {notif.title}
+                    </h3>
+                    <span className="text-xs text-gray-500">
+                      {moment(notif.createdAt).format("MMM DD, YYYY hh:mm A")}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-1">{notif.message}</p>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-gray-500">No notifications</p>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* Recent Projects */}
       <motion.div
@@ -209,51 +239,80 @@ const DashboardHome = () => {
         className="bg-white p-6 rounded-xl shadow-md mb-10"
       >
         <h3 className="text-lg font-semibold mb-4 text-gray-700">
-          Recent Projects
+          Recent Service Orders
         </h3>
-        <ul className="divide-y divide-gray-200">
-          {recentProjects.map((project, index) => (
-            <li key={index} className="py-3 flex justify-between">
-              <div>
-                <p className="text-md font-medium text-gray-800">
-                  {project.title}
-                </p>
-                <p className="text-sm text-gray-500">
-                  Client: {project.client}
-                </p>
-              </div>
-              <span className="text-sm px-3 py-1 rounded-full bg-gray-100 text-gray-700 capitalize  capitalize flex items-center justify-center">
-                {project.status}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </motion.div>
 
-      {/* Client Satisfaction */}
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="bg-white p-6 rounded-xl shadow-md mb-10"
-      >
-        <h3 className="text-lg font-semibold mb-4 text-gray-700 flex items-center gap-2">
-          <ThumbUpAlt className="text-green-500" />
-          Client Satisfaction
-        </h3>
-        <div className="space-y-4">
-          <div>
-            <p className="text-sm text-gray-600 mb-1">Positive Reviews: 92%</p>
-            <div className="w-full bg-gray-200 h-3 rounded-full overflow-hidden">
-              <div className="h-full bg-green-400 w-[92%] transition-all duration-500"></div>
-            </div>
-          </div>
-          <div>
-            <p className="text-sm text-gray-600 mb-1">Repeat Clients: 70%</p>
-            <div className="w-full bg-gray-200 h-3 rounded-full overflow-hidden">
-              <div className="h-full bg-blue-400 w-[70%] transition-all duration-500"></div>
-            </div>
-          </div>
+        {/* Table Header */}
+        <div className="grid grid-cols-4 gap-4 px-2 py-3 text-sm font-semibold text-gray-600 border-b">
+          <span>Title</span>
+          <span>Cost/Hrs</span>
+          <span>Status</span>
+          <span>Actions</span>
+        </div>
+
+        {/* Table Rows */}
+        <div className="divide-y divide-gray-200">
+          {recentProjects.map((project: RecentProject, index: number) => {
+            return (
+              <div
+                key={index}
+                className="grid grid-cols-4 gap-4 items-center px-2 py-4 text-sm"
+              >
+                {/* Title & Date */}
+                <div>
+                  <p className="font-medium text-gray-800">{project.title}</p>
+                  <p className="text-gray-500 flex items-center text-xs">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="w-4 h-4 mr-1 text-gray-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 
+                     00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                    {moment(project.createdAt).format("MMMM D, YYYY")}
+                  </p>
+                </div>
+
+                {/* Cost */}
+                <div className="text-gray-700 font-medium">
+                  {project.cost ? `$${project.cost}` : "--"}
+                </div>
+
+                {/* Status */}
+                <div>
+                  <span
+                    className={`px-3 py-1 rounded-md text-xs font-medium ${
+                      project.status === "Completed"
+                        ? "bg-green-100 text-green-700"
+                        : project.status === "In-Progress"
+                          ? "bg-indigo-100 text-indigo-700"
+                          : "bg-blue-100 text-blue-700"
+                    }`}
+                  >
+                    {project.status}
+                  </span>
+                </div>
+
+                {/* Actions */}
+                <div>
+                  <button
+                    onClick={() => route.push(`/gigs/${project._id}`)}
+                    className="px-3 py-1 text-green-700 bg-green-100 hover:bg-green-200 rounded-md text-xs font-medium"
+                  >
+                    View History
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </motion.div>
     </div>
