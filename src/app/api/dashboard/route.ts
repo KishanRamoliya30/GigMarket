@@ -6,6 +6,22 @@ import { verifyToken } from "@/app/utils/jwt";
 import { successResponse } from "@/app/lib/commonHandlers";
 import { ApiError } from "@/app/lib/commonError";
 
+const userStatuses = [
+  "Open",
+  "Assigned",
+  "Not-Assigned",
+  "Approved",
+  "Rejected",
+];
+const providerStatuses = ["Requested", "In-Progress", "Completed"];
+
+const ICON_MAP: Record<string, string> = {
+  postedServices: "WorkOutline",
+  completedServices: "TaskAlt",
+  inQueueServices: "HourglassEmpty",
+  reviews: "RateReview",
+};
+
 export async function GET(req: NextRequest) {
   await dbConnect();
 
@@ -31,20 +47,68 @@ export async function GET(req: NextRequest) {
 
   const gigs = await Gig.find(query).sort({ createdAt: -1 }).lean();
 
-  const postedServices = gigs.length;
-  const completedServices = gigs.filter((g) => g.status === "Completed").length;
-  const inQueueServices = gigs.filter((g) => g.status === "In-Progress").length;
+  let stats = {
+    postedServices: 0,
+    completedServices: 0,
+    inQueueServices: 0,
+    reviews: 0,
+  };
 
-  const reviews = gigs.reduce((sum, g) => sum + (g.reviews?.length || 0), 0);
+  if (role === "User") {
+    stats = {
+      postedServices: gigs.filter((g) => g.status === "Open").length,
+      completedServices: gigs.filter((g) => g.status === "Approved").length,
+      inQueueServices: gigs.filter((g) => g.status === "Assigned").length,
+      reviews: gigs.reduce((sum, g) => sum + (g.reviews?.length || 0), 0),
+    };
+  } else if (role === "Provider") {
+    stats = {
+      postedServices: gigs.filter((g) => g.status === "Requested").length,
+      completedServices: gigs.filter((g) => g.status === "Completed").length,
+      inQueueServices: gigs.filter((g) => g.status === "In-Progress").length,
+      reviews: gigs.reduce((sum, g) => sum + (g.reviews?.length || 0), 0),
+    };
+  }
+
+  const statsCards = [
+    {
+      title: "Posted Services",
+      value: stats.postedServices,
+      iconKey: ICON_MAP.postedServices,
+    },
+    {
+      title: "Completed Services",
+      value: stats.completedServices,
+      iconKey: ICON_MAP.completedServices,
+    },
+    {
+      title: "In Queue Services",
+      value: stats.inQueueServices,
+      iconKey: ICON_MAP.inQueueServices,
+    },
+    { title: "Reviews", value: stats.reviews, iconKey: ICON_MAP.reviews },
+  ];
+
+
+  let allowedStatuses: string[] = [];
+  if (role === "User") {
+    allowedStatuses = userStatuses;
+  } else if (role === "Provider") {
+    allowedStatuses = providerStatuses;
+  } else {
+    allowedStatuses = [...new Set(gigs.map((g) => g.status))];
+  }
 
   const gigStatusMap: Record<string, number> = {};
   gigs.forEach((g) => {
-    gigStatusMap[g.status] = (gigStatusMap[g.status] || 0) + 1;
+    if (allowedStatuses.includes(g.status)) {
+      gigStatusMap[g.status] = (gigStatusMap[g.status] || 0) + 1;
+    }
   });
 
-  const gigStatusData = Object.entries(gigStatusMap).map(([status, count]) => ({
+  const gigStatusData = allowedStatuses.map((status) => ({
     name: status,
-    value: count,
+    value: gigStatusMap[status] || 0,
   }));
 
   const recentProjects = gigs.slice(0, limit).map((g) => ({
@@ -63,12 +127,8 @@ export async function GET(req: NextRequest) {
 
   return successResponse(
     {
-      stats: {
-        postedServices,
-        completedServices,
-        inQueueServices,
-        reviews,
-      },
+      stats,
+      statsCards,
       gigStatusData,
       recentProjects,
       notifications,

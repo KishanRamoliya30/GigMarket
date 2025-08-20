@@ -9,12 +9,13 @@ import {
 } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import moment from "moment";
-import { useEffect, useState } from "react";
+import { JSX, useEffect, useState } from "react";
 import { apiRequest } from "@/app/lib/apiCall";
 import { DashboardResponse, Notification } from "@/app/utils/interfaces";
 import { useUser } from "@/context/UserContext";
 import { Skeleton } from "@mui/material";
 import { useRouter } from "next/navigation";
+
 export interface RecentProject {
   _id?: string;
   title: string;
@@ -23,6 +24,7 @@ export interface RecentProject {
   status: string;
   cost?: number;
 }
+
 const COLORS: Record<string, string> = {
   Open: "#60A5FA",
   Assigned: "#FBBF24",
@@ -33,11 +35,31 @@ const COLORS: Record<string, string> = {
   Pending: "#FACC15",
 };
 
+// 🔹 config to map BE stats keys → title + icon
+const statsConfig: Record<string, { title: string; icon: JSX.Element }> = {
+  postedServices: {
+    title: "Posted Services",
+    icon: <WorkOutline className="text-3xl text-[#1DBF73]" />,
+  },
+  completedServices: {
+    title: "Completed Services",
+    icon: <TaskAlt className="text-3xl text-green-500" />,
+  },
+  inQueueServices: {
+    title: "In Queue Services",
+    icon: <HourglassEmpty className="text-3xl text-blue-500" />,
+  },
+  reviews: {
+    title: "Reviews",
+    icon: <RateReview className="text-3xl text-yellow-500" />,
+  },
+};
+
 const DashboardHome = () => {
   const [dashboardData, setDashboardData] = useState<DashboardResponse>();
   const [loading, setLoading] = useState(true);
   const { user } = useUser();
-  const route = useRouter();
+  const router = useRouter();
 
   const fetchDashboard = async () => {
     try {
@@ -120,30 +142,6 @@ const DashboardHome = () => {
 
   const { stats, gigStatusData, recentProjects, notifications } = dashboardData;
 
-  // convert stats into card data with icons
-  const statsCards = [
-    {
-      title: "Posted Services",
-      value: stats.postedServices,
-      icon: <WorkOutline className="text-3xl text-[#1DBF73]" />,
-    },
-    {
-      title: "Completed Services",
-      value: stats.completedServices,
-      icon: <TaskAlt className="text-3xl text-green-500" />,
-    },
-    {
-      title: "In Queue Services",
-      value: stats.inQueueServices,
-      icon: <HourglassEmpty className="text-3xl text-blue-500" />,
-    },
-    {
-      title: "Reviews",
-      value: stats.reviews,
-      icon: <RateReview className="text-3xl text-yellow-500" />,
-    },
-  ];
-
   return (
     <div className="bg-[#f0efec] p-5 md:p-10 min-h-screen">
       <motion.h1
@@ -157,21 +155,26 @@ const DashboardHome = () => {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-        {statsCards.map((stat, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: index * 0.1 }}
-            className="bg-white p-6 shadow hover:shadow-md transition-all duration-300 flex justify-between items-center"
-          >
-            <div>
-              <p className="text-gray-500 text-sm">{stat.title}</p>
-              <h4 className="text-2xl font-bold text-gray-800">{stat.value}</h4>
-            </div>
-            <div className="bg-green-50 p-3 rounded-full">{stat.icon}</div>
-          </motion.div>
-        ))}
+        {Object.entries(stats).map(([key, value], index) => {
+          const config = statsConfig[key];
+          if (!config) return null;
+
+          return (
+            <motion.div
+              key={key}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: index * 0.1 }}
+              className="bg-white p-6 shadow hover:shadow-md transition-all duration-300 flex justify-between items-center"
+            >
+              <div>
+                <p className="text-gray-500 text-sm">{config.title}</p>
+                <h4 className="text-2xl font-bold text-gray-800">{value}</h4>
+              </div>
+              <div className="bg-green-50 p-3 rounded-full">{config.icon}</div>
+            </motion.div>
+          );
+        })}
       </div>
 
       {/* Charts + Notifications */}
@@ -207,6 +210,7 @@ const DashboardHome = () => {
           </ResponsiveContainer>
         </motion.div>
 
+        {/* Notifications */}
         <div className="bg-white h-[400px] shadow p-6">
           <h2 className="text-lg font-semibold mb-4">Notifications</h2>
           <div className="max-h-80 overflow-y-auto divide-y divide-gray-200">
@@ -252,67 +256,65 @@ const DashboardHome = () => {
 
         {/* Table Rows */}
         <div className="divide-y divide-gray-200">
-          {recentProjects.map((project: RecentProject, index: number) => {
-            return (
-              <div
-                key={index}
-                className="grid grid-cols-4 gap-4 items-center px-2 py-4 text-sm"
-              >
-                {/* Title & Date */}
-                <div>
-                  <p className="font-medium text-gray-800">{project.title}</p>
-                  <p className="text-gray-500 flex items-center text-xs">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="w-4 h-4 mr-1 text-gray-400"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 
+          {recentProjects.map((project: RecentProject, index: number) => (
+            <div
+              key={index}
+              className="grid grid-cols-4 gap-4 items-center px-2 py-4 text-sm"
+            >
+              {/* Title & Date */}
+              <div>
+                <p className="font-medium text-gray-800">{project.title}</p>
+                <p className="text-gray-500 flex items-center text-xs">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-4 h-4 mr-1 text-gray-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 
                      00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
-                    </svg>
-                    {moment(project.createdAt).format("MMMM D, YYYY")}
-                  </p>
-                </div>
-
-                {/* Cost */}
-                <div className="text-gray-700 font-medium">
-                  {project.cost ? `$${project.cost}` : "--"}
-                </div>
-
-                {/* Status */}
-                <div>
-                  <span
-                    className={`px-3 py-1 rounded-md text-xs font-medium ${
-                      project.status === "Completed"
-                        ? "bg-green-100 text-green-700"
-                        : project.status === "In-Progress"
-                          ? "bg-indigo-100 text-indigo-700"
-                          : "bg-blue-100 text-blue-700"
-                    }`}
-                  >
-                    {project.status}
-                  </span>
-                </div>
-
-                {/* Actions */}
-                <div>
-                  <button
-                    onClick={() => route.push(`/gigs/${project._id}`)}
-                    className="px-3 py-1 text-green-700 bg-green-100 hover:bg-green-200 rounded-md text-xs font-medium"
-                  >
-                    View History
-                  </button>
-                </div>
+                    />
+                  </svg>
+                  {moment(project.createdAt).format("MMMM D, YYYY")}
+                </p>
               </div>
-            );
-          })}
+
+              {/* Cost */}
+              <div className="text-gray-700 font-medium">
+                {project.cost ? `$${project.cost}` : "--"}
+              </div>
+
+              {/* Status */}
+              <div>
+                <span
+                  className={`px-3 py-1 rounded-md text-xs font-medium ${
+                    project.status === "Completed"
+                      ? "bg-green-100 text-green-700"
+                      : project.status === "In-Progress"
+                        ? "bg-indigo-100 text-indigo-700"
+                        : "bg-blue-100 text-blue-700"
+                  }`}
+                >
+                  {project.status}
+                </span>
+              </div>
+
+              {/* Actions */}
+              <div>
+                <button
+                  onClick={() => router.push(`/gigs/${project._id}`)}
+                  className="px-3 py-1 text-green-700 bg-green-100 hover:bg-green-200 rounded-md text-xs font-medium"
+                >
+                  View History
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       </motion.div>
     </div>
