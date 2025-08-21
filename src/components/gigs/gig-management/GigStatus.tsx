@@ -18,13 +18,17 @@ import { toast } from "react-toastify";
 import CloseIcon from "@mui/icons-material/Close";
 import { useUser } from "@/context/UserContext";
 import PostGigReviewDialog from "./Ratings";
+import { sendNotification } from "../../../../utils/socket";
 
 interface StatusDropdownProps {
   data: GigData;
   updateGigData: (data: GigData) => void;
 }
 
-const StatusDropdown: React.FC<StatusDropdownProps> = ({ data, updateGigData }) => {
+const StatusDropdown: React.FC<StatusDropdownProps> = ({
+  data,
+  updateGigData,
+}) => {
   const [selectedStatus, setSelectedStatus] = useState(data.status);
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
   const [description, setDescription] = useState("");
@@ -97,9 +101,9 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({ data, updateGigData }) 
     setShowModal(true);
 
     if (newStatus === "Approved" || newStatus === "Rejected") {
-    setOpen(true);
-    setShowModal(false)
-  }
+      setOpen(true);
+      setShowModal(false);
+    }
   };
 
   const handleSubmit = async () => {
@@ -119,7 +123,26 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({ data, updateGigData }) 
 
       if (res.success) {
         toast.success(res?.data?.message);
-        updateGigData(res.data.data.gig)
+        updateGigData(res.data.data.gig);
+        const senderId =
+          role === "Provider"
+            ? res.data.data.bid.createdBy
+            : res.data.data.gig.createdBy;
+        const receiverId =
+          role === "Provider"
+            ? res.data.data.gig.createdBy
+            : res.data.data.bid.createdBy;
+        if (senderId && receiverId) {
+          const notification = {
+            senderId: senderId,
+            receiverId: receiverId,
+            title: `Bid Status Updated : ${pendingStatus}`,
+            message: `Gig: ${res.data.data.gig.title} - ${description}`,
+            isRead: false,
+            link: `/gigs/${res.data.data.gig._id}`,
+          };
+          await sendNotification(notification);
+        }
       } else {
         toast.error(res?.data?.message || "Something went wrong");
       }

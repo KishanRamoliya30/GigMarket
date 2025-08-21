@@ -11,6 +11,7 @@ import CustomNotFound from "@/components/notFoundModals/CustomNotFound";
 import { TableSkeleton } from "./Skeleton";
 import TagList, { TagItem } from "./Taglist";
 import ChatModal from "@/app/(protected)/chatModal/page";
+import { sendNotification } from "../../../../utils/socket";
 
 const BidListing = ({ createdByRole }: { createdByRole: string }) => {
   const [gigBids, setGigBids] = useState<Bid[]>([]);
@@ -91,14 +92,13 @@ const BidListing = ({ createdByRole }: { createdByRole: string }) => {
       bidId: string;
       clientId?: string;
     } = { status, bidId };
+    const selectedBid = gigBids.find((bid) => bid._id === bidId);
+    const clientId = selectedBid?.createdBy?._id || "";
     if (createdByRole === "Provider") {
       data = {
         status,
         bidId,
-        clientId:
-          gigBids.length > 0
-            ? gigBids.find((bid) => bid._id === bidId)?.createdBy?._id
-            : "",
+        clientId: clientId,
       };
     }
     const res = await apiRequest(
@@ -111,6 +111,30 @@ const BidListing = ({ createdByRole }: { createdByRole: string }) => {
     );
 
     if (res.success) {
+      const senderId = res.data.data.gig.createdBy;
+      const receiverId = res.data.data.bid.createdBy;
+      if (senderId && receiverId) {
+        const message =
+          createdByRole === "provider"
+            ? `${res.data.message}`
+            : `Gig: "${res.data.data.gig.title}" - Status: ${
+                status === "Not-Assigned"
+                  ? "The client has decided to proceed with another proposal"
+                  : "You have been selected for this Gig"
+              }`;
+        const notification = {
+          senderId: senderId,
+          receiverId: receiverId,
+          title:
+            status === "Not-Assigned"
+              ? "Bid Status Update: Your proposal was not selected"
+              : "Congratulations! Your bid has been accepted",
+          message: message,
+          isRead: false,
+          link: `/gigs/${res.data.data.gig._id}`,
+        };
+        await sendNotification(notification);
+      }
       getGigBids();
     }
   };
