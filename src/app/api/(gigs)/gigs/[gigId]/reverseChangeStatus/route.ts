@@ -113,7 +113,7 @@ export const PATCH = withApiHandler(
       }
 
       return successResponse(
-        clientRequest,
+        {gig: clientGig, bid: providerBid},
         `Successfully accepted ${clientName}'s request and created a new gig with bid assigned to you`
       );
     }

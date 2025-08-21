@@ -21,20 +21,18 @@ import {
 import { styled, SxProps, Theme } from "@mui/material/styles";
 import SearchIcon from "@mui/icons-material/Search";
 import MailOutlineIcon from "@mui/icons-material/MailOutline";
-import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { requestNotificationPermission } from "../../../app/utils/notificationPermission";
 import FiverrLogo from "@/components/logo";
 import { apiRequest } from "@/app/lib/apiCall";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 import ClearIcon from "@mui/icons-material/Clear";
 import NotificationModal from "@/components/user/NotificationModal";
-import Cookies from "js-cookie";
 import { CreditCard, Repeat, User, Wallet } from "lucide-react";
+import { notifySocket } from "../../../../utils/socket";
 
 const HeaderWrapper = styled(Box)(({ theme }) => ({
   display: "flex",
@@ -122,10 +120,7 @@ export default function Header() {
   const [searchTerm, setSearchTerm] = useState<string>(
     searchParams.get("search") || ""
   );
-  const [notificationOpen, setNotificationOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [notificationCount, setNotificationCount] = useState(0);
-  const notificationRef = useRef<HTMLButtonElement>(null);
   const { user, setRole, resetUser } = useUser();
   const role = user?.role;
   const _id = user?._id;
@@ -148,36 +143,11 @@ export default function Header() {
     setAnchorEl(null);
   };
 
-  useEffect(() => {
-    let isSubscribed = true;
-
-    const initializeHeader = async () => {
-      if (user?._id && isSubscribed) {
-        const token = Cookies.get("token");
-        if (token) {
-          await requestNotificationPermission(token);
-        }
-      }
-    };
-
-    initializeHeader();
-
-    const handleNewNotification = () => {
-      setNotificationCount((prev) => prev + 1);
-    };
-
-    window.addEventListener("new-notification", handleNewNotification);
-
-    return () => {
-      isSubscribed = false;
-      window.removeEventListener("new-notification", handleNewNotification);
-    };
-  }, [user?._id]);
-
   const handleLogout = async () => {
     const response = await apiRequest("logout", { method: "POST" });
-
     if (response.ok) {
+      notifySocket.emit("unregister", user?._id);
+      notifySocket.disconnect();
       resetUser();
       router.push("/");
     } else {
@@ -316,23 +286,8 @@ export default function Header() {
             </IconButton>
           </Box>
 
-          {_id && (
-            <IconButton
-              size="large"
-              aria-label="show notifications"
-              color="inherit"
-              onClick={() => {
-                setNotificationOpen(true);
-                setNotificationCount(0);
-              }}
-              ref={notificationRef}
-            >
-              <Badge badgeContent={notificationCount} color="error">
-                <NotificationsNoneIcon />
-              </Badge>
-            </IconButton>
-          )}
-          {_id && <MailOutlineIcon />}
+          {_id && <NotificationModal />}
+          {_id && <MailOutlineIcon className="cursor-pointer" />}
           {/* <FavoriteBorderIcon /> */}
           {_id && role === "Provider" && isAllCompleted && (
             <Typography
@@ -406,15 +361,10 @@ export default function Header() {
             <Box
               display="flex"
               alignItems="center"
-              gap={2}
-              sx={{ cursor: "pointer" }}
-              onClick={() => {
-                setNotificationOpen(true);
-                setIsSidebarOpen(false);
-              }}
-              ref={notificationRef}
+              gap={1}
+              sx={{ cursor: "pointer", padding: 0 }}
             >
-              <Typography>Notifications</Typography>
+              <NotificationModal title="Notifications" />
             </Box>
           )}
           <Box display="flex" alignItems="center" gap={2}>
@@ -553,13 +503,6 @@ export default function Header() {
         )}
       </Menu>
 
-      <NotificationModal
-        anchorEl={notificationRef.current}
-        open={notificationOpen}
-        onClose={() => {
-          setNotificationOpen(false);
-        }}
-      />
       <Dialog
         open={searchPopupOpen}
         onClose={toggleSearchPopup}

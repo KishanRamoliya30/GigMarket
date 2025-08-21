@@ -19,6 +19,7 @@ import { toast } from "react-toastify";
 import CloseIcon from "@mui/icons-material/Close";
 import CustomTextField from "@/components/customUi/CustomTextField";
 import { GigData } from "@/app/utils/interfaces";
+import { sendNotification } from "../../../../utils/socket";
 
 interface Props {
   open: boolean;
@@ -110,17 +111,46 @@ const PostGigReviewDialog: React.FC<Props> = ({
 
         if (res.success) {
           toast.success("Review submitted successfully.");
-          await apiRequest(`gigs/${data._id}/changeStatus`, {
-            method: "PATCH",
-            data: JSON.stringify({
-              status: pendingStatus,
-              bidId: data.assignedToBid?._id,
-              description: values.review,
-            }),
-          });
-          onClose();
-        } else {
-          toast.error(res.message || "Failed to submit review.");
+          const statusResponse = await apiRequest(
+            `gigs/${data._id}/changeStatus`,
+            {
+              method: "PATCH",
+              data: JSON.stringify({
+                status: pendingStatus,
+                bidId: data.assignedToBid?._id,
+                description: values.review,
+              }),
+            }
+          );
+
+          if (statusResponse.success) {
+            const senderId = statusResponse.data.data.gig.createdBy;
+            const receiverId = statusResponse.data.data.bid.createdBy;
+            if (senderId && receiverId) {
+              const notification = {
+                senderId: senderId,
+                receiverId: receiverId,
+                title:
+                  pendingStatus === "Approved"
+                    ? "Task Approved ✅"
+                    : "Task Needs Revision ⚠️",
+                message:
+                  pendingStatus === "Approved"
+                    ? `Great news! The client has approved your work (${statusResponse.data.data.gig.title}) . Your payment is being processed and will be released to your account soon. Keep up the excellent work!`
+                    : `The client has requested some changes to your submitted work (${statusResponse.data.data.gig.title}). Please check their feedback and make the necessary revisions to meet their requirements. Submit the updated work once complete.`,
+                isRead: false,
+                link: `/gigs/${statusResponse.data.data.gig._id}`,
+              };
+              await sendNotification(notification);
+            } else {
+              toast.error(
+                statusResponse.data.message || "Failed to update gig status"
+              );
+            }
+            onClose();
+          } else {
+            toast.error(res.message || "Failed to submit review.");
+          }
         }
       } catch (err: unknown) {
         if (err instanceof Error) {
