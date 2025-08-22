@@ -1,10 +1,10 @@
 import { NextRequest } from "next/server";
 import dbConnect from "@/app/lib/dbConnect";
 import Gig from "@/app/models/gig";
-import Notification from "@/app/models/notification";
 import { verifyToken } from "@/app/utils/jwt";
 import { successResponse } from "@/app/lib/commonHandlers";
 import { ApiError } from "@/app/lib/commonError";
+import NotificationService from "@/services/notification.service";
 
 const userStatuses = [
   "Open",
@@ -89,7 +89,6 @@ export async function GET(req: NextRequest) {
     { title: "Reviews", value: stats.reviews, iconKey: ICON_MAP.reviews },
   ];
 
-
   let allowedStatuses: string[] = [];
   if (role === "User") {
     allowedStatuses = userStatuses;
@@ -120,10 +119,7 @@ export async function GET(req: NextRequest) {
     createdAt: g.createdAt,
   }));
 
-  const notifications = await Notification.find({ userId: userDetails.userId })
-    .sort({ createdAt: -1 })
-    .limit(limit)
-    .lean();
+  const result = await NotificationService.getNotifications(req);
 
   return successResponse(
     {
@@ -131,7 +127,8 @@ export async function GET(req: NextRequest) {
       statsCards,
       gigStatusData,
       recentProjects,
-      notifications,
+      notifications: result.notifications,
+      unreadCount: result.unreadCount,
     },
     "Dashboard data fetched successfully"
   );

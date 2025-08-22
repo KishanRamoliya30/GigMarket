@@ -35,7 +35,6 @@ const COLORS: Record<string, string> = {
   Pending: "#FACC15",
 };
 
-// 🔹 config to map BE stats keys → title + icon
 const statsConfig: Record<string, { title: string; icon: JSX.Element }> = {
   postedServices: {
     title: "Posted Services",
@@ -92,7 +91,7 @@ const DashboardHome = () => {
           {Array.from({ length: 4 }).map((_, idx) => (
             <div
               key={idx}
-              className="bg-white p-6 shadow rounded-lg flex justify-between items-center"
+              className="bg-white p-6 shadow flex justify-between items-center"
             >
               <div>
                 <Skeleton variant="text" width={100} height={20} />
@@ -117,7 +116,7 @@ const DashboardHome = () => {
         </div>
 
         {/* Recent Projects */}
-        <div className="bg-white p-6 shadow rounded-lg">
+        <div className="bg-white p-6 shadow">
           <Skeleton variant="text" width={200} height={30} className="mb-4" />
           {Array.from({ length: 5 }).map((_, idx) => (
             <div key={idx} className="grid grid-cols-4 gap-4 py-3">
@@ -143,18 +142,18 @@ const DashboardHome = () => {
   const { stats, gigStatusData, recentProjects, notifications } = dashboardData;
 
   return (
-    <div className="bg-[#f0efec] p-5 md:p-10 min-h-screen">
+    <div className="bg-[#f0efec] p-4 sm:p-6 md:p-10 min-h-screen">
       <motion.h1
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="text-3xl font-bold text-gray-800 mb-8"
+        className="text-2xl sm:text-3xl font-bold text-gray-800 mb-6 sm:mb-8"
       >
         Dashboard Overview
       </motion.h1>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
         {Object.entries(stats).map(([key, value], index) => {
           const config = statsConfig[key];
           if (!config) return null;
@@ -165,27 +164,33 @@ const DashboardHome = () => {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: index * 0.1 }}
-              className="bg-white p-6 shadow hover:shadow-md transition-all duration-300 flex justify-between items-center"
+              className="bg-white p-4 sm:p-6 shadow hover:shadow-md transition-all duration-300 flex justify-between items-center"
             >
               <div>
-                <p className="text-gray-500 text-sm">{config.title}</p>
-                <h4 className="text-2xl font-bold text-gray-800">{value}</h4>
+                <p className="text-gray-500 text-xs sm:text-sm">
+                  {config.title}
+                </p>
+                <h4 className="text-xl sm:text-2xl font-bold text-gray-800">
+                  {value}
+                </h4>
               </div>
-              <div className="bg-green-50 p-3 rounded-full">{config.icon}</div>
+              <div className="bg-green-50 p-2 sm:p-3 rounded-full">
+                {config.icon}
+              </div>
             </motion.div>
           );
         })}
       </div>
 
       {/* Charts + Notifications */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="lg:col-span-2 bg-white p-6 shadow-md h-[400px] mb-10"
+          className="lg:col-span-2 bg-white p-4 sm:p-6 shadow-md h-[300px] sm:h-[400px]"
         >
-          <h3 className="text-lg font-semibold mb-4 text-gray-700">
+          <h3 className="text-base sm:text-lg font-semibold mb-4 text-gray-700">
             Gig Status Breakdown
           </h3>
 
@@ -195,7 +200,7 @@ const DashboardHome = () => {
                 data={gigStatusData}
                 dataKey="value"
                 nameKey="name"
-                outerRadius={120}
+                outerRadius={100}
                 label
               >
                 {gigStatusData.map((entry: { name: string }, index: number) => (
@@ -211,25 +216,47 @@ const DashboardHome = () => {
         </motion.div>
 
         {/* Notifications */}
-        <div className="bg-white h-[400px] shadow p-6">
-          <h2 className="text-lg font-semibold mb-4">Notifications</h2>
-          <div className="max-h-80 overflow-y-auto divide-y divide-gray-200">
+        <div className="bg-white shadow p-3 sm:p-5 flex flex-col">
+          <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">
+            Notifications
+          </h2>
+
+          <div className="flex-1 divide-y divide-gray-200">
             {notifications.length > 0 ? (
-              notifications.map((notif: Notification) => (
-                <div key={notif._id} className="px-6 py-4 hover:bg-gray-50">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-sm font-semibold text-gray-800">
-                      {notif.title}
-                    </h3>
-                    <span className="text-xs text-gray-500">
-                      {moment(notif.createdAt).format("MMM DD, YYYY hh:mm A")}
-                    </span>
+              <>
+                {notifications.slice(0, 3).map((notif: Notification) => (
+                  <div
+                    key={notif._id}
+                    className="px-2 sm:px-3 py-3 sm:py-4 hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                      <h3 className="text-sm sm:text-base font-semibold text-gray-800 break-words">
+                        {notif.title}
+                      </h3>
+                      <span className="text-xs sm:text-sm text-gray-500 whitespace-nowrap">
+                        {moment(notif.createdAt).format("MMM DD, YYYY hh:mm A")}
+                      </span>
+                    </div>
+
+                    <p className="text-xs sm:text-sm text-gray-600 mt-2 break-words leading-relaxed">
+                      {notif.message}
+                    </p>
                   </div>
-                  <p className="text-sm text-gray-600 mt-1">{notif.message}</p>
-                </div>
-              ))
+                ))}
+
+                {notifications.length > 3 && (
+                  <div className="text-center mt-3 sm:mt-4">
+                    <button
+                      onClick={() => router.push("/notifications")}
+                      className="px-3 py-1.5 text-xs sm:text-sm font-medium text-green-600 hover:text-green-700 hover:bg-green-50 rounded-md transition"
+                    >
+                      View All
+                    </button>
+                  </div>
+                )}
+              </>
             ) : (
-              <p className="text-sm text-gray-500">No notifications</p>
+              <p className="text-sm text-gray-500 px-2">No notifications</p>
             )}
           </div>
         </div>
@@ -240,14 +267,14 @@ const DashboardHome = () => {
         initial={{ opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="bg-white p-6 rounded-xl shadow-md mb-10"
+        className="bg-white p-4 sm:p-6 shadow-md mb-10"
       >
-        <h3 className="text-lg font-semibold mb-4 text-gray-700">
+        <h3 className="text-base sm:text-lg font-semibold mb-4 text-gray-700">
           Recent Service Orders
         </h3>
 
-        {/* Table Header */}
-        <div className="grid grid-cols-4 gap-4 px-2 py-3 text-sm font-semibold text-gray-600 border-b">
+        {/* Table Header (hidden on small screens) */}
+        <div className="hidden sm:grid grid-cols-4 gap-4 px-2 py-3 text-sm font-semibold text-gray-600 border-b">
           <span>Title</span>
           <span>Cost/Hrs</span>
           <span>Status</span>
@@ -259,12 +286,12 @@ const DashboardHome = () => {
           {recentProjects.map((project: RecentProject, index: number) => (
             <div
               key={index}
-              className="grid grid-cols-4 gap-4 items-center px-2 py-4 text-sm"
+              className="grid grid-cols-1 sm:grid-cols-4 gap-2 sm:gap-4 items-start sm:items-center px-2 py-3 sm:py-4 text-sm"
             >
               {/* Title & Date */}
               <div>
                 <p className="font-medium text-gray-800">{project.title}</p>
-                <p className="text-gray-500 flex items-center text-xs">
+                <p className="text-gray-500 flex items-center text-xs mt-1">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="w-4 h-4 mr-1 text-gray-400"
@@ -276,8 +303,8 @@ const DashboardHome = () => {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 
-                     00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 
+                  002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                     />
                   </svg>
                   {moment(project.createdAt).format("MMMM D, YYYY")}
@@ -292,7 +319,7 @@ const DashboardHome = () => {
               {/* Status */}
               <div>
                 <span
-                  className={`px-3 py-1 rounded-md text-xs font-medium ${
+                  className={`px-2 sm:px-3 py-1 rounded-md text-xs font-medium ${
                     project.status === "Completed"
                       ? "bg-green-100 text-green-700"
                       : project.status === "In-Progress"
@@ -308,13 +335,23 @@ const DashboardHome = () => {
               <div>
                 <button
                   onClick={() => router.push(`/gigs/${project._id}`)}
-                  className="px-3 py-1 text-green-700 bg-green-100 hover:bg-green-200 rounded-md text-xs font-medium"
+                  className="px-2 sm:px-3 py-1 text-green-700 bg-green-100 hover:bg-green-200 rounded-md text-xs font-medium"
                 >
                   View History
                 </button>
               </div>
             </div>
           ))}
+          {recentProjects.length > 5 && (
+            <div className="text-center mt-3 sm:mt-4">
+              <button
+                onClick={() => router.push("/myGigs")}
+                className="px-3 py-1.5 text-xs sm:text-sm font-medium text-green-600 hover:text-green-700 hover:bg-green-50 rounded-md transition"
+              >
+                View All
+              </button>
+            </div>
+          )}
         </div>
       </motion.div>
     </div>

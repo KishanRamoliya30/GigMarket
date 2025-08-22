@@ -96,7 +96,7 @@ export const GET = withApiHandler(async (req: NextRequest): Promise<NextResponse
           providerName: provider ? `${provider.firstName} ${provider.lastName}` : "",
           rating: parseFloat(averageRating.toFixed(1)),
           reviews: totalRatings,
-          
+          ratings          
         };
       }
       else{
