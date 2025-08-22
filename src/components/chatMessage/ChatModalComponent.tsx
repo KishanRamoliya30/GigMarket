@@ -27,7 +27,7 @@ import { Loader2 } from "lucide-react";
 import { toast } from "react-toastify";
 import { FormDataValue, objectToFormData } from "@/app/lib/commonFunctions";
 import { GigData } from "@/app/utils/interfaces";
-import PaymentPage from "@/app/(protected)/payment/page";
+import PaymentPageContent from "../payment/PaymentPageContent";
 
 interface UserProfile {
   _id: string;
@@ -922,7 +922,7 @@ const ChatModalComponent: React.FC<ChatModalProps> = ({
 
         {openPaymentRequest && PaymentDialog()}
       </Dialog>
-      <PaymentPage
+      <PaymentPageContent
         asModal
         open={openPaymentModal}
         onClose={closePaymentModal}
