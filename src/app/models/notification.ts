@@ -1,18 +1,20 @@
 import mongoose, { Document, Schema } from "mongoose";
 
 export interface INotification extends Document {
-  userId: mongoose.Types.ObjectId;
+  receiverId: string;
+  senderId: string;
   link?: string;
   title: string;
   message: string;
   isRead: boolean;
-  createdAt: Date;
   updatedAt: Date;
+  createdAt: Date;
 }
 
 const NotificationSchema = new Schema<INotification>(
   {
-    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    receiverId: { type: String, required: true },
+    senderId: { type: String, required: true },
     link: { type: String },
     title: { type: String, required: true },
     message: { type: String, required: true },
@@ -21,5 +23,8 @@ const NotificationSchema = new Schema<INotification>(
   { timestamps: true }
 );
 
-export default mongoose.models.Notification ||
+const NotificationModel =
+  mongoose.models.Notification ||
   mongoose.model<INotification>("Notification", NotificationSchema);
+
+export default NotificationModel;

@@ -9,6 +9,7 @@ import { getStatusColor } from "../../../../utils/constants";
 import { IconButton } from "@mui/material";
 import ChatIcon from "@mui/icons-material/Chat";
 import ChatModal from "@/app/(protected)/chatModal/page";
+import { sendNotification } from "../../../../utils/socket";
 
 const SubmitBid = ({
   gigDetails,
@@ -79,10 +80,7 @@ const SubmitBid = ({
                 <span className="text-sm font-medium ml-1">/ hour</span>
               )}
             </span>
-            <IconButton
-              aria-label="chat"
-              onClick={() => openChatModal()}
-            >
+            <IconButton aria-label="chat" onClick={() => openChatModal()}>
               <ChatIcon />
             </IconButton>
           </div>
@@ -311,11 +309,22 @@ const SubmitBid = ({
     apiRequest(`gigs/${gigDetails?._id}/placeBid`, {
       method: "POST",
       data: data,
-    }).then((res) => {
+    }).then(async (res) => {
       setSubmitting(false);
       if (res.ok) {
         const bid = res.data.data as Bid;
         if (gigDetails) setGigDetails({ ...gigDetails, bid: bid });
+        if (user?._id && gigDetails?.createdBy) {
+          const notification = {
+            senderId: user?._id.toString(),
+            receiverId: gigDetails?.createdBy._id.toString(),
+            title: `New Bid: ${gigDetails?.title}`,
+            isRead: false,
+            message: `Bid received for $${bid.bidAmount} ${bid.bidAmountType}`,
+            link: `/gigs/${gigDetails?._id}`,
+          };
+          await sendNotification(notification);
+        }
       } else {
         setError({ ...error, bidComment: res.message ?? "Error placing bid" });
       }
