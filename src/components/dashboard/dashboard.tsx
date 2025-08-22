@@ -91,7 +91,7 @@ const DashboardHome = () => {
           {Array.from({ length: 4 }).map((_, idx) => (
             <div
               key={idx}
-              className="bg-white p-6 shadow rounded-lg flex justify-between items-center"
+              className="bg-white p-6 shadow flex justify-between items-center"
             >
               <div>
                 <Skeleton variant="text" width={100} height={20} />
@@ -116,7 +116,7 @@ const DashboardHome = () => {
         </div>
 
         {/* Recent Projects */}
-        <div className="bg-white p-6 shadow rounded-lg">
+        <div className="bg-white p-6 shadow">
           <Skeleton variant="text" width={200} height={30} className="mb-4" />
           {Array.from({ length: 5 }).map((_, idx) => (
             <div key={idx} className="grid grid-cols-4 gap-4 py-3">
@@ -164,7 +164,7 @@ const DashboardHome = () => {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: index * 0.1 }}
-              className="bg-white p-4 sm:p-6 shadow hover:shadow-md rounded-xl transition-all duration-300 flex justify-between items-center"
+              className="bg-white p-4 sm:p-6 shadow hover:shadow-md transition-all duration-300 flex justify-between items-center"
             >
               <div>
                 <p className="text-gray-500 text-xs sm:text-sm">
@@ -188,7 +188,7 @@ const DashboardHome = () => {
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="lg:col-span-2 bg-white p-4 sm:p-6 shadow-md rounded-xl h-[300px] sm:h-[400px]"
+          className="lg:col-span-2 bg-white p-4 sm:p-6 shadow-md h-[300px] sm:h-[400px]"
         >
           <h3 className="text-base sm:text-lg font-semibold mb-4 text-gray-700">
             Gig Status Breakdown
@@ -216,7 +216,7 @@ const DashboardHome = () => {
         </motion.div>
 
         {/* Notifications */}
-        <div className="bg-white rounded-xl shadow p-3 sm:p-5 flex flex-col">
+        <div className="bg-white shadow p-3 sm:p-5 flex flex-col">
           <h2 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">
             Notifications
           </h2>
@@ -267,7 +267,7 @@ const DashboardHome = () => {
         initial={{ opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="bg-white p-4 sm:p-6 rounded-xl shadow-md mb-10"
+        className="bg-white p-4 sm:p-6 shadow-md mb-10"
       >
         <h3 className="text-base sm:text-lg font-semibold mb-4 text-gray-700">
           Recent Service Orders
@@ -342,6 +342,16 @@ const DashboardHome = () => {
               </div>
             </div>
           ))}
+          {recentProjects.length > 5 && (
+            <div className="text-center mt-3 sm:mt-4">
+              <button
+                onClick={() => router.push("/myGigs")}
+                className="px-3 py-1.5 text-xs sm:text-sm font-medium text-green-600 hover:text-green-700 hover:bg-green-50 rounded-md transition"
+              >
+                View All
+              </button>
+            </div>
+          )}
         </div>
       </motion.div>
     </div>
