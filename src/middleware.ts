@@ -175,7 +175,7 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
 
-    if (pathname.startsWith("/provider") && role !== "Provider") {
+    if (pathname==="/provider" && role !== "Provider") {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
 
