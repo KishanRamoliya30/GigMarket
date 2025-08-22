@@ -99,7 +99,7 @@ const Subscription = () => {
   return (
     <>
       <Loader loading={loading} />
-      <Box sx={{ bgcolor: "#fff", py: 8}}>
+      <Box sx={{ bgcolor: "#fff", py: 8 }}>
         <Container maxWidth="lg">
           <Typography
             style={{ marginBottom: "16px" }}
@@ -154,6 +154,9 @@ const Subscription = () => {
                         boxShadow: "0 6px 24px rgba(0,0,0,0.15)",
                         bgcolor: "#1A1F36",
                         color: "#fff",
+                        "& .cardDescription": {
+                          color: "#fff !important",
+                        },
                       },
                     }}
                   >
@@ -178,7 +181,8 @@ const Subscription = () => {
                             width: "245px",
                             height: "30px",
                             transform: "rotate(-45deg)",
-                            background: "linear-gradient(135deg, #1DBF73, #13aa60)",
+                            background:
+                              "linear-gradient(135deg, #1DBF73, #13aa60)",
                             color: "#000",
                             textAlign: "center",
                             fontSize: "13px",
@@ -210,6 +214,7 @@ const Subscription = () => {
                       </Typography>
                       <Typography
                         variant="subtitle2"
+                        className="cardDescription"
                         sx={{
                           color: isActivePlan ? "#ccc" : "text.secondary",
                           mb: 3,

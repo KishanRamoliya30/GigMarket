@@ -20,7 +20,7 @@ export async function GET(
 
   if (!gigId) throw new ApiError("Gig ID is required", 400);
 
-  const gig = await Gig.findById(gigId).populate({
+  const gig = await Gig.findById(gigId).populate('assignedToBid').populate({
     path: "createdBy",
     model: "users",
     select: "email",
