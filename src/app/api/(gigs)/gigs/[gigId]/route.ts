@@ -47,14 +47,31 @@ export async function GET(
     }).select("bidAmount description status createdAt");
   }
 
-  const ratings = await Rating.find({ gigId: gig._id })
-    .lean();
+  const ratings = await Rating.find({ gigId: gig._id }).populate({
+    path: "createdBy",
+    model: User,
+    select: "firstName lastName email profile",
+     populate: {
+    path: "profile",          
+    model: Profile,            
+    select: "profilePicture fullName",
+  },
+  });
 
   const totalRatings = ratings.length;
   const averageRating =
     totalRatings > 0
       ? ratings.reduce((sum, r) => sum + r.rating, 0) / totalRatings
       : 0;
+
+  const breakdown = [5, 4, 3, 2, 1].map((star) => {
+    const count = ratings.filter((r) => r.rating === star).length;
+    return {
+      star,
+      count,
+      percentage: totalRatings > 0 ? (count / totalRatings) * 100 : 0,
+    };
+  });
 
   return successResponse(
     {
@@ -63,6 +80,7 @@ export async function GET(
       bid: userBids ? userBids.toObject() : null,
       rating: parseFloat(averageRating.toFixed(1)),
       reviews: totalRatings,
+      breakdown,
       ratings,
       createdBy: {
         ...(gig.createdBy?.toObject?.() ?? gig.createdBy),
@@ -79,7 +97,6 @@ export async function GET(
     "Gig retrieved successfully"
   );
 }
-
 
 export async function DELETE(
   req: NextRequest,
