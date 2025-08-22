@@ -147,9 +147,9 @@ const MadeOnFiverr = () => {
                 <FavoriteBorderOutlined className="w-5 h-5 text-gray-700" />
               </button>
               <div className="p-4">
-                <p className="text-xs text-gray-500 font-medium mb-1">
+                {/* <p className="text-xs text-gray-500 font-medium mb-1">
                   Design & Creative
-                </p>
+                </p> */}
 
                 <p
                   className="inline-block text-base font-semibold text-gray-900 mb-2 line-clamp-2 

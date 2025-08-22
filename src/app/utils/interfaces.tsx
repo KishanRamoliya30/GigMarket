@@ -169,3 +169,40 @@ export interface PaymentLog {
     profilePicture?: string;
   };
 }
+
+export interface DashboardResponse {
+  // success: boolean;
+  // message: string;
+// {
+    stats: {
+      postedServices: number;
+      completedServices: number;
+      inQueueServices: number;
+      reviews: number;
+    };
+    gigStatusData: GigStatus[];
+    recentProjects: RecentProject[];
+    notifications: Notification[];
+  // };
+}
+
+export interface GigStatus {
+  name: string;
+  value: number;
+}
+
+export interface RecentProject {
+  title: string;
+  status: string;
+  createdAt: string; // ISO date string
+}
+
+export interface Notification {
+  _id?: string ;
+  userId?: string ;
+  title: string;
+  message: string;
+  isRead?: boolean;
+  createdAt: string;
+  updatedAt: string ;
+}
