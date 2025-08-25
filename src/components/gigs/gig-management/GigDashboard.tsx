@@ -1,13 +1,11 @@
 "use client";
 
 import { JSX, useCallback, useEffect, useState } from "react";
-import { Box, Pagination, Typography } from "@mui/material";
+import { Box, Pagination, Typography, MenuItem } from "@mui/material";
 import {
   AccessTime,
   Info,
   InsertChart,
-  CalendarMonth,
-  AttachMoney,
   AssignmentInd,
   Cancel,
   TaskAlt,
@@ -21,18 +19,19 @@ import { GigData } from "@/app/utils/interfaces";
 import Loader from "@/components/Loader";
 import { useUser } from "@/context/UserContext";
 import { GigStatus } from "@/app/models/gig";
+import CustomTextField from "@/components/customUi/CustomTextField";
+import { Eye } from "lucide-react";
 
-// Status arrays
 const userStatuses = [
   "Open",
   "Assigned",
   "Not-Assigned",
   "Approved",
   "Rejected",
+  "Completed",
 ];
 const providerStatuses = ["Requested", "In-Progress", "Completed"];
 
-// Icons per status
 export const statusIcons: Record<string, JSX.Element> = {
   Open: <InsertChart className="text-blue-500 mb-1" fontSize="medium" />,
   Requested: <AccessTime className="text-indigo-500 mb-1" fontSize="medium" />,
@@ -47,7 +46,6 @@ export const statusIcons: Record<string, JSX.Element> = {
 };
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState("All");
   const [gigData, setGigData] = useState<GigData[]>([]);
   const [selectedGig, setSelectedGig] = useState<GigData | null>(null);
   const [gigStatusCounts, setGigStatusCounts] = useState({
@@ -66,23 +64,27 @@ export default function Dashboard() {
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const limit = 5;
 
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+
+  const limit = 5;
   const { user } = useUser();
   const role = user?.role;
 
-  // Dynamic tabs based on role
   const roleTabs = [
     "All",
     ...(role === "User" ? userStatuses : providerStatuses),
   ];
 
-
   const fetchBidPlacedGigs = useCallback(async () => {
     try {
       setLoading(true);
+      const statusParam =
+        statusFilter !== "All" ? `&status=${statusFilter}` : "";
+
       const res = await apiRequest(
-        `gigs/bid-placed?page=${page}&limit=${limit}`,
+        `gigs/bid-placed?page=${page}&limit=${limit}&sortOrder=${sortOrder}${statusParam}`,
         {
           method: "GET",
         }
@@ -103,7 +105,7 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  }, [page]);
+  }, [page, statusFilter, sortOrder]);
 
   useEffect(() => {
     fetchBidPlacedGigs();
@@ -117,18 +119,12 @@ export default function Dashboard() {
     );
   };
 
-  const filteredGigs =
-    activeTab === "All"
-      ? gigData
-      : gigData.filter((gig) => gig.status === activeTab);
-
   if (loading) {
     return <Loader loading={loading} />;
   }
 
   return (
     <Box className="min-h-screen p-6">
-      {/* Header */}
       <div className="mb-8">
         <Typography variant="h4" className="font-bold text-gray-800 mb-1">
           Gig Management
@@ -138,7 +134,6 @@ export default function Dashboard() {
         </Typography>
       </div>
 
-      {/* Status Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 mb-8">
         {roleTabs.slice(1).map((status) => (
           <div
@@ -155,83 +150,150 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Tabs */}
-      <div className="bg-[#f6f9fc] rounded-lg flex gap-1 px-2 py-1 mb-6 overflow-x-auto">
-        {roleTabs.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`cursor-pointer px-4 py-2 text-sm font-semibold rounded-md transition-all duration-200 ${
-              activeTab === tab
-                ? "bg-white text-black shadow-sm"
-                : "text-gray-700 hover:bg-gray-100"
-            }`}
-          >
-            {tab} ({gigStatusCounts[tab as GigStatus]})
-          </button>
-        ))}
+      <div className="flex justify-end flex-wrap gap-4 mb-6">
+        <CustomTextField
+          select
+          fullWidth
+          sx={{ width: "200px" }}
+          value={statusFilter}
+          label="Status"
+          onChange={(e) => {
+            setStatusFilter(e.target.value);
+            setPage(1);
+          }}
+        >
+          <MenuItem value="All">All</MenuItem>
+          {roleTabs.slice(1).map((status) => (
+            <MenuItem key={status} value={status}>
+              {status}
+            </MenuItem>
+          ))}
+        </CustomTextField>
+
+        <CustomTextField
+          select
+          fullWidth
+          sx={{ width: "200px" }}
+          value={sortOrder}
+          label="Order"
+          onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
+        >
+          <MenuItem value="asc">Ascending</MenuItem>
+          <MenuItem value="desc">Descending</MenuItem>
+        </CustomTextField>
       </div>
 
-      {/* Gigs List */}
-      <div className="space-y-6">
-        {filteredGigs && filteredGigs.length > 0 ? (
-          filteredGigs.map((gig, idx) => {
-            return(
-            <div
-              key={idx}
-              onClick={() => {
-                setSelectedGig(gig);
-                setOpen(true);
-              }}
-              className="cursor-pointer bg-white border border-blue-100 rounded-xl px-6 py-5 shadow-sm hover:shadow-md transition"
-            >
-              <div className="flex justify-between items-start">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {gig.title}
-                </h3>
-                <span
-                  className={`px-3 py-1 text-xs font-semibold rounded-full flex items-center gap-1 ${getStatusColor(
-                    gig.status
-                  )}`}
-                >
-                  <span className="w-2 h-2 rounded-full bg-current" />
-                  {gig.status}
-                </span>
-              </div>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        {gigData && gigData.length > 0 ? (
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full table-fixed border-collapse">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600 w-1/6">
+                      Title
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600 w-2/6">
+                      Description
+                    </th>
+                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-600 w-1/6">
+                      Status
+                    </th>
+                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-600 w-1/12">
+                      Price
+                    </th>
+                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-600 w-1/6">
+                      Created At
+                    </th>
+                    <th className="px-4 py-3 text-center text-sm font-semibold text-gray-600 w-1/12">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {gigData.map((gig, idx) => (
+                    <tr key={idx} className="hover:bg-gray-50 border-t">
+                      {/* Title */}
+                      <td
+                        className="px-4 py-3 text-sm font-medium text-gray-900 cursor-pointer truncate max-w-[150px] whitespace-nowrap"
+                        onClick={() => {
+                          setSelectedGig(gig);
+                          setOpen(true);
+                        }}
+                        title={gig.title} // tooltip for full text
+                      >
+                        {gig.title}
+                      </td>
 
-              <p className="text-sm text-gray-600 my-2">{gig.description}</p>
+                      {/* Description */}
+                      <td
+                        className="px-4 py-3 text-sm text-gray-700 cursor-pointer truncate max-w-[250px] whitespace-nowrap"
+                        onClick={() => {
+                          setSelectedGig(gig);
+                          setOpen(true);
+                        }}
+                        title={gig.description}
+                      >
+                        {gig.description}
+                      </td>
 
-              <div className="grid grid-cols-2 gap-4 text-sm text-gray-700 pt-2">
-                <div className="flex items-center gap-1">
-                  <AttachMoney fontSize="small" />
-                  <span className="font-semibold">{gig.price}</span>
-                </div>
-                <div className="flex items-center gap-1 justify-end">
-                  <CalendarMonth fontSize="small" />
-                  {new Date(gig.createdAt).toLocaleDateString()}
-                </div>
-              </div>
+                      {/* Status */}
+                      <td className="px-4 py-3 text-center">
+                        <span
+                          className={`px-3 py-1 text-xs font-semibold rounded-full inline-flex items-center gap-1 ${getStatusColor(
+                            gig.status
+                          )}`}
+                        >
+                          <span className="w-2 h-2 rounded-full bg-current" />
+                          {gig.status}
+                        </span>
+                      </td>
+
+                      {/* Price */}
+                      <td className="px-4 py-3 text-center text-sm text-gray-800 font-semibold">
+                        ${gig.price}
+                      </td>
+
+                      {/* Created At */}
+                      <td className="px-4 py-3 text-center text-sm text-gray-600">
+                        {new Date(gig.createdAt).toLocaleDateString()}
+                      </td>
+
+                      {/* Actions */}
+                      <td className="px-4 py-3 text-center">
+                        <button
+                          onClick={() => {
+                            setSelectedGig(gig);
+                            setOpen(true);
+                          }}
+                          className="cursor-pointer px-3 py-1 text-sm font-medium text-green-600 hover:text-green-800 hover:underline"
+                        >
+                          <Eye />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          )})
+
+            {totalPages > 1 && (
+              <div className="flex justify-center py-4">
+                <Pagination
+                  count={totalPages}
+                  page={page}
+                  onChange={(e, value) => setPage(value)}
+                  color="primary"
+                  shape="rounded"
+                />
+              </div>
+            )}
+          </>
         ) : (
           <div className="text-center text-gray-500 py-8">No gigs found.</div>
         )}
-
-        {/* Pagination */}
-        {filteredGigs && filteredGigs.length > 0 && totalPages > 1 && (
-          <div className="flex justify-center mt-6">
-            <Pagination
-              count={totalPages}
-              page={page}
-              onChange={(e, value) => setPage(value)}
-              color="primary"
-              shape="rounded"
-            />
-          </div>
-        )}
       </div>
 
-      {/* Gig Dialog */}
       {selectedGig && (
         <GigStatusDialog
           data={selectedGig}
