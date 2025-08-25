@@ -117,7 +117,8 @@ export async function POST(request: NextRequest) {
       metadata: {
         userId: user._id.toString(),
         planName: plan.name,
-        planData: JSON.stringify(plan),
+        planId: plan._id,
+        planType: plan.type || '',
       },
     },
     success_url: successUrl,
