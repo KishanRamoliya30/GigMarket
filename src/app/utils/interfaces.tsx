@@ -91,8 +91,38 @@ export interface Gig extends Omit<GigDocument, "createdBy"> {
     userId?: string;
     certifications?: { fileName: string; url: string; name: string }[];
   };
+  breakdown: {
+    star: number;
+    count: number;
+    percentage: number;
+  }[];
+   ratings: Rating[];
   bid: Bid | null;
   bids: number;
+}
+export interface Rating {
+  _id: string;
+  rating: number;
+  review?: string;
+  createdAt: string;
+  createdBy: {
+    _id: string;
+    email: string;
+    firstName?: string;
+    lastName?: string;
+    profile?: {
+      _id: string;
+      fullName: string;
+      profilePicture: string;
+    };
+  };
+  complaint?: Complaint;
+}
+export interface Complaint {
+  issue: string;
+  improvementSuggestion: string;
+  sincerityAgreement?: boolean;
+  providerResponse?: string;
 }
 
 export interface Bid {

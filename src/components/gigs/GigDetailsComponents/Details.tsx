@@ -20,7 +20,6 @@ export const Details = ({ gigDetails }: { gigDetails: Gig }) => {
   const timeStamp = formatTimeAgo(gigDetails.createdAt);
   const { user } = useUser();
   const isUserMatch = user && user?._id == gigDetails.createdBy.userId;
-  console.log("test data123", gigDetails);
   const renderTitleSection = () => {
     return (
       <div className="flex flex-col gap-3 sm:gap-4 w-full">
@@ -116,7 +115,6 @@ export const Details = ({ gigDetails }: { gigDetails: Gig }) => {
         </h2>
 
         <div className="flex flex-col md:flex-row gap-6">
-          {/* Left side - overall rating */}
           <div className="bg-amber-50 p-6 rounded-xl flex flex-col items-center w-full md:w-1/3">
             <p className="text-4xl font-bold text-yellow-500">
               {gigDetails.rating.toFixed(1)}
@@ -126,13 +124,9 @@ export const Details = ({ gigDetails }: { gigDetails: Gig }) => {
               value={gigDetails.rating}
               precision={0.5}
               readOnly
-            />
-            <p className="text-gray-600 mt-1">
-              {gigDetails.reviews} rating{gigDetails.reviews !== 1 && "s"}
-            </p>
+            />           
           </div>
 
-          {/* Right side - breakdown */}
           <div className="flex-1 space-y-2">
             {gigDetails.breakdown.map((b) => (
               <div key={b.star} className="flex items-center gap-3">
@@ -155,7 +149,6 @@ export const Details = ({ gigDetails }: { gigDetails: Gig }) => {
           </div>
         </div>
 
-        {/* Reviews */}
         <div className="mt-8 space-y-6">
           {gigDetails.ratings.length === 0 && (
             <p className="text-gray-500">No reviews yet.</p>
@@ -186,11 +179,9 @@ export const Details = ({ gigDetails }: { gigDetails: Gig }) => {
                   </div>
                 </div>
               </div>
-
-              {/* Review Text */}
+           
               <p className="text-gray-700 leading-relaxed">{review.review}</p>
-
-              {/* Complaint Details */}
+             
               {review.complaint && (
                 <div className="mt-3 bg-gray-50 p-3 rounded-lg border border-gray-200 text-sm text-gray-600">
                   <p>
@@ -237,7 +228,7 @@ export const Details = ({ gigDetails }: { gigDetails: Gig }) => {
         </div>
         {!isUserMatch && <UserCard gigDetails={gigDetails} />}
       </div>
-      {renderRatings()}
+      {!isUserMatch && renderRatings()}
     </div>
   );
 };
