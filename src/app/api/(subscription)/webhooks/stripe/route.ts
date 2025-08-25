@@ -7,6 +7,7 @@ import User from '@/app/models/user';
 import Subscription from '@/app/models/subscription';
 import Invoice from '@/app/models/invoice';
 import { setFreePlanToUser } from '@/app/lib/subscriptionHelpers';
+import Plan from '@/app/models/plans';
 
 export async function POST(req: NextRequest) {
   await dbConnect();
@@ -27,9 +28,10 @@ export async function POST(req: NextRequest) {
 
   const data = event.data.object;
   const session = data as Stripe.Checkout.Session;
-  const planData = session.metadata?.planData
-    ? JSON.parse(session.metadata.planData)
-    : null;
+
+  const planId = session.metadata?.planId ?? null;
+
+  const planData = planId ? await Plan.findById(planId) : null;
 
   switch (event.type) {
     case 'checkout.session.completed': {

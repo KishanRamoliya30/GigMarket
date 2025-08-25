@@ -61,6 +61,7 @@ export default function CustomTextField({
 
       <TextField
         name={name}
+        id={name}
         type={isPassword ? (showPassword ? "text" : "password") : type}
         fullWidth
         value={value}
