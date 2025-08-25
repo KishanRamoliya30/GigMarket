@@ -1,18 +1,13 @@
 import { NextResponse, NextRequest } from "next/server";
 import dbConnect from "@/app/lib/dbConnect";
 import mongoose from "mongoose";
+import Plan from "@/app/models/plans";
 
 export async function GET() {
   try {
     await dbConnect();
-
-    const db = mongoose.connection.db;
-    if (!db) {
-      throw new Error("Database connection not ready");
-    }
-
-    const plans = await db.collection("plans").find().toArray();
-
+    
+    const plans = await Plan.find();
     return NextResponse.json({ success: true, data: plans });
   } catch (err) {
     console.error("Fetch plans error:", err);
