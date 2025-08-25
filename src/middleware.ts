@@ -36,7 +36,7 @@ const EXACT_PUBLIC_PATHS = new Set([
   "/dashboard",
   "/login",
   "/signup",
-  "/terms",
+  "/terms-of-service",
   "/privacy",
   "/myProfile",
   "/forgot-password",
@@ -196,5 +196,10 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/api/:path*", "/admin/:path*", "/:path*"],
+  matcher: [
+    "/api/:path*",
+    "/admin/:path*",
+    // "/((?!_next/static|_next/image|favicon.ico|images|uploads|.*\\.[a-zA-Z0-9]+$).*)",
+    "/:path",
+  ],
 };
