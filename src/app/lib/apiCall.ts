@@ -15,15 +15,19 @@ export interface ApiResponse<T> {
   ok: boolean;
   status: number;
 }
-
+  const baseURL =
+  typeof window === "undefined"
+    ? process.env.NEXT_PUBLIC_APP_URL 
+    : "";
 export async function apiRequest<T>(
   url: string,
   options: AxiosRequestConfig = {},
   isToast: boolean = false
 ): Promise<ApiResponse<T>> {
+
   try {
     const response: AxiosResponse<T> = await axios({
-      url: `/api/${url}`,
+      url: `${baseURL}/api/${url}`,
       method: options.method || "GET",
       headers: {
         "Content-Type": "application/json",

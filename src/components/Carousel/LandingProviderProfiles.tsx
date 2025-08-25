@@ -1,57 +1,32 @@
-"use client";
 import { apiRequest } from "@/app/lib/apiCall";
 import { Profile } from "@/app/utils/interfaces";
-import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
-import { ArrowRight } from "lucide-react";
+import React from "react";
 import CustomCarousel from "./CustomCarousel";
 import ProviderCard from "@/app/providers/ProviderCard";
+import ViewAllButton from "../customUi/ViewAllButton";
 
-const LandingProviderProfiles = () => {
-  const [data, setData] = useState<{
+
+const LandingProviderProfiles = async () => {
+   const res = await apiRequest<{
     profiles: Profile[];
     pagination: { total: number };
-  }>({ profiles: [], pagination: { total: 0 } });
-  const router = useRouter();
-  const [loading, setLoading] = useState<boolean>(true);
-  useEffect(() => {
-    async function getOpenGigs() {
-      try {
-        const res = await apiRequest(
-          `profile/allProfile?limit=${10}&page=${1}`,
-          {
-            method: "GET",
-          }
-        );
-        if (res.ok) {
-          setData(res.data.data);
-        }
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching gigs:", error);
-      }
-    }
-    getOpenGigs();
-  }, []);
+  }>("profile/allProfile", {
+    method: "GET",
+    params: { limit: 3, page: 1 },
+  });
 
-  const ViewAllButton = () => {
-    return (
-      <button
-        onClick={() => router.push(`/providers`)}
-        className="mt-10 mx-auto flex items-center gap-2 rounded-full bg-green-100 px-6 py-2 text-green-600 font-semibold hover:bg-green-200 transition-colors cursor-pointer"
-      >
-        All Providers <ArrowRight className="w-4 h-4" />
-      </button>
-    );
-  };
+ const data: {
+    profiles: Profile[];
+    pagination: { total: number };
+  } = res.ok ? res.data.data : { profiles: [], pagination: { total: 0 } };
 
   return (
-    <div className="py-12 px-10">
+   <div className="py-12 px-10">
       <CustomCarousel
-        loading={loading}
+        loading={false}
         data={data.profiles}
         CardComponent={ProviderCard}
-        ViewAllButtonComponent={() => ViewAllButton()}
+        ViewAllButtonComponent={ViewAllButton}
         heading="Top Providers"
         subheading="Most viewed and all-time top-rated providers"
       />
