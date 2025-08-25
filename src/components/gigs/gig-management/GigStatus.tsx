@@ -115,7 +115,7 @@ const StatusDropdown: React.FC<StatusDropdownProps> = ({
         method: "PATCH",
         data: JSON.stringify({
           status: pendingStatus,
-          bidId: data.assignedToBid?._id,
+          bidId: data?.assignedToBid?._id || data?.assignedToBid,
           description,
         }),
       });

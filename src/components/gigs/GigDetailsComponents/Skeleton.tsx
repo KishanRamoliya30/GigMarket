@@ -73,6 +73,49 @@ const Skeleton = () => {
           </div>
         </div>
 
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 w-full animate-pulse">
+          <div className="h-6 bg-gray-200 rounded w-32 mb-6"></div>
+
+          <div className="flex flex-col md:flex-row gap-6">
+            <div className="bg-gray-100 p-6 rounded-xl flex flex-col items-center w-full md:w-1/3">
+              <div className="h-10 w-16 bg-gray-200 rounded mb-3"></div>
+              <div className="flex space-x-2 mb-2">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="h-4 w-4 bg-gray-200 rounded"></div>
+                ))}
+              </div>
+              <div className="h-4 bg-gray-200 rounded w-20"></div>
+            </div>
+
+            <div className="flex-1 space-y-3">
+              {[5, 4, 3, 2, 1].map((star) => (
+                <div key={star} className="flex items-center gap-3">
+                  <div className="h-4 bg-gray-200 rounded w-12"></div>
+                  <div className="flex-1 h-2 bg-gray-200 rounded-full"></div>
+                  <div className="h-4 bg-gray-200 rounded w-10"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Single review */}
+          <div className="mt-8 border-t pt-6">
+            <div className="flex items-center gap-4 mb-3">
+              <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+              <div className="flex-1 space-y-2">
+                <div className="h-4 bg-gray-200 rounded w-32"></div>
+                <div className="h-4 bg-gray-200 rounded w-40"></div>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="h-3 bg-gray-200 rounded w-full"></div>
+              <div className="h-3 bg-gray-200 rounded w-11/12"></div>
+              <div className="h-3 bg-gray-200 rounded w-10/12"></div>
+              <div className="h-3 bg-gray-200 rounded w-8/12"></div>
+            </div>
+          </div>
+        </div>
+
         {/* UserCard Skeleton */}
         <div className="bg-white rounded-md shadow-sm p-6 max-w-sm min-w-[340px] w-full mx-auto">
           <div className="flex items-center space-x-4">
