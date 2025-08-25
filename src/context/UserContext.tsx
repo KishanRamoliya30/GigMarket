@@ -25,6 +25,8 @@ interface UserContextType {
   setUser: (user: UserType | null) => void;
   setUserProfile: (user: UserProfile) => void;
   setRole: (role: string) => void;
+  unreadCount: number;
+  setUnreadCount: (count: number) => void;
   resetUser: () => void;
 }
 
@@ -54,6 +56,7 @@ export const UserProvider = ({
     refId: "",
   })
   const [redirectUrl, setRedirectUrl] = useState<string>("");
+  const [unreadCount, setUnreadCountState] = useState<number>(0);
   const setUser = (newUser: UserType | null) => setUserState({ ...user, ...(newUser as UserType) });
   const setUserProfile = (newProfile: UserProfile) => {
     if (!user || !user._id) return;
@@ -71,6 +74,10 @@ export const UserProvider = ({
     setPaymentState(info);
   }
 
+  const setUnreadCount = (count: number) => {
+    setUnreadCountState(count);
+  }
+
   const resetUser = () => setUserState(null);
 
   return (
@@ -85,6 +92,8 @@ export const UserProvider = ({
         redirectUrl,
         setRedirectUrl,
         setUserProfile,
+        unreadCount,
+        setUnreadCount,
       }}
     >
       {children}

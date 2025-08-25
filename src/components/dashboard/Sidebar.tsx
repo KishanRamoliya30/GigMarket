@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 
 import {
@@ -16,9 +15,10 @@ import {
   Menu,
   Close,
   PersonOutline,
-  Gavel
+  Gavel,
 } from "@mui/icons-material";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
+import Link from "next/link";
 
 let menuItems = [
   { icon: <Dashboard />, label: "Dashboard", path: "/dashboard" },
@@ -31,14 +31,17 @@ let menuItems = [
   { icon: <ListAlt />, label: "Orders", path: "/dashboard" },
   { icon: <AttachMoney />, label: "Earnings", path: "/dashboard" },
   { icon: <AttachMoney />, label: "Payment History", path: "/paymentHistory" },
-  { icon: <NotificationsNone />, label: "Notifications", path: "/dashboard" },
+  {
+    icon: <NotificationsNone />,
+    label: "Notifications",
+    path: "/notifications",
+  },
   { icon: <Settings />, label: "Settings", path: "/dashboard" },
 ];
 
 const Sidebar = () => {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState("Dashboard");
-  const router = useRouter();
   const { user } = useUser();
 
   menuItems = menuItems.filter((item) =>
@@ -50,7 +53,6 @@ const Sidebar = () => {
 
   const handleItemClick = (label: string, path: string, danger?: boolean) => {
     if (!danger) setActive(label);
-    router.push(path);
     setOpen(false);
   };
 
@@ -71,9 +73,10 @@ const Sidebar = () => {
       >
         <ul className="p-4 space-y-2 overflow-y-auto max-h-[calc(100vh-128px)]">
           {menuItems.map(({ icon, label, path }) => (
-            <li
+            <Link
+              href={path}
               key={label}
-              className={`flex items-center gap-3 px-4 py-3 rounded-md text-sm font-medium cursor-pointer transition-all duration-200
+              className={`flex items-center gap-3 px-4 py-3 rounded-md text-sm font-medium transition-all duration-200
               ${
                 active === label
                   ? "bg-green-100 text-green-600"
@@ -83,7 +86,7 @@ const Sidebar = () => {
             >
               {icon}
               <span>{label}</span>
-            </li>
+            </Link>
           ))}
         </ul>
       </aside>
