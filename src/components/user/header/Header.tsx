@@ -30,7 +30,7 @@ import { apiRequest } from "@/app/lib/apiCall";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 import ClearIcon from "@mui/icons-material/Clear";
-import NotificationModal from "@/components/user/NotificationModal";
+import NotificationModal from "@/components/notification/NotificationModal";
 import { CreditCard, Repeat, User, Wallet } from "lucide-react";
 import { notifySocket } from "../../../../utils/socket";
 

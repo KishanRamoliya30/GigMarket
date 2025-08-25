@@ -236,3 +236,37 @@ export interface Notification {
   createdAt: string;
   updatedAt: string ;
 }
+//Notifications
+export interface NotificationItem {
+  _id: string;
+  title: string;
+  message: string;
+  link?: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export interface NotificationListProps {
+  notifications: NotificationItem[];
+  onMarkAsRead: (notificationId: string) => void;
+  isMarkingRead: boolean;
+  markingId?: string;
+}
+
+export interface NotificationItemProps {
+  notification: NotificationItem;
+  onMarkAsRead: (notificationId: string) => void;
+  isMarkingRead: boolean;
+  markingId?: string;
+}
+
+export interface LoadMoreIndicatorProps {
+  isFetchingNextPage: boolean;
+  hasNextPage: boolean;
+  notificationsCount: number;
+}
+
+export interface ScrollSentinelProps {
+  hasNextPage: boolean;
+  isFetchingNextPage: boolean;
+}

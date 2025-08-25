@@ -1,120 +1,56 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Badge, Paper, IconButton, Typography } from "@mui/material";
 import Popover from "@mui/material/Popover";
-import { apiRequest } from "@/app/lib/apiCall";
 import { useUser } from "@/context/UserContext";
 import { formatTimeAgo } from "../../../utils/common";
 import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
-import { requestNotificationPermission } from "@/app/utils/notificationPermission";
-import { notifySocket } from "../../../utils/socket";
-import { Bell, CheckCheck, Clock, X } from "lucide-react";
+import { ArrowRight, Bell, CheckCheck, Clock, X } from "lucide-react";
+import Link from "next/link";
+import {
+  useMarkAllAsRead,
+  useMarkNotificationAsRead,
+  useNotifications,
+} from "@/hooks/useNotifications";
+import { useNotificationSocket } from "@/hooks/useNotificationSocket";
+import { NOTIFICATIONS_LIMIT } from "./constants";
 
-interface Notification {
-  _id: string;
-  title: string;
-  message: string;
-  link?: string;
-  isRead: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
 
 export default function NotificationModal({ title }: { title?: string }) {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const notificationRef = useRef<HTMLButtonElement>(null);
-  const { user } = useUser();
+  const { unreadCount } = useUser();
 
-  useEffect(() => {
-    const initializeHeader = async () => {
-      if (user?._id) {
-        await requestNotificationPermission(user._id);
-      }
-    };
+  const { data, isLoading } = useNotifications(NOTIFICATIONS_LIMIT);
+  const notifications = data?.pages.flatMap((page) => page.notifications) || [];
+  const markAsReadMutation = useMarkNotificationAsRead();
+  const markAllAsReadMutation = useMarkAllAsRead();
 
-    initializeHeader();
-
-    notifySocket.on("newNotification", (notif) => {
-      if (notif) {
-        setUnreadCount(notif.unreadCount);
-        setNotifications((prev) => [notif, ...prev]);
-      }
-    });
-
-    return () => {
-      notifySocket.emit("unregister", user?._id);
-    };
-  }, [user?._id]);
-
+  useNotificationSocket({ limit: 10 });
+ 
   const handlePopover = (value: boolean) => {
     setNotificationOpen(value);
   };
 
-  const fetchNotifications = async () => {
-    if (!user?._id) return;
-
-    setLoading(true);
-    try {
-      const response = await apiRequest(
-        "notifications?limit=20&sortBy=createdAt&sortOrder=desc"
-      );
-      if (response.ok && response.data.data) {
-        setNotifications(response.data.data.notifications || []);
-        setUnreadCount(response.data.data.unreadCount);
+  const handleMarkAsRead = useCallback(
+    async (notificationId: string) => {
+      try {
+        await markAsReadMutation.mutateAsync(notificationId);
+      } catch (error) {
+        console.error("Error marking notification as read:", error);
       }
-    } catch (error) {
-      console.error("Error fetching notifications:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [markAsReadMutation]
+  );
 
-  const markAsRead = async (notificationId: string) => {
+  const handleMarkAllAsRead = useCallback(async () => {
     try {
-      const response = await apiRequest(`notifications?id=${notificationId}`, {
-        method: "PATCH",
-      });
-
-      const notif = notifications.find((not) => not._id === notificationId);
-
-      if (response.ok) {
-        setNotifications((prev) =>
-          prev.map((notif) =>
-            notif._id === notificationId ? { ...notif, isRead: true } : notif
-          )
-        );
-        setUnreadCount((prev) => prev - 1);
-        if (notif) window.open(notif?.link, "_blank");
-      }
-    } catch (error) {
-      console.error("Error marking notification as read:", error);
-    }
-  };
-
-  const markAllAsRead = async () => {
-    try {
-      const response = await apiRequest("notifications?markAll=true", {
-        method: "PATCH",
-      });
-
-      if (response.ok) {
-        setNotifications((prev) =>
-          prev.map((notif) => ({ ...notif, isRead: true }))
-        );
-        setUnreadCount(0);
-      }
+      await markAllAsReadMutation.mutateAsync();
     } catch (error) {
       console.error("Error marking all notifications as read:", error);
     }
-  };
-
-  useEffect(() => {
-    fetchNotifications();
-  }, [notificationOpen]);
+  }, [markAllAsReadMutation]);
 
   const renderPopover = () => {
     return (
@@ -148,7 +84,7 @@ export default function NotificationModal({ title }: { title?: string }) {
               <div className="flex items-center space-x-3">
                 {unreadCount > 0 && (
                   <button
-                    onClick={markAllAsRead}
+                    onClick={handleMarkAllAsRead}
                     className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-green-600 hover:text-green-700 transition-colors rounded-full hover:bg-green-50 cursor-pointer"
                   >
                     <CheckCheck className="h-3.5 w-3.5" />
@@ -165,8 +101,8 @@ export default function NotificationModal({ title }: { title?: string }) {
             </div>
           </div>
 
-          <div className="overflow-y-auto overscroll-contain scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400 max-h-[calc(100vh)]">
-            {loading ? (
+          <div className="overflow-y-auto overscroll-contain scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 hover:scrollbar-thumb-gray-400 ">
+            {isLoading ? (
               <div className="flex justify-center items-center p-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-3 border-green-500 border-t-transparent" />
               </div>
@@ -179,7 +115,7 @@ export default function NotificationModal({ title }: { title?: string }) {
               <ul className="divide-y divide-gray-100">
                 {notifications.map((notification) => (
                   <li
-                    key={notification._id}
+                    key={`modal-${notification._id}`}
                     className={`group transition-colors ${
                       notification.isRead
                         ? "bg-white hover:bg-gray-50"
@@ -189,8 +125,7 @@ export default function NotificationModal({ title }: { title?: string }) {
                     <button
                       onClick={() => {
                         if (!notification.isRead) {
-                          markAsRead(notification._id);
-                          // setUnreadCount(unreadCount - 1);
+                          handleMarkAsRead(notification._id);
                         } else {
                           if (notification.link) {
                             window.open(notification.link, "_blank");
@@ -200,15 +135,17 @@ export default function NotificationModal({ title }: { title?: string }) {
                       className="w-full px-5 py-4 transition-colors cursor-pointer"
                     >
                       <div className="flex items-center">
-                        {!notification.isRead && (
+                        {!notification.isRead ? (
                           <span className="w-2 h-2 rounded-full bg-green-600 animate-pulse mr-2" />
+                        ) : (
+                          <span className="w-2 h-2 rounded-full bg-gray-300 mr-2" />
                         )}
                         <span
                           className={`text-sm ${
                             notification.isRead
                               ? "font-normal"
                               : "font-semibold"
-                          } text-gray-900 line-clamp-1 group-hover:text-green-600 transition-colors`}
+                          } text-gray-900 text-left line-clamp-1 group-hover:text-green-600 transition-colors`}
                         >
                           {notification.title}
                         </span>
@@ -232,6 +169,21 @@ export default function NotificationModal({ title }: { title?: string }) {
                     </button>
                   </li>
                 ))}
+                {notifications.length >= 10 && (
+                  <li
+                    key="view"
+                    className="group transition-colors bg-white border-t border-gray-100"
+                    onClick={() => setNotificationOpen(false)}
+                  >
+                    <Link
+                      href="/notifications"
+                      className="flex items-center justify-center gap-2 py-3 px-4 text-sm font-semibold text-gray-700 hover:text-green-600 transition-all duration-200 group-hover:bg-gray-50"
+                    >
+                      <span>View All Notifications</span>
+                      <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                    </Link>
+                  </li>
+                )}
               </ul>
             )}
           </div>
@@ -252,7 +204,11 @@ export default function NotificationModal({ title }: { title?: string }) {
         }}
         ref={notificationRef}
       >
-        {title && <Typography className="pr-2" style={{ marginLeft: "-5px"}}>{title}</Typography>}
+        {title && (
+          <Typography className="pr-2" style={{ marginLeft: "-5px" }}>
+            {title}
+          </Typography>
+        )}
         <Badge badgeContent={unreadCount} color="error">
           <NotificationsNoneIcon />
         </Badge>
